@@ -1,48 +1,6 @@
 import Phaser from 'phaser';
 import { PROJECTILES } from '../config/units.js';
-
-// Ensure shared particle textures exist
-function ensureTextures(scene) {
-  if (!scene.textures.exists('flare')) {
-    const c = scene.textures.createCanvas('flare', 16, 16);
-    const ctx = c.getContext();
-    const g = ctx.createRadialGradient(8, 8, 0, 8, 8, 8);
-    g.addColorStop(0, 'rgba(255,255,255,1)');
-    g.addColorStop(1, 'rgba(255,255,255,0)');
-    ctx.fillStyle = g;
-    ctx.fillRect(0, 0, 16, 16);
-    c.refresh();
-  }
-  if (!scene.textures.exists('smoke')) {
-    const c = scene.textures.createCanvas('smoke', 16, 16);
-    const ctx = c.getContext();
-    const g = ctx.createRadialGradient(8, 8, 0, 8, 8, 8);
-    g.addColorStop(0, 'rgba(120,120,120,0.8)');
-    g.addColorStop(0.5, 'rgba(80,80,80,0.4)');
-    g.addColorStop(1, 'rgba(40,40,40,0)');
-    ctx.fillStyle = g;
-    ctx.fillRect(0, 0, 16, 16);
-    c.refresh();
-  }
-  if (!scene.textures.exists('fire')) {
-    const c = scene.textures.createCanvas('fire', 16, 16);
-    const ctx = c.getContext();
-    const g = ctx.createRadialGradient(8, 8, 0, 8, 8, 8);
-    g.addColorStop(0, 'rgba(255,200,50,1)');
-    g.addColorStop(0.4, 'rgba(255,100,20,0.8)');
-    g.addColorStop(1, 'rgba(255,50,0,0)');
-    ctx.fillStyle = g;
-    ctx.fillRect(0, 0, 16, 16);
-    c.refresh();
-  }
-  if (!scene.textures.exists('debris')) {
-    const c = scene.textures.createCanvas('debris', 6, 6);
-    const ctx = c.getContext();
-    ctx.fillStyle = '#555555';
-    ctx.fillRect(1, 1, 4, 4);
-    c.refresh();
-  }
-}
+import { ensureTextures } from '../utils/textures.js';
 
 export class MissileLauncher extends Phaser.GameObjects.Container {
   constructor(scene, x, y, stats) {
@@ -51,13 +9,14 @@ export class MissileLauncher extends Phaser.GameObjects.Container {
     this.stats = stats;
     this.hp = stats.hp;
     this.lastFired = 0;
+    this._timers = [];
+    this._frameCount = 0;
 
     ensureTextures(scene);
 
-    // --- Base platform (hexagonal fortification) ---
-    this.baseGfx = scene.add.graphics();
-    this._drawBase(this.baseGfx);
-    this.add(this.baseGfx);
+    // --- Base platform (truck body sprite) ---
+    this.bodySprite = scene.add.image(0, 0, 'spr_missile_launcher_body').setOrigin(0.5);
+    this.add(this.bodySprite);
 
     // --- Range circle with animated dashed line ---
     this.rangeGfx = scene.add.graphics();
@@ -65,26 +24,24 @@ export class MissileLauncher extends Phaser.GameObjects.Container {
     this._drawRangeCircle();
     this.add(this.rangeGfx);
 
-    // Red warning glow (pulsing)
+    // Red warning glow (pulsing) — draw once, animate alpha
     this.warningGlow = scene.add.graphics();
-    this.warningGlowAlpha = 0.15;
-    this._drawWarningGlow();
+    this.warningGlow.fillStyle(0xf44336, 0.25);
+    this.warningGlow.fillCircle(0, 0, 22);
+    this.add(this.warningGlow);
 
     scene.tweens.add({
-      targets: this,
-      warningGlowAlpha: { from: 0.05, to: 0.25 },
+      targets: this.warningGlow,
+      alpha: { from: 0.05, to: 0.25 },
       duration: 1200,
       yoyo: true,
       repeat: -1,
       ease: 'Sine.easeInOut',
-      onUpdate: () => this._drawWarningGlow(),
     });
-    this.add(this.warningGlow);
 
-    // --- Launcher barrel (rotates toward target) ---
-    this.launcherGfx = scene.add.graphics();
-    this._drawLauncher(this.launcherGfx);
-    this.add(this.launcherGfx);
+    // --- Launcher rail (rotates toward target) ---
+    this.railSprite = scene.add.image(4, -4, 'spr_missile_launcher_rail').setOrigin(0.1, 0.5);
+    this.add(this.railSprite);
 
     // --- HP bar ---
     this.hpBarBg = scene.add.rectangle(0, -28, 36, 5, 0x000000, 0.5).setOrigin(0.5);
@@ -98,69 +55,6 @@ export class MissileLauncher extends Phaser.GameObjects.Container {
     scene.physics.add.existing(this, true);
     if (this.body) this.body.setCircle(18, -18, -18);
     this.setDepth(4);
-  }
-
-  _drawBase(gfx) {
-    gfx.clear();
-
-    // Hexagonal base platform
-    const r = 16;
-    gfx.fillStyle(0x4a1a1a, 0.85);
-    gfx.beginPath();
-    for (let i = 0; i < 6; i++) {
-      const angle = (Math.PI / 3) * i - Math.PI / 6;
-      const px = Math.cos(angle) * r;
-      const py = Math.sin(angle) * r;
-      if (i === 0) gfx.moveTo(px, py);
-      else gfx.lineTo(px, py);
-    }
-    gfx.closePath();
-    gfx.fillPath();
-
-    // Hexagon border
-    gfx.lineStyle(1.5, 0xf44336, 0.6);
-    gfx.beginPath();
-    for (let i = 0; i < 6; i++) {
-      const angle = (Math.PI / 3) * i - Math.PI / 6;
-      const px = Math.cos(angle) * r;
-      const py = Math.sin(angle) * r;
-      if (i === 0) gfx.moveTo(px, py);
-      else gfx.lineTo(px, py);
-    }
-    gfx.closePath();
-    gfx.strokePath();
-
-    // Inner details (sandbag circles at corners)
-    gfx.fillStyle(0x5d4037, 0.5);
-    for (let i = 0; i < 6; i++) {
-      const angle = (Math.PI / 3) * i - Math.PI / 6;
-      const px = Math.cos(angle) * (r - 3);
-      const py = Math.sin(angle) * (r - 3);
-      gfx.fillCircle(px, py, 2.5);
-    }
-
-    // Center pad
-    gfx.fillStyle(0x333333, 0.8);
-    gfx.fillCircle(0, 0, 6);
-    gfx.lineStyle(0.8, 0xf44336, 0.4);
-    gfx.strokeCircle(0, 0, 6);
-  }
-
-  _drawLauncher(gfx) {
-    gfx.clear();
-    // Launcher tube
-    gfx.fillStyle(0x5d4037, 0.9);
-    gfx.fillRect(0, -2.5, 14, 5);
-    // Tube opening
-    gfx.fillStyle(0x333333, 1);
-    gfx.fillCircle(14, 0, 2.5);
-    // Tube end cap
-    gfx.fillStyle(0x4e342e, 0.9);
-    gfx.fillRect(-2, -3.5, 4, 7);
-    // Cross-hatch detail
-    gfx.lineStyle(0.5, 0xf44336, 0.3);
-    gfx.lineBetween(2, -2, 12, -2);
-    gfx.lineBetween(2, 2, 12, 2);
   }
 
   _drawRangeCircle() {
@@ -186,28 +80,24 @@ export class MissileLauncher extends Phaser.GameObjects.Container {
     }
   }
 
-  _drawWarningGlow() {
-    if (!this.warningGlow || !this.warningGlow.active) return;
-    this.warningGlow.clear();
-    this.warningGlow.fillStyle(0xf44336, this.warningGlowAlpha);
-    this.warningGlow.fillCircle(0, 0, 22);
-  }
-
   update() {
     const now = this.scene.time.now;
 
-    // Slowly rotate the dashed range circle
-    this._dashOffset += 0.003;
-    if (this._dashOffset > Math.PI * 2) this._dashOffset -= Math.PI * 2;
-    this._drawRangeCircle();
+    // Throttle range circle redraw to every 5th frame
+    this._frameCount++;
+    if (this._frameCount % 5 === 0) {
+      this._dashOffset += 0.015;
+      if (this._dashOffset > Math.PI * 2) this._dashOffset -= Math.PI * 2;
+      this._drawRangeCircle();
+    }
 
     // Find target and rotate launcher toward it
     const target = this.findNearestShip();
-    if (target && this.launcherGfx && this.launcherGfx.active) {
+    if (target && this.railSprite && this.railSprite.active) {
       const dx = target.x - this.x;
       const dy = target.y - this.y;
       const angle = Math.atan2(dy, dx) * (180 / Math.PI);
-      this.launcherGfx.angle = angle;
+      this.railSprite.angle = angle - this.angle;
     }
 
     if (now - this.lastFired < this.stats.fireRate) return;
@@ -268,7 +158,10 @@ export class MissileLauncher extends Phaser.GameObjects.Container {
       });
       smoke.setDepth(11);
       smoke.explode(5);
-      this.scene.time.delayedCall(700, () => { if (smoke && smoke.active) smoke.destroy(); });
+      this.scene.time.delayedCall(700, () => {
+        if (!this.scene || !this.scene.sys?.isActive()) return;
+        if (smoke && smoke.active) smoke.destroy();
+      });
     }
 
     // Fire sparks in firing direction
@@ -284,11 +177,14 @@ export class MissileLauncher extends Phaser.GameObjects.Container {
       });
       sparks.setDepth(12);
       sparks.explode(5);
-      this.scene.time.delayedCall(400, () => { if (sparks && sparks.active) sparks.destroy(); });
+      this.scene.time.delayedCall(400, () => {
+        if (!this.scene || !this.scene.sys?.isActive()) return;
+        if (sparks && sparks.active) sparks.destroy();
+      });
     }
 
     // Shake the launcher slightly on fire
-    if (this.baseGfx && this.baseGfx.active) {
+    if (this.bodySprite && this.bodySprite.active) {
       this.scene.tweens.add({
         targets: this,
         x: this.x + dirX * -2,
@@ -306,7 +202,7 @@ export class MissileLauncher extends Phaser.GameObjects.Container {
     let nearestDist = this.stats.range;
 
     for (const ship of ships) {
-      if (!ship.active || !ship.alive) continue;
+      if (!ship.active || !ship.alive || ship.isSubmerged) continue;
       const dist = Phaser.Math.Distance.Between(this.x, this.y, ship.x, ship.y);
       if (dist < nearestDist) {
         nearestDist = dist;
@@ -323,9 +219,9 @@ export class MissileLauncher extends Phaser.GameObjects.Container {
     this.hpBar.fillColor = pct > 0.5 ? 0x4caf50 : pct > 0.25 ? 0xffeb3b : 0xf44336;
 
     // Flash on damage
-    if (this.baseGfx && this.baseGfx.active) {
+    if (this.bodySprite && this.bodySprite.active) {
       this.scene.tweens.add({
-        targets: this.baseGfx,
+        targets: this.bodySprite,
         alpha: { from: 0.3, to: 1 },
         duration: 100,
         yoyo: true,
@@ -346,7 +242,10 @@ export class MissileLauncher extends Phaser.GameObjects.Container {
       });
       sparks.setDepth(12);
       sparks.explode(3);
-      this.scene.time.delayedCall(400, () => { if (sparks && sparks.active) sparks.destroy(); });
+      this.scene.time.delayedCall(400, () => {
+        if (!this.scene || !this.scene.sys?.isActive()) return;
+        if (sparks && sparks.active) sparks.destroy();
+      });
     }
 
     if (this.hp <= 0) {
@@ -427,9 +326,16 @@ export class MissileLauncher extends Phaser.GameObjects.Container {
 
     // Cleanup
     this.scene.time.delayedCall(2200, () => {
+      if (!this.scene || !this.scene.sys?.isActive()) return;
       if (fire && fire.active) fire.destroy();
       if (smoke && smoke.active) smoke.destroy();
       if (debris && debris.active) debris.destroy();
     });
+  }
+
+  destroy(fromScene) {
+    this._timers?.forEach(t => { if (t) t.remove(false); });
+    this._timers = [];
+    super.destroy(fromScene);
   }
 }
