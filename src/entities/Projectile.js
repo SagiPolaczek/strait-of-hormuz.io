@@ -1,40 +1,5 @@
 import Phaser from 'phaser';
-
-// Ensure shared particle textures exist
-function ensureTextures(scene) {
-  if (!scene.textures.exists('flare')) {
-    const c = scene.textures.createCanvas('flare', 16, 16);
-    const ctx = c.getContext();
-    const g = ctx.createRadialGradient(8, 8, 0, 8, 8, 8);
-    g.addColorStop(0, 'rgba(255,255,255,1)');
-    g.addColorStop(1, 'rgba(255,255,255,0)');
-    ctx.fillStyle = g;
-    ctx.fillRect(0, 0, 16, 16);
-    c.refresh();
-  }
-  if (!scene.textures.exists('smoke')) {
-    const c = scene.textures.createCanvas('smoke', 16, 16);
-    const ctx = c.getContext();
-    const g = ctx.createRadialGradient(8, 8, 0, 8, 8, 8);
-    g.addColorStop(0, 'rgba(120,120,120,0.8)');
-    g.addColorStop(0.5, 'rgba(80,80,80,0.4)');
-    g.addColorStop(1, 'rgba(40,40,40,0)');
-    ctx.fillStyle = g;
-    ctx.fillRect(0, 0, 16, 16);
-    c.refresh();
-  }
-  if (!scene.textures.exists('fire')) {
-    const c = scene.textures.createCanvas('fire', 16, 16);
-    const ctx = c.getContext();
-    const g = ctx.createRadialGradient(8, 8, 0, 8, 8, 8);
-    g.addColorStop(0, 'rgba(255,200,50,1)');
-    g.addColorStop(0.4, 'rgba(255,100,20,0.8)');
-    g.addColorStop(1, 'rgba(255,50,0,0)');
-    ctx.fillStyle = g;
-    ctx.fillRect(0, 0, 16, 16);
-    c.refresh();
-  }
-}
+import { ensureTextures } from '../utils/textures.js';
 
 export class Projectile extends Phaser.GameObjects.Container {
   constructor(scene, x, y, target, config, side) {
@@ -52,30 +17,10 @@ export class Projectile extends Phaser.GameObjects.Container {
     const glowColor = isIRGC ? 0xff6600 : 0x82b1ff;
     const trailColor = isIRGC ? 0xff4400 : 0x64b5f6;
 
-    // --- Missile body drawn with graphics ---
-    this.bodyGfx = scene.add.graphics();
-
-    // Glow around missile
-    this.bodyGfx.fillStyle(glowColor, 0.3);
-    this.bodyGfx.fillCircle(0, 0, config.radius * 2.5);
-
-    // Missile body (elongated shape)
-    this.bodyGfx.fillStyle(bodyColor, 1);
-    this.bodyGfx.beginPath();
-    this.bodyGfx.moveTo(config.radius * 1.5, 0);           // nose
-    this.bodyGfx.lineTo(config.radius * 0.5, -config.radius * 0.6);
-    this.bodyGfx.lineTo(-config.radius * 1.2, -config.radius * 0.5);
-    this.bodyGfx.lineTo(-config.radius * 1.5, 0);
-    this.bodyGfx.lineTo(-config.radius * 1.2, config.radius * 0.5);
-    this.bodyGfx.lineTo(config.radius * 0.5, config.radius * 0.6);
-    this.bodyGfx.closePath();
-    this.bodyGfx.fillPath();
-
-    // Bright core
-    this.bodyGfx.fillStyle(0xffffff, 0.8);
-    this.bodyGfx.fillCircle(0, 0, config.radius * 0.4);
-
-    this.add(this.bodyGfx);
+    // --- Missile body as sprite ---
+    const textureKey = side === 'irgc' ? 'spr_proj_missile' : 'spr_proj_shell';
+    this.bodySprite = scene.add.image(0, 0, textureKey).setOrigin(0.5);
+    this.add(this.bodySprite);
 
     // Trail particle emitter
     this.trailEmitter = scene.add.particles(x, y, 'flare', {
@@ -104,7 +49,7 @@ export class Projectile extends Phaser.GameObjects.Container {
 
     // Pulsing glow
     scene.tweens.add({
-      targets: this.bodyGfx,
+      targets: this.bodySprite,
       alpha: { from: 0.7, to: 1 },
       duration: 100,
       yoyo: true,
@@ -128,7 +73,9 @@ export class Projectile extends Phaser.GameObjects.Container {
 
     if (dist < 15) {
       this._onImpact();
-      this.target.takeDamage(this.damage);
+      if (this.target?.active) {
+        this.target.takeDamage(this.damage);
+      }
       this.cleanDestroy();
       return;
     }
@@ -215,15 +162,30 @@ export class Projectile extends Phaser.GameObjects.Container {
   }
 
   cleanDestroy() {
-    if (this.trailEmitter && this.trailEmitter.active) {
+    if (this.trailEmitter?.active) {
       this.trailEmitter.stop();
-      // Let remaining trail particles finish, then destroy
-      this.scene.time.delayedCall(500, () => { if (this.trailEmitter && this.trailEmitter.active) this.trailEmitter.destroy(); });
+      this.trailEmitter.destroy();
+      this.trailEmitter = null;
     }
-    if (this.smokeTrail && this.smokeTrail.active) {
+    if (this.smokeTrail?.active) {
       this.smokeTrail.stop();
-      this.scene.time.delayedCall(600, () => { if (this.smokeTrail && this.smokeTrail.active) this.smokeTrail.destroy(); });
+      this.smokeTrail.destroy();
+      this.smokeTrail = null;
     }
     this.destroy();
+  }
+
+  destroy(fromScene) {
+    if (this.trailEmitter?.active) {
+      this.trailEmitter.stop();
+      this.trailEmitter.destroy();
+      this.trailEmitter = null;
+    }
+    if (this.smokeTrail?.active) {
+      this.smokeTrail.stop();
+      this.smokeTrail.destroy();
+      this.smokeTrail = null;
+    }
+    super.destroy(fromScene);
   }
 }
