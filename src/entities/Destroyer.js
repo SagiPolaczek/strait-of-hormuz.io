@@ -8,106 +8,29 @@ export class Destroyer extends Ship {
     this.lastFired = 0;
     this.currentTarget = null;
 
-    // Radar dish (small rotating line on top of bridge)
+    // Radar dish (lightweight graphics — not worth a texture)
     this.radarGfx = scene.add.graphics();
-    this.radarGfx.lineStyle(1.5, 0x42a5f5, 0.7);
-    this.radarGfx.lineBetween(0, 0, 6, 0);
-    this.radarGfx.fillStyle(0x42a5f5, 0.8);
-    this.radarGfx.fillCircle(0, 0, 1.5);
+    this.radarGfx.lineStyle(1, 0x82b1ff, 0.6);
+    this.radarGfx.lineBetween(0, 0, 0, -6);
     this.add(this.radarGfx);
-
-    // Animate radar rotating
     scene.tweens.add({
       targets: this.radarGfx,
       angle: 360,
       duration: 2000,
       repeat: -1,
-      ease: 'Linear',
     });
 
-    // Gun turret (rotates toward target)
-    this.turretGfx = scene.add.graphics();
-    this._drawTurret(this.turretGfx);
-    this.turretGfx.x = 8; // positioned near bow
-    this.add(this.turretGfx);
+    // Gun turret (sprite, rotates toward target)
+    this.turretSprite = scene.add.image(8, 0, 'spr_destroyer_turret').setOrigin(0.37, 0.5);
+    this.add(this.turretSprite);
   }
 
-  // Override hull for sleek military destroyer
-  _drawHull(gfx) {
-    gfx.clear();
-
-    // Sleek angular hull (narrower, more angular)
-    gfx.fillStyle(0x546e7a, 0.95);
-    gfx.beginPath();
-    gfx.moveTo(20, 0);       // sharp bow
-    gfx.lineTo(12, -7);      // upper bow
-    gfx.lineTo(-12, -6);     // upper stern
-    gfx.lineTo(-16, -3);     // stern taper
-    gfx.lineTo(-16, 3);      // stern taper
-    gfx.lineTo(-12, 6);      // lower stern
-    gfx.lineTo(12, 7);       // lower bow
-    gfx.closePath();
-    gfx.fillPath();
-
-    // Hull outline
-    gfx.lineStyle(1.2, 0x90a4ae, 0.8);
-    gfx.beginPath();
-    gfx.moveTo(20, 0);
-    gfx.lineTo(12, -7);
-    gfx.lineTo(-12, -6);
-    gfx.lineTo(-16, -3);
-    gfx.lineTo(-16, 3);
-    gfx.lineTo(-12, 6);
-    gfx.lineTo(12, 7);
-    gfx.closePath();
-    gfx.strokePath();
-
-    // Blue accent stripe along the hull
-    gfx.lineStyle(1.5, 0x2196f3, 0.6);
-    gfx.beginPath();
-    gfx.moveTo(18, 0);
-    gfx.lineTo(12, -5.5);
-    gfx.lineTo(-10, -4.5);
-    gfx.strokePath();
-    gfx.beginPath();
-    gfx.moveTo(18, 0);
-    gfx.lineTo(12, 5.5);
-    gfx.lineTo(-10, 4.5);
-    gfx.strokePath();
-
-    // Bridge/superstructure
-    gfx.fillStyle(0x607d8b, 0.9);
-    gfx.fillRect(-4, -3.5, 10, 7);
-    gfx.lineStyle(0.8, 0x78909c, 0.6);
-    gfx.strokeRect(-4, -3.5, 10, 7);
-
-    // Bridge windows (small bright rectangles)
-    gfx.fillStyle(0xb3e5fc, 0.7);
-    gfx.fillRect(-2, -2, 2, 1.5);
-    gfx.fillRect(1, -2, 2, 1.5);
-    gfx.fillRect(4, -2, 2, 1.5);
-
-    // Funnel
-    gfx.fillStyle(0x455a64, 0.9);
-    gfx.fillRect(-8, -3, 3, 6);
-
-    // Antenna mast
-    gfx.lineStyle(1, 0x78909c, 0.6);
-    gfx.lineBetween(0, -3.5, 0, -8);
-    gfx.lineBetween(-1, -7, 1, -7);
+  getEffectiveDamage() {
+    return Math.floor(this.stats.damage * (1 + 0.3 * (this.upgrades.DAMAGE || 0)));
   }
 
-  _drawTurret(gfx) {
-    gfx.clear();
-    // Turret base (circle)
-    gfx.fillStyle(0x455a64, 0.9);
-    gfx.fillCircle(0, 0, 3);
-    // Gun barrel
-    gfx.fillStyle(0x37474f, 1);
-    gfx.fillRect(0, -1, 8, 2);
-    // Barrel tip
-    gfx.fillStyle(0x263238, 1);
-    gfx.fillRect(7, -1.2, 2, 2.4);
+  getEffectiveFireRate() {
+    return Math.floor(this.stats.fireRate * (1 - 0.2 * (this.upgrades.FIRE_RATE || 0)));
   }
 
   update() {
@@ -121,29 +44,30 @@ export class Destroyer extends Ship {
     this.currentTarget = target;
 
     // Rotate turret toward target (in local coordinates)
-    if (target && this.turretGfx && this.turretGfx.active) {
+    if (target && this.turretSprite && this.turretSprite.active) {
       const dx = target.x - this.x;
       const dy = target.y - this.y;
       const worldAngle = Math.atan2(dy, dx) * (180 / Math.PI);
       // Turret angle is relative to the ship's rotation
-      this.turretGfx.angle = worldAngle - this.angle;
+      this.turretSprite.angle = worldAngle - this.angle;
     }
 
-    if (now - this.lastFired < this.stats.fireRate) return;
+    if (now - this.lastFired < this.getEffectiveFireRate()) return;
 
     if (target) {
       this.lastFired = now;
       this._muzzleFlash();
-      this.scene.fireProjectile(this.x, this.y, target, PROJECTILES.DESTROYER_SHELL, 'coalition');
+      const config = { ...PROJECTILES.DESTROYER_SHELL, damage: this.getEffectiveDamage() };
+      this.scene.fireProjectile(this.x, this.y, target, config, 'coalition');
     }
   }
 
   _muzzleFlash() {
-    if (!this.scene) return;
+    if (!this.scene || !this.turretSprite?.active) return;
 
     // Calculate muzzle position in world space (end of turret barrel)
     const shipRad = this.rotation;
-    const turretRad = this.turretGfx.rotation + shipRad;
+    const turretRad = this.turretSprite.rotation + shipRad;
     const muzzleX = this.x + Math.cos(turretRad) * 16;
     const muzzleY = this.y + Math.sin(turretRad) * 16;
 
@@ -171,7 +95,10 @@ export class Destroyer extends Ship {
       });
       sparks.setDepth(12);
       sparks.explode(4);
-      this.scene.time.delayedCall(300, () => { if (sparks && sparks.active) sparks.destroy(); });
+      this.scene.time.delayedCall(300, () => {
+        if (!this.scene || !this.scene.sys?.isActive()) return;
+        if (sparks && sparks.active) sparks.destroy();
+      });
     }
 
     // Small smoke puff
@@ -187,23 +114,40 @@ export class Destroyer extends Ship {
       });
       puff.setDepth(11);
       puff.explode(3);
-      this.scene.time.delayedCall(500, () => { if (puff && puff.active) puff.destroy(); });
+      this.scene.time.delayedCall(500, () => {
+        if (!this.scene || !this.scene.sys?.isActive()) return;
+        if (puff && puff.active) puff.destroy();
+      });
     }
   }
 
   findNearestEnemy() {
-    const launchers = this.scene.irgcTowers?.getChildren() || [];
     let nearest = null;
     let nearestDist = this.stats.range;
 
-    for (const launcher of launchers) {
-      if (!launcher.active) continue;
-      const dist = Phaser.Math.Distance.Between(this.x, this.y, launcher.x, launcher.y);
-      if (dist < nearestDist) {
-        nearestDist = dist;
-        nearest = launcher;
-      }
+    // Target IRGC towers
+    for (const t of this.scene.irgcTowers?.getChildren() || []) {
+      if (!t.active) continue;
+      const dist = Phaser.Math.Distance.Between(this.x, this.y, t.x, t.y);
+      if (dist < nearestDist) { nearestDist = dist; nearest = t; }
     }
+
+    // Target detected mines (priority — they're an immediate threat)
+    for (const m of this.scene.mines?.getChildren() || []) {
+      if (!m.active || !m.detected || m.detonated) continue;
+      const dist = Phaser.Math.Distance.Between(this.x, this.y, m.x, m.y);
+      if (dist < nearestDist) { nearestDist = dist; nearest = m; }
+    }
+
+    // Target IRGC boats (fast boats + surfaced/detected subs)
+    for (const b of this.scene.irgcBoats?.getChildren() || []) {
+      if (!b.active || !b.alive) continue;
+      // Submarines: only target if surfaced or detected
+      if (b.isSub && b.submerged && !b.detected) continue;
+      const dist = Phaser.Math.Distance.Between(this.x, this.y, b.x, b.y);
+      if (dist < nearestDist) { nearestDist = dist; nearest = b; }
+    }
+
     return nearest;
   }
 }
