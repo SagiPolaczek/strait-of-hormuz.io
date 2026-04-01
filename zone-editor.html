@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Zone Editor — Strait of Hormuz</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #111; color: #fff; font-family: Arial, sans-serif; overflow: hidden; }
+
+    .container {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+    }
+
+    .map-area {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .map-wrapper {
+      position: relative;
+      aspect-ratio: 1920 / 1539;
+      width: min(100%, calc(100vh * 1920 / 1539));
+      height: min(100%, calc(100vw * 1539 / 1920));
+    }
+
+    .map-wrapper img {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    canvas {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      cursor: crosshair;
+    }
+
+    .sidebar {
+      width: 320px;
+      background: #1a1a2e;
+      padding: 16px;
+      overflow-y: auto;
+      border-left: 1px solid #333;
+      font-size: 13px;
+    }
+
+    h2 { font-size: 16px; color: #90CAF9; margin-bottom: 8px; }
+    h3 { font-size: 13px; color: #FFD54F; margin: 12px 0 6px; }
+
+    .zone-btn {
+      display: block;
+      width: 100%;
+      padding: 8px 12px;
+      margin: 4px 0;
+      border: 2px solid #555;
+      border-radius: 6px;
+      background: #2a2a3e;
+      color: #fff;
+      cursor: pointer;
+      font-size: 12px;
+      text-align: left;
+    }
+    .zone-btn:hover { border-color: #888; }
+    .zone-btn.active { border-color: #42a5f5; background: #1a3a5c; }
+    .zone-btn.irgc { border-left: 4px solid #f44336; }
+    .zone-btn.coalition { border-left: 4px solid #2196f3; }
+    .zone-btn.neutral { border-left: 4px solid #4caf50; }
+
+    .coords {
+      background: #0d0d1a;
+      padding: 8px;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 11px;
+      margin: 8px 0;
+      max-height: 200px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+
+    .instructions {
+      background: #1a2a1a;
+      padding: 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      margin: 8px 0;
+      color: #a5d6a7;
+      line-height: 1.4;
+    }
+
+    .mouse-pos {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: rgba(0,0,0,0.8);
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-family: monospace;
+      font-size: 14px;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    button.action {
+      padding: 6px 12px;
+      margin: 4px 2px;
+      border: 1px solid #555;
+      border-radius: 4px;
+      background: #333;
+      color: #fff;
+      cursor: pointer;
+      font-size: 11px;
+    }
+    button.action:hover { background: #444; }
+    button.action.danger { border-color: #f44336; color: #f44336; }
+    button.action.primary { border-color: #42a5f5; color: #42a5f5; }
+
+    .point-list {
+      list-style: none;
+      padding: 0;
+    }
+    .point-list li {
+      font-family: monospace;
+      font-size: 11px;
+      padding: 2px 4px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .point-list li:hover { background: #333; }
+    .point-list li .remove { cursor: pointer; color: #f44336; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="map-area">
+      <div class="mouse-pos" id="mousePos">x: 0, y: 0</div>
+      <div class="map-wrapper" id="mapWrapper">
+        <img src="assets/strait.jpg" id="mapImg" draggable="false">
+        <canvas id="overlay"></canvas>
+      </div>
+    </div>
+
+    <div class="sidebar">
+      <h2>🗺️ Zone Editor</h2>
+
+      <div class="instructions">
+        <strong>How to use:</strong><br>
+        1. Select a zone below<br>
+        2. Click on the map to add polygon points<br>
+        3. Points connect in order to form the zone<br>
+        4. Copy the output coords when done
+      </div>
+
+      <h3>Select Zone to Edit:</h3>
+
+      <button class="zone-btn coalition" data-zone="COALITION_OIL" onclick="selectZone(this)">
+        🔵 Coalition Oil Rigs (Gulf of Oman water)
+      </button>
+      <button class="zone-btn coalition" data-zone="COALITION_DEPLOY" onclick="selectZone(this)">
+        🔵 Coalition Deploy (strait entry)
+      </button>
+      <button class="zone-btn irgc" data-zone="IRGC_OIL" onclick="selectZone(this)">
+        🔴 IRGC Oil Rigs (Persian Gulf water)
+      </button>
+      <button class="zone-btn irgc" data-zone="IRGC_BUILD" onclick="selectZone(this)">
+        🔴 IRGC Build (Iran coast + islands)
+      </button>
+      <button class="zone-btn neutral" data-zone="EXIT" onclick="selectZone(this)">
+        🟢 Exit Zone (tanker destination)
+      </button>
+
+      <h3>Also mark:</h3>
+      <button class="zone-btn irgc" data-zone="SHIP_ROUTE" onclick="selectZone(this)">
+        🟡 Ship Route (waypoints in order)
+      </button>
+      <button class="zone-btn irgc" data-zone="IRGC_SPOTS" onclick="selectZone(this)">
+        🔴 IRGC Tower Spots (click island/coast locations)
+      </button>
+
+      <div style="margin-top: 12px;">
+        <button class="action danger" onclick="undoLast()">↩ Undo Last Point</button>
+        <button class="action danger" onclick="clearCurrentZone()">🗑 Clear Zone</button>
+        <button class="action primary" onclick="exportAll()">📋 Export All</button>
+      </div>
+
+      <h3 id="currentZoneLabel">No zone selected</h3>
+      <ul class="point-list" id="pointList"></ul>
+
+      <h3>Output (copy this):</h3>
+      <div class="coords" id="output">Select a zone and start clicking...</div>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('overlay');
+    const ctx = canvas.getContext('2d');
+    const mapWrapper = document.getElementById('mapWrapper');
+    const mapImg = document.getElementById('mapImg');
+    const mousePosEl = document.getElementById('mousePos');
+    const pointListEl = document.getElementById('pointList');
+    const outputEl = document.getElementById('output');
+    const currentZoneLabelEl = document.getElementById('currentZoneLabel');
+
+    const MAP_W = 1920;
+    const MAP_H = 1539;
+
+    let currentZone = null;
+    const zones = {
+      COALITION_OIL: { color: '#2196f3', points: [] },
+      COALITION_DEPLOY: { color: '#2196f3', points: [] },
+      IRGC_OIL: { color: '#f44336', points: [] },
+      IRGC_BUILD: { color: '#f44336', points: [] },
+      EXIT: { color: '#4caf50', points: [] },
+      SHIP_ROUTE: { color: '#ffeb3b', points: [] },
+      IRGC_SPOTS: { color: '#ff5722', points: [] },
+    };
+
+    function resizeCanvas() {
+      const rect = mapWrapper.getBoundingClientRect();
+      canvas.width = rect.width;
+      canvas.height = rect.height;
+      draw();
+    }
+
+    function getMapCoords(e) {
+      const rect = mapWrapper.getBoundingClientRect();
+      const scaleX = MAP_W / rect.width;
+      const scaleY = MAP_H / rect.height;
+      return [
+        Math.round((e.clientX - rect.left) * scaleX),
+        Math.round((e.clientY - rect.top) * scaleY),
+      ];
+    }
+
+    function toScreenCoords(mx, my) {
+      const rect = mapWrapper.getBoundingClientRect();
+      return [mx / MAP_W * rect.width, my / MAP_H * rect.height];
+    }
+
+    canvas.addEventListener('mousemove', (e) => {
+      const [mx, my] = getMapCoords(e);
+      mousePosEl.textContent = `x: ${mx}, y: ${my}`;
+    });
+
+    canvas.addEventListener('click', (e) => {
+      if (!currentZone) return;
+      const [mx, my] = getMapCoords(e);
+      zones[currentZone].points.push([mx, my]);
+      updatePointList();
+      updateOutput();
+      draw();
+    });
+
+    function selectZone(btn) {
+      document.querySelectorAll('.zone-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentZone = btn.dataset.zone;
+      currentZoneLabelEl.textContent = `Editing: ${currentZone}`;
+      updatePointList();
+      updateOutput();
+      draw();
+    }
+
+    function undoLast() {
+      if (!currentZone) return;
+      zones[currentZone].points.pop();
+      updatePointList();
+      updateOutput();
+      draw();
+    }
+
+    function clearCurrentZone() {
+      if (!currentZone) return;
+      zones[currentZone].points = [];
+      updatePointList();
+      updateOutput();
+      draw();
+    }
+
+    function updatePointList() {
+      if (!currentZone) { pointListEl.innerHTML = ''; return; }
+      const pts = zones[currentZone].points;
+      pointListEl.innerHTML = pts.map((p, i) =>
+        `<li>[${p[0]}, ${p[1]}] <span class="remove" onclick="removePoint(${i})">×</span></li>`
+      ).join('');
+    }
+
+    function removePoint(i) {
+      zones[currentZone].points.splice(i, 1);
+      updatePointList();
+      updateOutput();
+      draw();
+    }
+
+    function updateOutput() {
+      if (!currentZone) return;
+      const pts = zones[currentZone].points;
+      if (currentZone === 'IRGC_SPOTS') {
+        outputEl.textContent = pts.map((p, i) =>
+          `{ x: ${p[0]}, y: ${p[1]}, label: 'Spot ${i + 1}' },`
+        ).join('\n');
+      } else {
+        outputEl.textContent = pts.map(p => `[${p[0]}, ${p[1]}],`).join('\n');
+      }
+    }
+
+    function exportAll() {
+      let out = '// === ZONE COORDINATES ===\n\n';
+      for (const [name, zone] of Object.entries(zones)) {
+        if (zone.points.length === 0) continue;
+        out += `// ${name}\n`;
+        if (name === 'IRGC_SPOTS') {
+          out += zone.points.map((p, i) =>
+            `  { x: ${p[0]}, y: ${p[1]}, label: '${name} ${i + 1}' },`
+          ).join('\n');
+        } else {
+          out += `  polygon: [\n`;
+          out += zone.points.map(p => `    [${p[0]}, ${p[1]}],`).join('\n');
+          out += `\n  ],`;
+        }
+        out += '\n\n';
+      }
+      outputEl.textContent = out;
+
+      // Also copy to clipboard
+      navigator.clipboard.writeText(out).then(() => {
+        outputEl.style.borderColor = '#4caf50';
+        setTimeout(() => outputEl.style.borderColor = '', 1000);
+      });
+    }
+
+    function draw() {
+      const rect = mapWrapper.getBoundingClientRect();
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      for (const [name, zone] of Object.entries(zones)) {
+        const pts = zone.points;
+        if (pts.length === 0) continue;
+
+        const isActive = name === currentZone;
+        const alpha = isActive ? 0.3 : 0.12;
+        const lineAlpha = isActive ? 0.8 : 0.4;
+
+        // Convert to screen coords
+        const screenPts = pts.map(([mx, my]) => toScreenCoords(mx, my));
+
+        if (name === 'SHIP_ROUTE') {
+          // Draw as connected line with dots
+          ctx.strokeStyle = zone.color;
+          ctx.lineWidth = isActive ? 3 : 2;
+          ctx.globalAlpha = lineAlpha;
+          ctx.setLineDash([8, 4]);
+          ctx.beginPath();
+          screenPts.forEach(([sx, sy], i) => {
+            if (i === 0) ctx.moveTo(sx, sy);
+            else ctx.lineTo(sx, sy);
+          });
+          ctx.stroke();
+          ctx.setLineDash([]);
+
+          // Dots at waypoints
+          screenPts.forEach(([sx, sy], i) => {
+            ctx.globalAlpha = 1;
+            ctx.fillStyle = zone.color;
+            ctx.beginPath();
+            ctx.arc(sx, sy, 6, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#000';
+            ctx.font = '9px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(i + 1, sx, sy + 3);
+          });
+        } else if (name === 'IRGC_SPOTS') {
+          // Draw as individual markers
+          screenPts.forEach(([sx, sy], i) => {
+            ctx.globalAlpha = 0.8;
+            ctx.fillStyle = zone.color;
+            ctx.beginPath();
+            ctx.arc(sx, sy, 8, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+            ctx.fillStyle = '#fff';
+            ctx.font = '10px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(i + 1, sx, sy + 4);
+          });
+        } else {
+          // Draw as filled polygon
+          if (screenPts.length >= 3) {
+            ctx.globalAlpha = alpha;
+            ctx.fillStyle = zone.color;
+            ctx.beginPath();
+            screenPts.forEach(([sx, sy], i) => {
+              if (i === 0) ctx.moveTo(sx, sy);
+              else ctx.lineTo(sx, sy);
+            });
+            ctx.closePath();
+            ctx.fill();
+          }
+
+          // Polygon outline
+          ctx.globalAlpha = lineAlpha;
+          ctx.strokeStyle = zone.color;
+          ctx.lineWidth = isActive ? 2 : 1;
+          ctx.setLineDash([6, 3]);
+          ctx.beginPath();
+          screenPts.forEach(([sx, sy], i) => {
+            if (i === 0) ctx.moveTo(sx, sy);
+            else ctx.lineTo(sx, sy);
+          });
+          if (screenPts.length >= 3) ctx.closePath();
+          ctx.stroke();
+          ctx.setLineDash([]);
+
+          // Points
+          screenPts.forEach(([sx, sy]) => {
+            ctx.globalAlpha = 1;
+            ctx.fillStyle = zone.color;
+            ctx.beginPath();
+            ctx.arc(sx, sy, 4, 0, Math.PI * 2);
+            ctx.fill();
+          });
+        }
+
+        // Label
+        if (screenPts.length > 0) {
+          const cx = screenPts.reduce((s, p) => s + p[0], 0) / screenPts.length;
+          const cy = screenPts.reduce((s, p) => s + p[1], 0) / screenPts.length;
+          ctx.globalAlpha = isActive ? 1 : 0.6;
+          ctx.fillStyle = '#fff';
+          ctx.font = `${isActive ? 'bold ' : ''}11px Arial`;
+          ctx.textAlign = 'center';
+          ctx.fillText(name, cx, cy);
+        }
+      }
+
+      ctx.globalAlpha = 1;
+    }
+
+    window.addEventListener('resize', resizeCanvas);
+    mapImg.addEventListener('load', resizeCanvas);
+    resizeCanvas();
+  </script>
+</body>
+</html>
