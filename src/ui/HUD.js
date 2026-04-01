@@ -174,76 +174,81 @@ export class HUD {
 
   update(score) {
     const elapsed = Math.floor((Date.now() - this.startTime) / 1000);
-    const minutes = String(Math.floor(elapsed / 60)).padStart(2, '0');
-    const seconds = String(elapsed % 60).padStart(2, '0');
     const oil = Math.floor(this.economy.coalitionOil);
     const rigs = this.economy.coalitionRigs.length;
 
-    // ── Oil bar fill ──
-    const maxOil = 5000;
-    const fillPct = Math.min(oil / maxOil, 1);
-    this.oilBarFill.clear();
-    if (fillPct > 0) {
-      const barW = 156 * fillPct;
-      // Gradient feel: amber at high, red at low
-      const fillColor = fillPct > 0.3 ? 0xffb300 : fillPct > 0.15 ? 0xff8f00 : 0xef5350;
-      this.oilBarFill.fillStyle(fillColor, 0.85);
-      this.oilBarFill.fillRoundedRect(147, 26, barW, 8, 1);
-      // Glowing top highlight
-      this.oilBarFill.fillStyle(0xffffff, 0.15);
-      this.oilBarFill.fillRect(147, 26, barW, 2);
+    // Only update text when values change (avoid per-frame setText calls)
+    if (oil !== this._prevOil) {
+      this._prevOil = oil;
+      this.oilText.setText(String(oil).padStart(4, ' '));
+
+      // Oil bar fill — only redraw when oil changes
+      const maxOil = 5000;
+      const fillPct = Math.min(oil / maxOil, 1);
+      this.oilBarFill.clear();
+      if (fillPct > 0) {
+        const barW = 156 * fillPct;
+        const fillColor = fillPct > 0.3 ? 0xffb300 : fillPct > 0.15 ? 0xff8f00 : 0xef5350;
+        this.oilBarFill.fillStyle(fillColor, 0.85);
+        this.oilBarFill.fillRoundedRect(147, 26, barW, 8, 1);
+        this.oilBarFill.fillStyle(0xffffff, 0.15);
+        this.oilBarFill.fillRect(147, 26, barW, 2);
+      }
     }
 
-    this.oilText.setText(String(oil).padStart(4, ' '));
-    this.rigCountText.setText(`${rigs} RIG${rigs !== 1 ? 'S' : ''} ACTIVE`);
-
-    // ── Score ──
-    this.scoreText.setText(String(score).padStart(3, '0'));
-
-    // ── Timer ──
-    this.timerText.setText(`${minutes}:${seconds}`);
-
-    // Blink colon effect
-    if (elapsed % 2 === 0) {
-      this.timerText.setAlpha(1);
-    } else {
-      this.timerText.setAlpha(0.85);
+    if (rigs !== this._prevRigs) {
+      this._prevRigs = rigs;
+      this.rigCountText.setText(`${rigs} RIG${rigs !== 1 ? 'S' : ''} ACTIVE`);
     }
 
-    // ── Threat level ──
-    const threat = elapsed < 120 ? 'LOW' : elapsed < 300 ? 'MEDIUM' : elapsed < 600 ? 'HIGH' : 'EXTREME';
-    const threatColors = {
-      LOW: { text: '#4CAF50', dot: 0x4CAF50 },
-      MEDIUM: { text: '#FFD54F', dot: 0xFFD54F },
-      HIGH: { text: '#ef5350', dot: 0xef5350 },
-      EXTREME: { text: '#ff1744', dot: 0xff1744 },
-    };
-
-    const tc = threatColors[threat];
-    this.threatText.setText(threat).setColor(tc.text);
-
-    // Threat indicator dot
-    this.threatDot.clear();
-    this.threatDot.fillStyle(tc.dot, 0.9);
-    this.threatDot.fillCircle(1190, 32, 4);
-
-    this.threatDotGlow.clear();
-    this.threatDotGlow.fillStyle(tc.dot, 0.2);
-    this.threatDotGlow.fillCircle(1190, 32, 8);
-
-    // Flash animation on threat level change
-    if (threat !== this._prevThreat && this._prevThreat !== null) {
-      this.scene.tweens.add({
-        targets: this.threatText,
-        scaleX: { from: 1.3, to: 1 },
-        scaleY: { from: 1.3, to: 1 },
-        duration: 400,
-        ease: 'Back.easeOut',
-      });
+    if (score !== this._prevScore) {
+      this._prevScore = score;
+      this.scoreText.setText(String(score).padStart(3, '0'));
     }
-    this._prevThreat = threat;
 
-    // ── Pulsing threat dot animation (manual pulse via time) ──
+    // Timer — only update when second changes
+    if (elapsed !== this._prevElapsed) {
+      this._prevElapsed = elapsed;
+      const minutes = String(Math.floor(elapsed / 60)).padStart(2, '0');
+      const seconds = String(elapsed % 60).padStart(2, '0');
+      this.timerText.setText(`${minutes}:${seconds}`);
+      this.timerText.setAlpha(elapsed % 2 === 0 ? 1 : 0.85);
+
+      // Threat level — only changes based on elapsed time
+      const threat = elapsed < 120 ? 'LOW' : elapsed < 300 ? 'MEDIUM' : elapsed < 600 ? 'HIGH' : 'EXTREME';
+      if (threat !== this._prevThreat) {
+        const threatColors = {
+          LOW: { text: '#4CAF50', dot: 0x4CAF50 },
+          MEDIUM: { text: '#FFD54F', dot: 0xFFD54F },
+          HIGH: { text: '#ef5350', dot: 0xef5350 },
+          EXTREME: { text: '#ff1744', dot: 0xff1744 },
+        };
+        const tc = threatColors[threat];
+        this.threatText.setText(threat).setColor(tc.text);
+
+        // Redraw threat dots (only on threat change)
+        this.threatDot.clear();
+        this.threatDot.fillStyle(tc.dot, 0.9);
+        this.threatDot.fillCircle(1190, 32, 4);
+        this.threatDotGlow.clear();
+        this.threatDotGlow.fillStyle(tc.dot, 0.2);
+        this.threatDotGlow.fillCircle(1190, 32, 8);
+
+        if (this._prevThreat !== null) {
+          this.scene.tweens.add({
+            targets: this.threatText,
+            scaleX: { from: 1.3, to: 1 },
+            scaleY: { from: 1.3, to: 1 },
+            duration: 400,
+            ease: 'Back.easeOut',
+          });
+        }
+        this._prevThreat = threat;
+      }
+    }
+
+    // Threat dot glow pulse — lightweight alpha change only (no graphics redraw)
+    const threat = this._prevThreat || 'LOW';
     const pulse = 0.5 + 0.5 * Math.sin(Date.now() / (threat === 'EXTREME' ? 150 : threat === 'HIGH' ? 300 : 600));
     this.threatDotGlow.setAlpha(pulse);
   }

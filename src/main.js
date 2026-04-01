@@ -7,7 +7,7 @@ const MAP_WIDTH = 1920;
 const MAP_HEIGHT = 1539;
 
 const config = {
-  type: Phaser.AUTO,
+  type: Phaser.CANVAS,  // Canvas is more stable for graphics-heavy 2D (avoids WebGL context loss)
   width: MAP_WIDTH,
   height: MAP_HEIGHT,
   parent: document.body,

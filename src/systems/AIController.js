@@ -85,7 +85,7 @@ export class AIController {
 
     // IRGC_OIL zone may have multiple geoms — try each
     for (const geom of zone.geoms) {
-      const bounds = geom.getBounds();
+      const bounds = Phaser.Geom.Polygon.GetAABB(geom);
       for (let attempt = 0; attempt < 10; attempt++) {
         const x = Phaser.Math.Between(bounds.x + 30, bounds.right - 30);
         const y = Phaser.Math.Between(bounds.y + 30, bounds.bottom - 30);
@@ -127,7 +127,7 @@ export class AIController {
     if (!zone) return false;
 
     for (const geom of zone.geoms) {
-      const bounds = geom.getBounds();
+      const bounds = Phaser.Geom.Polygon.GetAABB(geom);
       for (let attempt = 0; attempt < 20; attempt++) {
         const x = Phaser.Math.Between(bounds.x + 20, bounds.right - 20);
         const y = Phaser.Math.Between(bounds.y + 20, bounds.bottom - 20);

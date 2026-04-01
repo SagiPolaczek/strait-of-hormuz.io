@@ -260,47 +260,55 @@ export class DeploymentBar {
   }
 
   update() {
-    this.buttons.forEach((b, i) => {
+    const oil = Math.floor(this.economy.coalitionOil);
+
+    this.buttons.forEach((b) => {
       const canAfford = this.economy.canAfford('coalition', b.unit.cost);
       const isSelected = this.selectedUnit === b.unit;
 
-      // Update cost bar fill (shows how much of your fuel this costs)
-      b.costBarFill.clear();
-      const oil = this.economy.coalitionOil;
-      const fillPct = Math.min(oil / b.unit.cost, 1);
-      if (fillPct > 0) {
-        const fw = (b.costBarW - 4) * fillPct;
-        const fillColor = canAfford ? 0xffb300 : 0xef5350;
-        b.costBarFill.fillStyle(fillColor, 0.7);
-        b.costBarFill.fillRoundedRect(b.costBarX + 2, b.costBarY + 2, fw, b.costBarH - 4, 1);
+      // Only redraw card/overlay when state changes (not every frame)
+      const stateKey = `${canAfford}|${isSelected}`;
+      if (stateKey !== b._prevState) {
+        b._prevState = stateKey;
+
+        if (!canAfford && !isSelected) {
+          this._drawCard(b.cardBg, b.cx, b.cy, b.cardW, b.cardH, false, true);
+          b.icon.setAlpha(0.3);
+          b.name.setAlpha(0.3);
+          b.costText.setColor('#ef5350');
+          b.keyBadge.setAlpha(0.2);
+          b.lockedOverlay.clear();
+          b.lockedOverlay.fillStyle(0x000000, 0.4);
+          b.lockedOverlay.fillRoundedRect(
+            b.cx - b.cardW / 2, b.cy - b.cardH / 2, b.cardW, b.cardH, 4
+          );
+          b.lockedOverlay.setAlpha(1);
+          b.lockedText.setAlpha(1);
+        } else {
+          if (!isSelected) {
+            this._drawCard(b.cardBg, b.cx, b.cy, b.cardW, b.cardH, false, false);
+          }
+          b.icon.setAlpha(1);
+          b.name.setAlpha(1);
+          b.costText.setColor('#ffb300');
+          b.keyBadge.setAlpha(0.5);
+          b.lockedOverlay.clear();
+          b.lockedOverlay.setAlpha(0);
+          b.lockedText.setAlpha(0);
+        }
       }
 
-      if (!canAfford && !isSelected) {
-        // Locked appearance
-        this._drawCard(b.cardBg, b.cx, b.cy, b.cardW, b.cardH, false, true);
-        b.icon.setAlpha(0.3);
-        b.name.setAlpha(0.3);
-        b.costText.setColor('#ef5350');
-        b.keyBadge.setAlpha(0.2);
-        b.lockedOverlay.clear();
-        b.lockedOverlay.fillStyle(0x000000, 0.4);
-        b.lockedOverlay.fillRoundedRect(
-          b.cx - b.cardW / 2, b.cy - b.cardH / 2, b.cardW, b.cardH, 4
-        );
-        b.lockedOverlay.setAlpha(1);
-        b.lockedText.setAlpha(1);
-      } else {
-        // Normal / selected appearance
-        if (!isSelected) {
-          this._drawCard(b.cardBg, b.cx, b.cy, b.cardW, b.cardH, false, false);
+      // Cost bar fill — only update when oil changes
+      if (oil !== b._prevOil) {
+        b._prevOil = oil;
+        b.costBarFill.clear();
+        const fillPct = Math.min(oil / b.unit.cost, 1);
+        if (fillPct > 0) {
+          const fw = (b.costBarW - 4) * fillPct;
+          const fillColor = canAfford ? 0xffb300 : 0xef5350;
+          b.costBarFill.fillStyle(fillColor, 0.7);
+          b.costBarFill.fillRoundedRect(b.costBarX + 2, b.costBarY + 2, fw, b.costBarH - 4, 1);
         }
-        b.icon.setAlpha(1);
-        b.name.setAlpha(1);
-        b.costText.setColor('#ffb300');
-        b.keyBadge.setAlpha(0.5);
-        b.lockedOverlay.clear();
-        b.lockedOverlay.setAlpha(0);
-        b.lockedText.setAlpha(0);
       }
     });
   }
