@@ -64,8 +64,8 @@ export class GameScene extends Phaser.Scene {
   handleMapClick(pointer) {
     const { x, y } = pointer;
 
-    // Ignore clicks on HUD (top ~55px) or deployment bar (starts at y=1459)
-    if (y < 55 || y > 1455) return;
+    // Ignore clicks on HUD (top ~70px) or deployment bar (starts at y=1443)
+    if (y < 70 || y > 1440) return;
 
     // If no unit selected, check if clicking on a coalition oil rig to collect
     const unit = this.deployBar.getSelectedUnit();

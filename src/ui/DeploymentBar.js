@@ -12,7 +12,7 @@ export class DeploymentBar {
     const DEPTH_CONTENT = 102;
     const DEPTH_OVERLAY = 103;
 
-    const barH = 80;
+    const barH = 96;
     const barY = 1539 - barH / 2;
     const barTop = 1539 - barH;
 
@@ -32,7 +32,7 @@ export class DeploymentBar {
 
     // ── Section label ──
     scene.add.text(40, barTop + 8, 'TACTICAL DEPLOYMENT', {
-      fontSize: '9px',
+      fontSize: '13px',
       fontFamily: '"Share Tech Mono", monospace',
       color: '#33ff66',
       letterSpacing: 2,
@@ -40,8 +40,8 @@ export class DeploymentBar {
 
     // ── Unit cards ──
     const unitList = Object.values(COALITION_UNITS);
-    const cardW = 190;
-    const cardH = 58;
+    const cardW = 220;
+    const cardH = 70;
     const gap = 16;
     const totalW = unitList.length * cardW + (unitList.length - 1) * gap;
     const startX = 960 - totalW / 2 + cardW / 2;
@@ -62,17 +62,17 @@ export class DeploymentBar {
 
       // Keyboard shortcut badge (top-left of card)
       const keyBadge = scene.add.text(cx - cardW / 2 + 6, cy - cardH / 2 + 4, String(keyNum), {
-        fontSize: '10px',
+        fontSize: '13px',
         fontFamily: '"Orbitron", sans-serif',
         fontStyle: 'bold',
         color: '#33ff66',
         backgroundColor: 'rgba(0,0,0,0.6)',
-        padding: { x: 4, y: 1 },
+        padding: { x: 5, y: 2 },
       }).setDepth(DEPTH_CONTENT).setScrollFactor(0).setAlpha(0.5);
 
       // Icon
-      const icon = scene.add.text(cx - cardW / 2 + 28, cy - 2, unit.icon, {
-        fontSize: '26px',
+      const icon = scene.add.text(cx - cardW / 2 + 32, cy - 2, unit.icon, {
+        fontSize: '32px',
       }).setOrigin(0.5).setDepth(DEPTH_CONTENT).setScrollFactor(0);
 
       // Icon glow ring (visible when selected)
@@ -80,18 +80,18 @@ export class DeploymentBar {
       iconGlow.setAlpha(0);
 
       // Unit name
-      const name = scene.add.text(cx - cardW / 2 + 50, cy - 16, unit.name.toUpperCase(), {
-        fontSize: '12px',
+      const name = scene.add.text(cx - cardW / 2 + 58, cy - 18, unit.name.toUpperCase(), {
+        fontSize: '15px',
         fontFamily: '"Black Ops One", cursive',
         color: '#e0e0e0',
       }).setDepth(DEPTH_CONTENT).setScrollFactor(0);
 
       // Cost display (fuel gauge style)
       const costBarBg = scene.add.graphics().setDepth(DEPTH_CARD + 0.5).setScrollFactor(0);
-      const costBarX = cx - cardW / 2 + 50;
-      const costBarY = cy + 2;
-      const costBarW = 80;
-      const costBarH = 8;
+      const costBarX = cx - cardW / 2 + 58;
+      const costBarY = cy + 4;
+      const costBarW = 90;
+      const costBarH = 10;
       costBarBg.fillStyle(0x1a1a1a, 0.9);
       costBarBg.fillRoundedRect(costBarX, costBarY, costBarW, costBarH, 2);
       costBarBg.lineStyle(1, 0xffb300, 0.25);
@@ -99,15 +99,15 @@ export class DeploymentBar {
 
       const costBarFill = scene.add.graphics().setDepth(DEPTH_CARD + 0.6).setScrollFactor(0);
 
-      const costText = scene.add.text(costBarX + costBarW + 6, costBarY - 1, `${unit.cost}`, {
-        fontSize: '10px',
+      const costText = scene.add.text(costBarX + costBarW + 8, costBarY - 1, `${unit.cost}`, {
+        fontSize: '13px',
         fontFamily: '"Orbitron", sans-serif',
         color: '#ffb300',
       }).setDepth(DEPTH_CONTENT).setScrollFactor(0);
 
       // "DEPLOYING" label (only shown when selected)
       const deployLabel = scene.add.text(cx + cardW / 2 - 6, cy - cardH / 2 + 4, 'DEPLOYING', {
-        fontSize: '8px',
+        fontSize: '11px',
         fontFamily: '"Share Tech Mono", monospace',
         color: '#00e676',
         fontStyle: 'bold',
@@ -118,7 +118,7 @@ export class DeploymentBar {
       lockedOverlay.setAlpha(0);
 
       const lockedText = scene.add.text(cx, cy, 'INSUFFICIENT FUEL', {
-        fontSize: '8px',
+        fontSize: '11px',
         fontFamily: '"Share Tech Mono", monospace',
         color: '#ef5350',
         fontStyle: 'bold',
@@ -159,7 +159,7 @@ export class DeploymentBar {
 
     // ── Status text (right side) ──
     this.statusText = scene.add.text(1880, barY + 4, 'SELECT UNIT TO DEPLOY', {
-      fontSize: '9px',
+      fontSize: '13px',
       fontFamily: '"Share Tech Mono", monospace',
       color: '#666666',
     }).setOrigin(1, 0.5).setDepth(DEPTH_CONTENT).setScrollFactor(0);

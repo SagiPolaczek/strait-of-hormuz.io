@@ -7,13 +7,18 @@ const MAP_WIDTH = 1920;
 const MAP_HEIGHT = 1539;
 
 const config = {
-  type: Phaser.CANVAS,  // Canvas is more stable for graphics-heavy 2D (avoids WebGL context loss)
+  type: Phaser.CANVAS,
   width: MAP_WIDTH,
   height: MAP_HEIGHT,
   parent: document.body,
   scale: {
     mode: Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH,
+  },
+  render: {
+    pixelArt: false,
+    antialias: true,
+    roundPixels: false,
   },
   physics: {
     default: 'arcade',

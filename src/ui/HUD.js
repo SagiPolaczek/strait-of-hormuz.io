@@ -9,7 +9,7 @@ export class HUD {
     const DEPTH_TEXT = 102;
     const DEPTH_GLOW = 103;
 
-    const panelH = 52;
+    const panelH = 68;
     const panelY = panelH / 2;
 
     // ── Main bar background (dark translucent) ──
@@ -40,23 +40,23 @@ export class HUD {
     // ── Divider lines between sections ──
     const dividers = scene.add.graphics().setDepth(DEPTH_PANEL).setScrollFactor(0);
     dividers.lineStyle(1, 0x33ff66, 0.15);
-    [380, 720, 1180, 1540].forEach(dx => {
+    [490, 810, 1180, 1540].forEach(dx => {
       dividers.moveTo(dx, 6);
       dividers.lineTo(dx, panelH - 6);
     });
     dividers.strokePath();
 
     // ── CLASSIFICATION LABEL ──
-    this.classLabel = scene.add.text(12, panelY, 'CENTCOM // LIVE', {
-      fontSize: '10px',
+    this.classLabel = scene.add.text(16, panelY, 'CENTCOM // LIVE', {
+      fontSize: '13px',
       fontFamily: '"Share Tech Mono", monospace',
       color: '#33ff66',
       letterSpacing: 2,
     }).setOrigin(0, 0.5).setDepth(DEPTH_TEXT).setScrollFactor(0).setAlpha(0.5);
 
-    // ── OIL SECTION (x: 140–370) ──
-    this.oilLabel = scene.add.text(145, 10, 'FUEL RESERVES', {
-      fontSize: '9px',
+    // ── OIL SECTION (x: 180–420) ──
+    this.oilLabel = scene.add.text(185, 10, 'FUEL RESERVES', {
+      fontSize: '13px',
       fontFamily: '"Share Tech Mono", monospace',
       color: '#ffb300',
       letterSpacing: 1,
@@ -65,50 +65,50 @@ export class HUD {
     // Oil bar background
     this.oilBarBg = scene.add.graphics().setDepth(DEPTH_PANEL).setScrollFactor(0);
     this.oilBarBg.fillStyle(0x1a1a1a, 0.9);
-    this.oilBarBg.fillRoundedRect(145, 24, 160, 12, 2);
+    this.oilBarBg.fillRoundedRect(185, 30, 180, 14, 2);
     this.oilBarBg.lineStyle(1, 0xffb300, 0.3);
-    this.oilBarBg.strokeRoundedRect(145, 24, 160, 12, 2);
+    this.oilBarBg.strokeRoundedRect(185, 30, 180, 14, 2);
 
     // Oil bar fill (will be updated)
     this.oilBarFill = scene.add.graphics().setDepth(DEPTH_PANEL + 0.5).setScrollFactor(0);
 
-    this.oilText = scene.add.text(312, 10, '0', {
-      fontSize: '16px',
+    this.oilText = scene.add.text(374, 8, '0', {
+      fontSize: '22px',
       fontFamily: '"Orbitron", sans-serif',
       fontStyle: 'bold',
       color: '#ffb300',
     }).setDepth(DEPTH_TEXT).setScrollFactor(0);
 
-    this.rigCountText = scene.add.text(312, 32, '0 RIGS', {
-      fontSize: '9px',
+    this.rigCountText = scene.add.text(374, 38, '0 RIGS', {
+      fontSize: '12px',
       fontFamily: '"Share Tech Mono", monospace',
       color: '#ffb300',
     }).setDepth(DEPTH_TEXT).setScrollFactor(0).setAlpha(0.6);
 
-    // ── SCORE / TANKERS THROUGH (x: 400–710) ──
-    this.scoreLabel = scene.add.text(400, 10, 'TANKERS THROUGH', {
-      fontSize: '9px',
+    // ── SCORE / TANKERS THROUGH (x: 500–780) ──
+    this.scoreLabel = scene.add.text(510, 10, 'TANKERS THROUGH', {
+      fontSize: '13px',
       fontFamily: '"Share Tech Mono", monospace',
       color: '#4CAF50',
       letterSpacing: 1,
     }).setDepth(DEPTH_TEXT).setScrollFactor(0).setAlpha(0.6);
 
-    this.scoreText = scene.add.text(400, 24, '000', {
-      fontSize: '22px',
+    this.scoreText = scene.add.text(510, 28, '000', {
+      fontSize: '30px',
       fontFamily: '"Black Ops One", cursive',
       color: '#4CAF50',
     }).setDepth(DEPTH_TEXT).setScrollFactor(0);
 
-    // ── MISSION CLOCK (x: 750–1170) ──
-    this.timerLabel = scene.add.text(760, 10, 'MISSION CLOCK', {
-      fontSize: '9px',
+    // ── MISSION CLOCK (x: 820–1160) ──
+    this.timerLabel = scene.add.text(830, 10, 'MISSION CLOCK', {
+      fontSize: '13px',
       fontFamily: '"Share Tech Mono", monospace',
       color: '#90CAF9',
       letterSpacing: 1,
     }).setDepth(DEPTH_TEXT).setScrollFactor(0).setAlpha(0.6);
 
-    this.timerText = scene.add.text(760, 22, '00:00', {
-      fontSize: '24px',
+    this.timerText = scene.add.text(830, 26, '00:00', {
+      fontSize: '32px',
       fontFamily: '"Orbitron", sans-serif',
       fontStyle: 'bold',
       color: '#90CAF9',
@@ -116,14 +116,14 @@ export class HUD {
 
     // ── THREAT LEVEL (x: 1200–1530) ──
     this.threatLabel = scene.add.text(1200, 10, 'THREAT LEVEL', {
-      fontSize: '9px',
+      fontSize: '13px',
       fontFamily: '"Share Tech Mono", monospace',
       color: '#ef5350',
       letterSpacing: 1,
     }).setDepth(DEPTH_TEXT).setScrollFactor(0).setAlpha(0.6);
 
-    this.threatText = scene.add.text(1200, 22, 'LOW', {
-      fontSize: '20px',
+    this.threatText = scene.add.text(1200, 26, 'LOW', {
+      fontSize: '28px',
       fontFamily: '"Black Ops One", cursive',
       color: '#4CAF50',
     }).setDepth(DEPTH_TEXT).setScrollFactor(0);
@@ -134,13 +134,13 @@ export class HUD {
 
     // ── LIVE INDICATOR (top-right area) ──
     this.liveText = scene.add.text(1860, panelY, 'LIVE', {
-      fontSize: '11px',
+      fontSize: '14px',
       fontFamily: '"Share Tech Mono", monospace',
       color: '#ef5350',
       fontStyle: 'bold',
     }).setOrigin(1, 0.5).setDepth(DEPTH_TEXT).setScrollFactor(0);
 
-    this.liveDot = scene.add.circle(1870, panelY, 4, 0xef5350)
+    this.liveDot = scene.add.circle(1874, panelY, 5, 0xef5350)
       .setDepth(DEPTH_GLOW).setScrollFactor(0);
 
     // Pulsing animation for LIVE dot
@@ -163,7 +163,7 @@ export class HUD {
 
     // ── Coordinates display (bottom-right corner vibe) ──
     this.coordText = scene.add.text(1550, panelY, '26.5667N  56.2500E', {
-      fontSize: '10px',
+      fontSize: '12px',
       fontFamily: '"Share Tech Mono", monospace',
       color: '#33ff66',
     }).setOrigin(0, 0.5).setDepth(DEPTH_TEXT).setScrollFactor(0).setAlpha(0.3);
@@ -187,12 +187,12 @@ export class HUD {
       const fillPct = Math.min(oil / maxOil, 1);
       this.oilBarFill.clear();
       if (fillPct > 0) {
-        const barW = 156 * fillPct;
+        const barW = 176 * fillPct;
         const fillColor = fillPct > 0.3 ? 0xffb300 : fillPct > 0.15 ? 0xff8f00 : 0xef5350;
         this.oilBarFill.fillStyle(fillColor, 0.85);
-        this.oilBarFill.fillRoundedRect(147, 26, barW, 8, 1);
+        this.oilBarFill.fillRoundedRect(187, 32, barW, 10, 1);
         this.oilBarFill.fillStyle(0xffffff, 0.15);
-        this.oilBarFill.fillRect(147, 26, barW, 2);
+        this.oilBarFill.fillRect(187, 32, barW, 2);
       }
     }
 

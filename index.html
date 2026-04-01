@@ -10,7 +10,11 @@
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { background: #000; overflow: hidden; display: flex; align-items: center; justify-content: center; min-height: 100vh; }
-    canvas { display: block; }
+    canvas {
+      display: block;
+      image-rendering: -webkit-optimize-contrast;
+      image-rendering: crisp-edges;
+    }
   </style>
 </head>
 <body>
