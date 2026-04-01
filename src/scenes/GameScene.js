@@ -12,7 +12,7 @@ import { MissileLauncher } from '../entities/MissileLauncher.js';
 import { Projectile } from '../entities/Projectile.js';
 import { COALITION_UNITS } from '../config/units.js';
 import { TIMING, OIL_COLLECTION } from '../config/constants.js';
-import { DEFAULT_SHIP_ROUTE } from '../config/zones.js';
+import { SHIP_ROUTES } from '../config/zones.js';
 
 export class GameScene extends Phaser.Scene {
   constructor() {
@@ -48,9 +48,6 @@ export class GameScene extends Phaser.Scene {
 
     // Click handler — place units on the map
     this.input.on('pointerdown', (pointer) => this.handleMapClick(pointer));
-
-    // Draw faint ship route preview
-    this.drawRoutePreview();
   }
 
   update() {
@@ -138,8 +135,11 @@ export class GameScene extends Phaser.Scene {
   }
 
   deployShip(clickX, clickY, stats, ShipClass) {
-    const [startX, startY] = DEFAULT_SHIP_ROUTE[0];
+    // Ship picks its own random route — create at its route's start position
+    const route = SHIP_ROUTES[Math.floor(Math.random() * SHIP_ROUTES.length)];
+    const [startX, startY] = route[0];
     const ship = new ShipClass(this, startX, startY, stats);
+    ship.waypoints = [...route]; // override with the same route we picked
     this.coalitionShips.add(ship);
 
     // Visual feedback at click location
@@ -168,22 +168,6 @@ export class GameScene extends Phaser.Scene {
   onTankerScored(tanker) {
     this.score += tanker.stats.scoreValue;
     this.economy.earn('coalition', tanker.stats.oilBonus);
-  }
-
-  drawRoutePreview() {
-    const gfx = this.add.graphics();
-    gfx.lineStyle(2, 0xffffff, 0.15);
-    gfx.beginPath();
-    DEFAULT_SHIP_ROUTE.forEach(([x, y], i) => {
-      if (i === 0) gfx.moveTo(x, y);
-      else gfx.lineTo(x, y);
-    });
-    gfx.strokePath();
-
-    DEFAULT_SHIP_ROUTE.forEach(([x, y]) => {
-      gfx.fillStyle(0xffffff, 0.2);
-      gfx.fillCircle(x, y, 4);
-    });
   }
 
   /** Green circle expanding and fading — placement/deploy confirmation. */

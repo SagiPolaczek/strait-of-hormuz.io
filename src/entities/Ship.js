@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { DEFAULT_SHIP_ROUTE } from '../config/zones.js';
+import { SHIP_ROUTES } from '../config/zones.js';
 
 // Ensure shared particle textures exist
 function ensureTextures(scene) {
@@ -71,7 +71,9 @@ export class Ship extends Phaser.GameObjects.Container {
     this.scene = scene;
     this.stats = stats;
     this.hp = stats.hp;
-    this.waypoints = [...DEFAULT_SHIP_ROUTE];
+    // Pick a random route for variety
+    const route = SHIP_ROUTES[Math.floor(Math.random() * SHIP_ROUTES.length)];
+    this.waypoints = [...route];
     this.currentWaypoint = 0;
     this.alive = true;
 

@@ -123,19 +123,37 @@ export const SHIP_CHANNEL = [
   [411, 1057], [290, 1184], [195, 1255], [105, 1248], [6, 1250],
 ];
 
-// Ship waypoints — derived from the channel centerline, west to east
-export const DEFAULT_SHIP_ROUTE = [
-  [100, 800],    // Start: western Persian Gulf
-  [250, 600],    // Head toward strait
-  [500, 525],    // Enter strait
-  [700, 520],    // Mid-strait
-  [900, 400],    // Narrow passage
-  [1100, 350],   // Past Hormuz
-  [1300, 400],   // Approaching Gulf of Oman
-  [1500, 730],   // Gulf of Oman
-  [1800, 790],   // Near exit
-  [1900, 900],   // Exit zone
+// Multiple ship routes — randomly assigned per ship for variety
+// All go west → east through the strait to the EXIT zone
+export const SHIP_ROUTES = [
+  // Route A: Northern passage — hugs closer to Iranian coast (risky, shorter)
+  [
+    [80, 750],  [220, 560],  [450, 490],  [650, 470],
+    [850, 380], [1050, 330], [1250, 370], [1450, 700],
+    [1750, 780], [1900, 870],
+  ],
+  // Route B: Central channel — middle of the strait (balanced)
+  [
+    [100, 850],  [270, 640],  [500, 550],  [720, 540],
+    [920, 420],  [1120, 370], [1320, 430], [1520, 750],
+    [1800, 800], [1900, 950],
+  ],
+  // Route C: Southern passage — hugs Oman/UAE side (safer, longer)
+  [
+    [120, 950],  [300, 750],  [530, 600],  [740, 580],
+    [940, 450],  [1100, 400], [1300, 470], [1500, 780],
+    [1780, 820], [1900, 1020],
+  ],
+  // Route D: Zigzag — weaves through islands (unpredictable)
+  [
+    [90, 800],   [240, 680],  [480, 520],  [680, 550],
+    [860, 410],  [1080, 360], [1280, 420], [1480, 740],
+    [1700, 790], [1900, 900],
+  ],
 ];
+
+// Keep a single default for AI route-proximity calculations
+export const DEFAULT_SHIP_ROUTE = SHIP_ROUTES[1];
 
 // IRGC tower placement spots — user-marked positions on islands/coast
 export const IRGC_BUILD_SPOTS = [
