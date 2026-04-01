@@ -1,69 +1,6 @@
 import Phaser from 'phaser';
 import { SHIP_ROUTES } from '../config/zones.js';
-
-// Ensure shared particle textures exist
-function ensureTextures(scene) {
-  if (!scene.textures.exists('flare')) {
-    const c = scene.textures.createCanvas('flare', 16, 16);
-    const ctx = c.getContext();
-    const g = ctx.createRadialGradient(8, 8, 0, 8, 8, 8);
-    g.addColorStop(0, 'rgba(255,255,255,1)');
-    g.addColorStop(1, 'rgba(255,255,255,0)');
-    ctx.fillStyle = g;
-    ctx.fillRect(0, 0, 16, 16);
-    c.refresh();
-  }
-  if (!scene.textures.exists('smoke')) {
-    const c = scene.textures.createCanvas('smoke', 16, 16);
-    const ctx = c.getContext();
-    const g = ctx.createRadialGradient(8, 8, 0, 8, 8, 8);
-    g.addColorStop(0, 'rgba(120,120,120,0.8)');
-    g.addColorStop(0.5, 'rgba(80,80,80,0.4)');
-    g.addColorStop(1, 'rgba(40,40,40,0)');
-    ctx.fillStyle = g;
-    ctx.fillRect(0, 0, 16, 16);
-    c.refresh();
-  }
-  if (!scene.textures.exists('fire')) {
-    const c = scene.textures.createCanvas('fire', 16, 16);
-    const ctx = c.getContext();
-    const g = ctx.createRadialGradient(8, 8, 0, 8, 8, 8);
-    g.addColorStop(0, 'rgba(255,200,50,1)');
-    g.addColorStop(0.4, 'rgba(255,100,20,0.8)');
-    g.addColorStop(1, 'rgba(255,50,0,0)');
-    ctx.fillStyle = g;
-    ctx.fillRect(0, 0, 16, 16);
-    c.refresh();
-  }
-  if (!scene.textures.exists('spark')) {
-    const c = scene.textures.createCanvas('spark', 8, 8);
-    const ctx = c.getContext();
-    const g = ctx.createRadialGradient(4, 4, 0, 4, 4, 4);
-    g.addColorStop(0, 'rgba(255,255,200,1)');
-    g.addColorStop(1, 'rgba(255,200,50,0)');
-    ctx.fillStyle = g;
-    ctx.fillRect(0, 0, 8, 8);
-    c.refresh();
-  }
-  if (!scene.textures.exists('wake')) {
-    const c = scene.textures.createCanvas('wake', 8, 8);
-    const ctx = c.getContext();
-    const g = ctx.createRadialGradient(4, 4, 0, 4, 4, 4);
-    g.addColorStop(0, 'rgba(255,255,255,0.6)');
-    g.addColorStop(0.5, 'rgba(200,220,255,0.3)');
-    g.addColorStop(1, 'rgba(180,210,255,0)');
-    ctx.fillStyle = g;
-    ctx.fillRect(0, 0, 8, 8);
-    c.refresh();
-  }
-  if (!scene.textures.exists('debris')) {
-    const c = scene.textures.createCanvas('debris', 6, 6);
-    const ctx = c.getContext();
-    ctx.fillStyle = '#555555';
-    ctx.fillRect(1, 1, 4, 4);
-    c.refresh();
-  }
-}
+import { ensureTextures } from '../utils/textures.js';
 
 export class Ship extends Phaser.GameObjects.Container {
   constructor(scene, x, y, stats) {
@@ -76,13 +13,15 @@ export class Ship extends Phaser.GameObjects.Container {
     this.waypoints = [...route];
     this.currentWaypoint = 0;
     this.alive = true;
+    this.upgrades = {};
+    this._timers = [];
 
     ensureTextures(scene);
 
-    // --- Draw the hull ---
-    this.hullGfx = scene.add.graphics();
-    this._drawHull(this.hullGfx);
-    this.add(this.hullGfx);
+    // --- Sprite hull ---
+    const spriteKey = stats._spriteKey || 'spr_tanker';
+    this.hullSprite = scene.add.image(0, 0, spriteKey).setOrigin(0.5);
+    this.add(this.hullSprite);
 
     // HP bar with proper styling
     this.hpBarBg = scene.add.rectangle(0, -20, 34, 4, 0x000000, 0.5).setOrigin(0.5);
@@ -110,38 +49,21 @@ export class Ship extends Phaser.GameObjects.Container {
     this.setDepth(5);
   }
 
-  // Draws a basic ship hull — subclasses override this
-  _drawHull(gfx) {
-    gfx.clear();
-    // Hull body (pointed bow, flat stern)
-    gfx.fillStyle(0x37474f, 0.9);
-    gfx.beginPath();
-    gfx.moveTo(16, 0);     // bow (front point)
-    gfx.lineTo(8, -8);     // upper bow
-    gfx.lineTo(-14, -7);   // upper stern
-    gfx.lineTo(-16, 0);    // stern center
-    gfx.lineTo(-14, 7);    // lower stern
-    gfx.lineTo(8, 8);      // lower bow
-    gfx.closePath();
-    gfx.fillPath();
+  getMaxHP() {
+    const hull = this.upgrades.HULL || 0;
+    const armor = this.upgrades.ARMOR || 0;
+    return Math.floor(this.stats.hp * (1 + 0.4 * hull + 0.35 * armor));
+  }
 
-    // Hull outline
-    gfx.lineStyle(1.2, 0x90a4ae, 0.8);
-    gfx.beginPath();
-    gfx.moveTo(16, 0);
-    gfx.lineTo(8, -8);
-    gfx.lineTo(-14, -7);
-    gfx.lineTo(-16, 0);
-    gfx.lineTo(-14, 7);
-    gfx.lineTo(8, 8);
-    gfx.closePath();
-    gfx.strokePath();
+  getEffectiveSpeed() {
+    return this.stats.speed * (1 + 0.25 * (this.upgrades.ENGINE || 0));
+  }
 
-    // Cabin/bridge
-    gfx.fillStyle(0x546e7a, 0.9);
-    gfx.fillRect(-4, -4, 8, 8);
-    gfx.lineStyle(0.8, 0x78909c, 0.6);
-    gfx.strokeRect(-4, -4, 8, 8);
+  applyUpgrade(key) {
+    const prevMax = this.getMaxHP();
+    this.upgrades[key] = (this.upgrades[key] || 0) + 1;
+    const newMax = this.getMaxHP();
+    if (newMax > prevMax) this.hp += (newMax - prevMax);
   }
 
   update() {
@@ -159,8 +81,9 @@ export class Ship extends Phaser.GameObjects.Container {
         return;
       }
     } else {
-      const vx = (dx / dist) * this.stats.speed;
-      const vy = (dy / dist) * this.stats.speed;
+      const speed = this.getEffectiveSpeed();
+      const vx = (dx / dist) * speed;
+      const vy = (dy / dist) * speed;
       if (this.body) this.body.setVelocity(vx, vy);
 
       // Rotate ship to face movement direction
@@ -187,15 +110,14 @@ export class Ship extends Phaser.GameObjects.Container {
 
   takeDamage(amount) {
     this.hp -= amount;
-    const pct = Math.max(0, this.hp / this.stats.hp);
+    const pct = Math.max(0, this.hp / this.getMaxHP());
     this.hpBar.width = 30 * pct;
     this.hpBar.fillColor = pct > 0.5 ? 0x4caf50 : pct > 0.25 ? 0xffeb3b : 0xf44336;
 
     // Flash red on damage
-    if (this.hullGfx && this.hullGfx.active) {
-      const origAlpha = this.hullGfx.alpha;
+    if (this.hullSprite && this.hullSprite.active) {
       this.scene.tweens.add({
-        targets: this.hullGfx,
+        targets: this.hullSprite,
         alpha: { from: 0.3, to: 1 },
         duration: 80,
         yoyo: true,
@@ -216,7 +138,10 @@ export class Ship extends Phaser.GameObjects.Container {
       });
       sparks.setDepth(12);
       sparks.explode(4);
-      this.scene.time.delayedCall(400, () => { if (sparks && sparks.active) sparks.destroy(); });
+      this.scene.time.delayedCall(400, () => {
+        if (!this.scene || !this.scene.sys?.isActive()) return;
+        if (sparks && sparks.active) sparks.destroy();
+      });
     }
 
     if (this.hp <= 0) {
@@ -288,6 +213,7 @@ export class Ship extends Phaser.GameObjects.Container {
 
     // Cleanup particles
     this.scene.time.delayedCall(1800, () => {
+      if (!this.scene || !this.scene.sys?.isActive()) return;
       if (fire && fire.active) fire.destroy();
       if (smoke && smoke.active) smoke.destroy();
       if (debris && debris.active) debris.destroy();
@@ -302,6 +228,8 @@ export class Ship extends Phaser.GameObjects.Container {
   }
 
   destroy(fromScene) {
+    this._timers.forEach(t => { if (t) t.remove(false); });
+    this._timers = [];
     this._cleanupEffects();
     super.destroy(fromScene);
   }

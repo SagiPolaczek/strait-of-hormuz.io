@@ -1,75 +1,13 @@
 import Phaser from 'phaser';
 import { Ship } from './Ship.js';
-import { ECONOMY } from '../config/constants.js';
 
 export class Tanker extends Ship {
   constructor(scene, x, y, stats) {
     super(scene, x, y, stats);
   }
 
-  // Override hull drawing for a bulkier tanker shape
-  _drawHull(gfx) {
-    gfx.clear();
-
-    // Large bulky hull (wider and longer than base ship)
-    gfx.fillStyle(0x37474f, 0.95);
-    gfx.beginPath();
-    gfx.moveTo(20, 0);       // bow (rounded point)
-    gfx.lineTo(14, -10);     // upper bow
-    gfx.lineTo(-16, -10);    // upper stern
-    gfx.lineTo(-20, -6);     // stern corner
-    gfx.lineTo(-20, 6);      // stern corner
-    gfx.lineTo(-16, 10);     // lower stern
-    gfx.lineTo(14, 10);      // lower bow
-    gfx.closePath();
-    gfx.fillPath();
-
-    // Hull outline
-    gfx.lineStyle(1.5, 0x78909c, 0.8);
-    gfx.beginPath();
-    gfx.moveTo(20, 0);
-    gfx.lineTo(14, -10);
-    gfx.lineTo(-16, -10);
-    gfx.lineTo(-20, -6);
-    gfx.lineTo(-20, 6);
-    gfx.lineTo(-16, 10);
-    gfx.lineTo(14, 10);
-    gfx.closePath();
-    gfx.strokePath();
-
-    // Deck (lighter grey area)
-    gfx.fillStyle(0x546e7a, 0.7);
-    gfx.fillRect(-14, -7, 28, 14);
-
-    // Oil barrel markings on deck (orange rectangles)
-    gfx.fillStyle(0xff8c00, 0.8);
-    gfx.fillRect(-12, -4, 5, 3);
-    gfx.fillRect(-4, -4, 5, 3);
-    gfx.fillRect(4, -4, 5, 3);
-    gfx.fillRect(-12, 2, 5, 3);
-    gfx.fillRect(-4, 2, 5, 3);
-    gfx.fillRect(4, 2, 5, 3);
-
-    // Orange deck stripe markings
-    gfx.lineStyle(1, 0xff8c00, 0.6);
-    gfx.lineBetween(-14, -7, -14, 7);
-    gfx.lineBetween(12, -7, 12, 7);
-
-    // Bridge/cabin at stern
-    gfx.fillStyle(0x455a64, 0.9);
-    gfx.fillRect(-17, -4, 5, 8);
-    gfx.lineStyle(0.8, 0x78909c, 0.6);
-    gfx.strokeRect(-17, -4, 5, 8);
-
-    // Funnel/smokestack
-    gfx.fillStyle(0x333333, 0.9);
-    gfx.fillRect(-16, -7, 3, 3);
-    gfx.fillStyle(0xff8c00, 0.7);
-    gfx.fillRect(-16, -7, 3, 1);
-  }
-
   onReachedEnd() {
-    this.scene.onTankerScored(this);
+    const earned = this.scene.onTankerScored(this);
     this.alive = false;
     if (this.body) this.body.setVelocity(0, 0);
 
@@ -130,7 +68,7 @@ export class Tanker extends Ship {
     }
 
     // Bonus text
-    const text = this.scene.add.text(wx, wy - 15, `+${ECONOMY.TANKER_BONUS}`, {
+    const text = this.scene.add.text(wx, wy - 15, `+${earned}`, {
       fontSize: '22px',
       color: '#66bb6a',
       fontStyle: 'bold',
