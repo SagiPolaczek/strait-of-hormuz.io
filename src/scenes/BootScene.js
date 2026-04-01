@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { generateAll } from '../config/assetRenderer.js';
 
 const BOOT_MESSAGES = [
   { text: 'CENTCOM TACTICAL INTERFACE v3.7.1', delay: 0 },
@@ -34,7 +35,7 @@ export class BootScene extends Phaser.Scene {
 
     // ── Title text ──
     const titleText = this.add.text(cx, cy - 180, 'STRAIT OF HORMUZ\nDEFENSE COMMAND', {
-      fontSize: '42px',
+      fontSize: '68px',
       fontFamily: '"Black Ops One", cursive',
       color: '#33ff66',
       align: 'center',
@@ -50,7 +51,7 @@ export class BootScene extends Phaser.Scene {
 
     // Subtle glow behind title
     const titleGlow = this.add.text(cx, cy - 180, 'STRAIT OF HORMUZ\nDEFENSE COMMAND', {
-      fontSize: '42px',
+      fontSize: '68px',
       fontFamily: '"Black Ops One", cursive',
       color: '#33ff66',
       align: 'center',
@@ -66,8 +67,8 @@ export class BootScene extends Phaser.Scene {
     });
 
     // ── Subtitle ──
-    const subText = this.add.text(cx, cy - 100, 'INITIALIZING COMMAND CENTER...', {
-      fontSize: '14px',
+    const subText = this.add.text(cx, cy - 80, 'INITIALIZING COMMAND CENTER...', {
+      fontSize: '22px',
       fontFamily: '"Share Tech Mono", monospace',
       color: '#ffb300',
       letterSpacing: 4,
@@ -111,7 +112,7 @@ export class BootScene extends Phaser.Scene {
     // Progress fill
     const barFill = this.add.graphics();
     const pctText = this.add.text(cx + barW / 2 + 16, barY + barH / 2, '0%', {
-      fontSize: '12px',
+      fontSize: '20px',
       fontFamily: '"Orbitron", sans-serif',
       color: '#33ff66',
     }).setOrigin(0, 0.5);
@@ -133,8 +134,8 @@ export class BootScene extends Phaser.Scene {
     const msgX = cx - barW / 2;
 
     BOOT_MESSAGES.forEach((msg, i) => {
-      const t = this.add.text(msgX, msgStartY + i * 22, '', {
-        fontSize: '12px',
+      const t = this.add.text(msgX, msgStartY + i * 32, '', {
+        fontSize: '20px',
         fontFamily: '"Share Tech Mono", monospace',
         color: msg.color || '#8a9a7a',
         fontStyle: msg.bold ? 'bold' : 'normal',
@@ -162,7 +163,7 @@ export class BootScene extends Phaser.Scene {
 
     // ── Classification footer ──
     this.add.text(cx, H - 60, 'TOP SECRET // SCI // NOFORN', {
-      fontSize: '10px',
+      fontSize: '17px',
       fontFamily: '"Share Tech Mono", monospace',
       color: '#ef5350',
       letterSpacing: 3,
@@ -170,16 +171,20 @@ export class BootScene extends Phaser.Scene {
 
     // ── Coordinates ──
     this.add.text(cx, H - 40, '26.5667N  56.2500E  //  STRAIT OF HORMUZ  //  PERSIAN GULF AO', {
-      fontSize: '9px',
+      fontSize: '16px',
       fontFamily: '"Share Tech Mono", monospace',
       color: '#33ff66',
     }).setOrigin(0.5).setAlpha(0.2);
 
-    // ── Load the map asset ──
+    // ── Load assets ──
     this.load.image('map', 'assets/strait.jpg');
+    this.load.image('trump', 'assets/trump.png');
   }
 
   create() {
+    // ── Generate sprite textures (before any entities are created) ──
+    generateAll(this);
+
     // ── Typewriter boot messages ──
     let maxDelay = 0;
     this.bootTexts.forEach(({ textObj, message, delay }) => {
@@ -200,10 +205,45 @@ export class BootScene extends Phaser.Scene {
       if (totalTime > maxDelay) maxDelay = totalTime;
     });
 
+    // Allow skip on subsequent playthroughs
+    const hasPlayed = localStorage.getItem('hormuz_defense_leaderboard');
+    if (hasPlayed) {
+      const skipText = this.add.text(960, 1539 - 100, 'PRESS ANY KEY TO SKIP', {
+        fontSize: '12px', fontFamily: '"Share Tech Mono", monospace',
+        color: '#33ff66', letterSpacing: 2,
+      }).setOrigin(0.5).setAlpha(0);
+
+      this.tweens.add({
+        targets: skipText,
+        alpha: { from: 0, to: 0.6 },
+        duration: 400,
+        delay: 1000,
+        yoyo: true,
+        repeat: -1,
+      });
+
+      const skipFn = () => {
+        if (this._skipped) return;
+        this._skipped = true;
+        const fadeOut = this.add.rectangle(960, 769.5, 1920, 1539, 0x000000, 0).setDepth(500);
+        this.tweens.add({
+          targets: fadeOut,
+          fillAlpha: 1,
+          duration: 300,
+          onComplete: () => this.scene.start('Game'),
+        });
+      };
+
+      this.input.keyboard.on('keydown', skipFn);
+      this.input.on('pointerdown', skipFn);
+    }
+
     // ── Transition to game after boot sequence completes ──
     const transitionDelay = Math.max(maxDelay + 600, 3600);
 
     this.time.delayedCall(transitionDelay, () => {
+      if (this._skipped) return;
+      this._skipped = true;
       // Flash effect before transition
       const flash = this.add.rectangle(960, 770, 1920, 1539, 0x33ff66, 0);
       this.tweens.add({
