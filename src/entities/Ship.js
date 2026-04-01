@@ -36,9 +36,11 @@ export class Ship extends Phaser.GameObjects.Container {
       speed: { min: 2, max: 8 },
       scale: { start: 0.5, end: 0.1 },
       alpha: { start: 0.5, end: 0 },
-      lifespan: { min: 300, max: 600 },
+      lifespan: { min: 200, max: 400 },
       frequency: 80,
       quantity: 1,
+      tint: 0x82b1ff,
+      blendMode: 'ADD',
       emitting: true,
     });
     this.wakeEmitter.setDepth(2);
@@ -168,6 +170,7 @@ export class Ship extends Phaser.GameObjects.Container {
       scale: { start: 1.0, end: 0 },
       lifespan: { min: 300, max: 800 },
       quantity: 15,
+      tint: [0xfff8e1, 0xff8f00, 0xff6600, 0xef5350],
       emitting: false,
     });
     fire.setDepth(20);

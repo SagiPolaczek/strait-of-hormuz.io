@@ -31,6 +31,7 @@ export class Projectile extends Phaser.GameObjects.Container {
       frequency: 20,
       quantity: 1,
       tint: trailColor,
+      blendMode: 'ADD',
       emitting: true,
     });
     this.trailEmitter.setDepth(4);
