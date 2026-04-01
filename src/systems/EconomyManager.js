@@ -17,16 +17,20 @@ export class EconomyManager {
   }
 
   tick() {
-    // Coalition rigs: accumulate oil INTERNALLY (player must click to collect)
-    for (const rig of this.coalitionRigs) {
-      if (rig.active && rig.addStoredOil) {
-        rig.addStoredOil(ECONOMY.OIL_RIG_RATE);
+    try {
+      // Coalition rigs: accumulate oil INTERNALLY (player must click to collect)
+      for (const rig of this.coalitionRigs) {
+        if (rig.active && rig.addStoredOil) {
+          rig.addStoredOil(ECONOMY.OIL_RIG_RATE);
+        }
       }
-    }
 
-    // IRGC rigs: auto-collect (AI doesn't need to click)
-    const irgcIncome = this.irgcRigs.length * ECONOMY.OIL_RIG_RATE;
-    this.irgcOil += irgcIncome;
+      // IRGC rigs: auto-collect (AI doesn't need to click)
+      const irgcIncome = this.irgcRigs.length * ECONOMY.OIL_RIG_RATE;
+      this.irgcOil += irgcIncome;
+    } catch (err) {
+      console.error('[EconomyManager.tick] CRASH:', err);
+    }
   }
 
   // Collect oil from a specific coalition rig

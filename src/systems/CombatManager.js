@@ -4,12 +4,14 @@ export class CombatManager {
   }
 
   update() {
-    this.updateGroup(this.scene.irgcTowers);
-    this.updateGroup(this.scene.projectiles);
-    this.updateGroup(this.scene.coalitionShips);
-
-    // Cleanup dead/destroyed entities from all groups
-    this.purgeDeadEntities();
+    try {
+      this.updateGroup(this.scene.irgcTowers);
+      this.updateGroup(this.scene.projectiles);
+      this.updateGroup(this.scene.coalitionShips);
+      this.purgeDeadEntities();
+    } catch (err) {
+      console.error('[CombatManager.update] CRASH:', err);
+    }
   }
 
   /** Call update() on every active member of a Phaser group. */

@@ -54,27 +54,36 @@ export class GameScene extends Phaser.Scene {
   }
 
   update() {
-    this.combat.update();
-    this.hud.update(this.score);
-    this.deployBar.update();
-    this.checkGameOver();
+    try {
+      this.combat.update();
+      this.hud.update(this.score);
+      this.deployBar.update();
+      this.checkGameOver();
+    } catch (err) {
+      console.error('[GameScene.update] CRASH:', err);
+    }
   }
 
   handleMapClick(pointer) {
     const { x, y } = pointer;
 
-    // Ignore clicks on HUD (top 50px) or deployment bar (bottom 70px)
-    if (y < 50 || y > 1490) return;
+    // Ignore clicks on HUD (top ~55px) or deployment bar (starts at y=1459)
+    if (y < 55 || y > 1455) return;
 
     // If no unit selected, check if clicking on a coalition oil rig to collect
     const unit = this.deployBar.getSelectedUnit();
+    console.log(`[Click] pos=(${Math.round(x)},${Math.round(y)}) unit=${unit?.key || 'none'}`);
+
     if (!unit) {
       this.tryCollectOilRig(x, y);
       return;
     }
 
     // Check if placement is in correct zone
-    if (!this.zoneManager.isInZone(unit.zone, x, y)) {
+    const inZone = this.zoneManager.isInZone(unit.zone, x, y);
+    console.log(`[Click] zone=${unit.zone} inZone=${inZone}`);
+
+    if (!inZone) {
       this.showMessage(x, y, '⚠ WRONG ZONE', '#ef5350');
       // Flash the correct zone to guide the player
       this.zoneManager.flashCoalitionZones(unit.key);
@@ -88,6 +97,7 @@ export class GameScene extends Phaser.Scene {
     }
 
     // Spend oil and place/deploy unit
+    console.log(`[Click] PLACING ${unit.key} at (${Math.round(x)},${Math.round(y)})`);
     this.economy.spend('coalition', unit.cost);
 
     switch (unit.key) {
