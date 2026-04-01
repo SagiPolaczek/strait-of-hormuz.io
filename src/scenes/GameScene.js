@@ -11,6 +11,7 @@ import { Destroyer } from '../entities/Destroyer.js';
 import { MissileLauncher } from '../entities/MissileLauncher.js';
 import { Projectile } from '../entities/Projectile.js';
 import { COALITION_UNITS } from '../config/units.js';
+import { TIMING } from '../config/constants.js';
 import { DEFAULT_SHIP_ROUTE } from '../config/zones.js';
 
 export class GameScene extends Phaser.Scene {
@@ -41,6 +42,9 @@ export class GameScene extends Phaser.Scene {
 
     // Score tracking
     this.score = 0;
+
+    // Track scene creation time for grace period
+    this.createTime = this.time.now;
 
     // Click handler — place units on the map
     this.input.on('pointerdown', (pointer) => this.handleMapClick(pointer));
@@ -85,10 +89,10 @@ export class GameScene extends Phaser.Scene {
         this.placeCoalitionOilRig(x, y, unit);
         break;
       case 'TANKER':
-        this.deployShip(unit, Tanker);
+        this.deployShip(x, y, unit, Tanker);
         break;
       case 'DESTROYER':
-        this.deployShip(unit, Destroyer);
+        this.deployShip(x, y, unit, Destroyer);
         break;
     }
 
@@ -99,12 +103,19 @@ export class GameScene extends Phaser.Scene {
     const rig = new OilRig(this, x, y, 'coalition', stats);
     this.coalitionRigs.add(rig);
     this.economy.registerRig('coalition', rig);
+    this.showPlacementConfirmation(x, y);
   }
 
-  deployShip(stats, ShipClass) {
+  deployShip(clickX, clickY, stats, ShipClass) {
     const [startX, startY] = DEFAULT_SHIP_ROUTE[0];
     const ship = new ShipClass(this, startX, startY, stats);
     this.coalitionShips.add(ship);
+
+    // Visual feedback at click location
+    this.showPlacementConfirmation(clickX, clickY);
+
+    // Visual indicator at route start — flash to show where ship actually spawns
+    this.showDeployIndicator(startX, startY);
   }
 
   placeIRGCOilRig(x, y, stats) {
@@ -144,6 +155,46 @@ export class GameScene extends Phaser.Scene {
     });
   }
 
+  /** Green circle expanding and fading — placement/deploy confirmation. */
+  showPlacementConfirmation(x, y) {
+    const circle = this.add.circle(x, y, 8, 0x4caf50, 0.6).setDepth(150);
+    this.tweens.add({
+      targets: circle,
+      radius: 30,
+      scaleX: 1.5,
+      scaleY: 1.5,
+      alpha: 0,
+      duration: 400,
+      ease: 'Quad.easeOut',
+      onComplete: () => circle.destroy(),
+    });
+  }
+
+  /** Flash indicator at ship route start when a ship is deployed. */
+  showDeployIndicator(x, y) {
+    const ring = this.add.circle(x, y, 20, 0x2196f3, 0).setStrokeStyle(3, 0x2196f3, 0.8).setDepth(150);
+    const label = this.add.text(x, y - 30, '⚓ Deployed', {
+      fontSize: '14px', color: '#64b5f6', fontFamily: 'Arial', fontStyle: 'bold',
+    }).setOrigin(0.5).setDepth(150);
+
+    this.tweens.add({
+      targets: ring,
+      scaleX: 2,
+      scaleY: 2,
+      alpha: 0,
+      duration: 600,
+      ease: 'Quad.easeOut',
+      onComplete: () => ring.destroy(),
+    });
+    this.tweens.add({
+      targets: label,
+      y: label.y - 20,
+      alpha: 0,
+      duration: 800,
+      onComplete: () => label.destroy(),
+    });
+  }
+
   showMessage(x, y, text, color) {
     const msg = this.add.text(x, y - 20, text, {
       fontSize: '16px', color, fontFamily: 'Arial', fontStyle: 'bold',
@@ -155,6 +206,9 @@ export class GameScene extends Phaser.Scene {
   }
 
   checkGameOver() {
+    // Grace period — don't check game over for the first N seconds
+    if (this.time.now - this.createTime < TIMING.GAME_OVER_GRACE_MS) return;
+
     const oil = this.economy.coalitionOil;
     const rigs = this.economy.coalitionRigs.length;
     const ships = this.coalitionShips.getLength();
