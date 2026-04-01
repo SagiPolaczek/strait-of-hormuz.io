@@ -51,7 +51,9 @@ Oil is the single resource for both sides.
 
 ### Coalition (Player)
 - Starts with a base amount of oil
-- Builds **oil rigs** in the Gulf of Oman to generate oil over time
+- Builds **oil rigs** in the Gulf of Oman that **accumulate oil over time**
+- **Click on oil rigs to collect** — oil pools up visually on the rig (barrel fills up, glow intensifies). Player must click the rig to harvest. Uncollected oil caps at a max per rig. This creates a micro-management tension: collect oil vs. manage fleet.
+- **Collection visual:** On click, oil barrels burst upward with a golden splash effect, floating "+X 🛢️" text, and the oil counter in the HUD pulses. Satisfying, juicy, rewarding.
 - Spends oil to deploy ships and aircraft
 - Earns bonus oil when tankers successfully pass through the strait
 
@@ -115,6 +117,11 @@ All UI is overlaid on the satellite map.
 - **Bottom bar:** Unit deployment buttons with oil costs. Click a button, then click on the map to place/deploy.
 - **Center:** The game — satellite image with all units, buildings, animations, and combat
 - **Game over screen:** Results card with stats + satirical headline for sharing
+
+### Hidden Zones (Discovery UX)
+- **Zones are invisible by default** — the map shows only the satellite image, no colored overlays
+- **Zones appear on misclick** — when the player tries to place a unit in the wrong zone, the correct zone flashes/pulses briefly (2-3 seconds) to guide them, then fades away
+- This teaches placement through play, not through visual clutter on the beautiful satellite map
 
 ## Scoring & Leaderboard
 

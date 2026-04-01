@@ -11,7 +11,7 @@ import { Destroyer } from '../entities/Destroyer.js';
 import { MissileLauncher } from '../entities/MissileLauncher.js';
 import { Projectile } from '../entities/Projectile.js';
 import { COALITION_UNITS } from '../config/units.js';
-import { TIMING } from '../config/constants.js';
+import { TIMING, OIL_COLLECTION } from '../config/constants.js';
 import { DEFAULT_SHIP_ROUTE } from '../config/zones.js';
 
 export class GameScene extends Phaser.Scene {
@@ -66,12 +66,18 @@ export class GameScene extends Phaser.Scene {
     // Ignore clicks on HUD (top 50px) or deployment bar (bottom 70px)
     if (y < 50 || y > 1490) return;
 
+    // If no unit selected, check if clicking on a coalition oil rig to collect
     const unit = this.deployBar.getSelectedUnit();
-    if (!unit) return;
+    if (!unit) {
+      this.tryCollectOilRig(x, y);
+      return;
+    }
 
     // Check if placement is in correct zone
     if (!this.zoneManager.isInZone(unit.zone, x, y)) {
-      this.showMessage(x, y, '❌ Wrong zone!', '#ef5350');
+      this.showMessage(x, y, '⚠ WRONG ZONE', '#ef5350');
+      // Flash the correct zone to guide the player
+      this.zoneManager.flashCoalitionZones(unit.key);
       return;
     }
 
@@ -97,6 +103,21 @@ export class GameScene extends Phaser.Scene {
     }
 
     this.deployBar.clearSelection();
+  }
+
+  tryCollectOilRig(x, y) {
+    const rigs = this.coalitionRigs.getChildren();
+    for (const rig of rigs) {
+      if (!rig.active || rig.side !== 'coalition') continue;
+      const dist = Phaser.Math.Distance.Between(x, y, rig.x, rig.y);
+      if (dist < OIL_COLLECTION.CLICK_RADIUS && rig.storedOil > 0) {
+        const collected = this.economy.collectFromRig(rig);
+        if (collected > 0) {
+          rig.showCollectionEffect(Math.floor(collected));
+        }
+        return;
+      }
+    }
   }
 
   placeCoalitionOilRig(x, y, stats) {
@@ -174,7 +195,7 @@ export class GameScene extends Phaser.Scene {
   showDeployIndicator(x, y) {
     const ring = this.add.circle(x, y, 20, 0x2196f3, 0).setStrokeStyle(3, 0x2196f3, 0.8).setDepth(150);
     const label = this.add.text(x, y - 30, '⚓ Deployed', {
-      fontSize: '14px', color: '#64b5f6', fontFamily: 'Arial', fontStyle: 'bold',
+      fontSize: '13px', color: '#64b5f6', fontFamily: '"Share Tech Mono", monospace', fontStyle: 'bold',
     }).setOrigin(0.5).setDepth(150);
 
     this.tweens.add({
@@ -197,7 +218,7 @@ export class GameScene extends Phaser.Scene {
 
   showMessage(x, y, text, color) {
     const msg = this.add.text(x, y - 20, text, {
-      fontSize: '16px', color, fontFamily: 'Arial', fontStyle: 'bold',
+      fontSize: '14px', color, fontFamily: '"Share Tech Mono", monospace', fontStyle: 'bold',
     }).setOrigin(0.5).setDepth(200);
     this.tweens.add({
       targets: msg, y: msg.y - 30, alpha: 0, duration: 800,

@@ -9,6 +9,12 @@ export const ECONOMY = {
   OIL_RIG_RATE: 3,           // oil per second per rig (bumped from 2 for faster early game)
   IRGC_OIL_RIG_COST_MULT: 0.75, // IRGC oil rigs cost 75% of normal — they need to build up faster
   TANKER_BONUS: 500,          // oil earned when a tanker passes through
+  OIL_RIG_MAX_STORAGE: 60,    // max oil a rig can store before collection
+};
+
+export const OIL_COLLECTION = {
+  CLICK_RADIUS: 45,            // click radius to collect from a rig
+  FLOAT_DURATION: 900,         // ms for the "+X" text to float up
 };
 
 export const TIMING = {
