@@ -13,6 +13,17 @@ import { Projectile } from '../entities/Projectile.js';
 import { COALITION_UNITS } from '../config/units.js';
 import { TIMING, OIL_COLLECTION } from '../config/constants.js';
 import { SHIP_ROUTES } from '../config/zones.js';
+import { BalanceMeter } from '../systems/BalanceMeter.js';
+import { BalanceMeterUI } from '../ui/BalanceMeterUI.js';
+import { UpgradePanel } from '../ui/UpgradePanel.js';
+import { LeaderboardManager } from '../systems/LeaderboardManager.js';
+import { TrumpShock } from '../systems/TrumpShock.js';
+import { AirDefense } from '../entities/AirDefense.js';
+import { Airfield } from '../entities/Airfield.js';
+import { CoalitionSubmarine } from '../entities/CoalitionSubmarine.js';
+import { ADVANCED } from '../config/constants.js';
+import { AudioManager } from '../systems/AudioManager.js';
+import { SettingsModal } from '../ui/SettingsModal.js';
 
 export class GameScene extends Phaser.Scene {
   constructor() {
@@ -29,6 +40,11 @@ export class GameScene extends Phaser.Scene {
     this.coalitionRigs = this.add.group();
     this.irgcRigs = this.add.group();
     this.projectiles = this.add.group();
+    this.mines = this.add.group();
+    this.irgcAir = this.add.group();
+    this.coalitionDefenses = this.add.group();
+    this.irgcBoats = this.add.group();
+    this.coalitionAir = this.add.group();
 
     // Systems
     this.zoneManager = new ZoneManager(this);
@@ -45,16 +61,96 @@ export class GameScene extends Phaser.Scene {
 
     // Track scene creation time for grace period
     this.createTime = this.time.now;
+    this._gameEnded = false;
+
+    // Balance meter (tug-of-war win condition)
+    this.balanceMeter = new BalanceMeter(this);
+    this.balanceMeterUI = new BalanceMeterUI(this, this.balanceMeter);
+
+    // Global upgrades — per-type, shared across all units
+    this.globalUpgrades = {
+      OIL_RIG: {},
+      TANKER: {},
+      DESTROYER: {},
+      AIR_DEFENSE: {},
+      AIRFIELD: {},
+      COALITION_SUB: {},
+    };
+
+    // Upgrade panel (left side)
+    this.upgradePanel = new UpgradePanel(this, this.economy);
+
+    // Trump oil shock events
+    this.trumpShock = new TrumpShock(this, this.economy);
+
+    // Advanced weapons unlock at 3 minutes
+    this.advancedUnlocked = false;
+    this.time.delayedCall(ADVANCED.UNLOCK_TIME_MS, () => this._onAdvancedUnlock());
+
+    // Audio manager (shared singleton)
+    if (!window._audioManager) window._audioManager = new AudioManager();
+    this.audio = window._audioManager;
+
+    // Settings modal
+    this.settingsModal = new SettingsModal(this, this.audio);
+    this.hud._onSettingsClick = () => this.toggleSettings();
+    this._settingsOpen = false;
+
+    // ESC key toggles settings
+    this.input.keyboard.on('keydown-ESC', () => this.toggleSettings());
+
+    // Cheat code: type "iloveoil" for infinite oil
+    this._cheatBuffer = '';
+    this.input.keyboard.on('keydown', (event) => {
+      if (this._settingsOpen || event.key.length !== 1) return;
+      this._cheatBuffer += event.key.toLowerCase();
+      if (this._cheatBuffer.length > 20) this._cheatBuffer = this._cheatBuffer.slice(-20);
+      if (this._cheatBuffer.endsWith('iloveoil')) {
+        this._cheatBuffer = '';
+        this._activateOilCheat();
+      }
+    });
+
+    // Zone outline graphics for unit selection guidance
+    this._zoneOutlines = [];
+
+    // Cleanup on scene shutdown
+    this.events.on('shutdown', () => {
+      this.tweens.killAll();
+      this.time.removeAllEvents();
+      this._clearZoneOutlines();
+    });
 
     // Click handler — place units on the map
     this.input.on('pointerdown', (pointer) => this.handleMapClick(pointer));
+
+    // Watch for deployment bar selection changes to show zone outlines
+    this.time.addEvent({
+      delay: 200,
+      loop: true,
+      callback: () => {
+        const unit = this.deployBar.getSelectedUnit();
+        const currentKey = unit?.key || null;
+        if (currentKey !== this._lastDeploySelection) {
+          this._lastDeploySelection = currentKey;
+          if (currentKey) {
+            this.showZoneOutlines(currentKey);
+          } else {
+            this._clearZoneOutlines();
+          }
+        }
+      },
+    });
   }
 
   update() {
+    if (this._settingsOpen) return;
     try {
       this.combat.update();
       this.hud.update(this.score);
       this.deployBar.update();
+      this.balanceMeterUI.update();
+      this.upgradePanel.update();
       this.checkGameOver();
     } catch (err) {
       console.error('[GameScene.update] CRASH:', err);
@@ -62,26 +158,47 @@ export class GameScene extends Phaser.Scene {
   }
 
   handleMapClick(pointer) {
+    if (this._settingsOpen) return;
     const { x, y } = pointer;
 
     // Ignore clicks on HUD (top ~70px) or deployment bar (starts at y=1443)
-    if (y < 70 || y > 1440) return;
+    if (y < 82 || y > 1428) return;
 
-    // If no unit selected, check if clicking on a coalition oil rig to collect
     const unit = this.deployBar.getSelectedUnit();
-    console.log(`[Click] pos=(${Math.round(x)},${Math.round(y)}) unit=${unit?.key || 'none'}`);
+
+    // Always check if clicking a coalition unit — show upgrade panel
+    const clickedUnit = this.findCoalitionUnitAt(x, y);
+    if (clickedUnit) {
+      // Collect oil if it's a rig with stored oil
+      if (clickedUnit.storedOil > 0 && clickedUnit.side === 'coalition') {
+        const collected = this.economy.collectFromRig(clickedUnit);
+        if (collected > 0) { clickedUnit.showCollectionEffect(Math.floor(collected)); this.audio.collectOil(); }
+      }
+      this.upgradePanel.show(clickedUnit);
+      if (!unit) return; // No deploy unit selected, just show upgrades
+    } else {
+      // Check if clicking an enemy unit — show intel
+      const enemyUnit = this.findEnemyUnitAt(x, y);
+      if (enemyUnit) {
+        this.upgradePanel.showEnemyIntel(enemyUnit);
+        if (!unit) return;
+      } else {
+        // Clicked empty space — deselect
+        this.upgradePanel.deselect();
+      }
+    }
 
     if (!unit) {
-      this.tryCollectOilRig(x, y);
+      if (!clickedUnit) this.tryCollectOilRig(x, y);
       return;
     }
 
     // Check if placement is in correct zone
     const inZone = this.zoneManager.isInZone(unit.zone, x, y);
-    console.log(`[Click] zone=${unit.zone} inZone=${inZone}`);
 
     if (!inZone) {
       this.showMessage(x, y, '⚠ WRONG ZONE', '#ef5350');
+      this.audio.error();
       // Flash the correct zone to guide the player
       this.zoneManager.flashCoalitionZones(unit.key);
       return;
@@ -90,11 +207,11 @@ export class GameScene extends Phaser.Scene {
     // Check if player can afford it
     if (!this.economy.canAfford('coalition', unit.cost)) {
       this.showMessage(x, y, '❌ Not enough oil!', '#ef5350');
+      this.audio.error();
       return;
     }
 
     // Spend oil and place/deploy unit
-    console.log(`[Click] PLACING ${unit.key} at (${Math.round(x)},${Math.round(y)})`);
     this.economy.spend('coalition', unit.cost);
 
     switch (unit.key) {
@@ -107,9 +224,19 @@ export class GameScene extends Phaser.Scene {
       case 'DESTROYER':
         this.deployShip(x, y, unit, Destroyer);
         break;
+      case 'AIR_DEFENSE':
+        this.placeAirDefense(x, y, unit);
+        break;
+      case 'AIRFIELD':
+        this.placeAirfield(x, y, unit);
+        break;
+      case 'COALITION_SUB':
+        this.deploySubmarine(x, y, unit);
+        break;
     }
 
     this.deployBar.clearSelection();
+    this._clearZoneOutlines();
   }
 
   tryCollectOilRig(x, y) {
@@ -121,6 +248,7 @@ export class GameScene extends Phaser.Scene {
         const collected = this.economy.collectFromRig(rig);
         if (collected > 0) {
           rig.showCollectionEffect(Math.floor(collected));
+          this.audio.collectOil();
         }
         return;
       }
@@ -131,7 +259,9 @@ export class GameScene extends Phaser.Scene {
     const rig = new OilRig(this, x, y, 'coalition', stats);
     this.coalitionRigs.add(rig);
     this.economy.registerRig('coalition', rig);
+    this._applyGlobalUpgrades(rig);
     this.showPlacementConfirmation(x, y);
+    this.audio.place();
   }
 
   deployShip(clickX, clickY, stats, ShipClass) {
@@ -139,14 +269,16 @@ export class GameScene extends Phaser.Scene {
     const route = SHIP_ROUTES[Math.floor(Math.random() * SHIP_ROUTES.length)];
     const [startX, startY] = route[0];
     const ship = new ShipClass(this, startX, startY, stats);
-    ship.waypoints = [...route]; // override with the same route we picked
+    ship.waypoints = [...route];
     this.coalitionShips.add(ship);
+    this._applyGlobalUpgrades(ship);
 
     // Visual feedback at click location
     this.showPlacementConfirmation(clickX, clickY);
 
     // Visual indicator at route start — flash to show where ship actually spawns
     this.showDeployIndicator(startX, startY);
+    this.audio.place();
   }
 
   placeIRGCOilRig(x, y, stats) {
@@ -167,7 +299,132 @@ export class GameScene extends Phaser.Scene {
 
   onTankerScored(tanker) {
     this.score += tanker.stats.scoreValue;
-    this.economy.earn('coalition', tanker.stats.oilBonus);
+    const trumpMult = this.trumpShock?.getMultiplier() || 1;
+    const earned = Math.floor(tanker.stats.oilBonus * trumpMult);
+    this.economy.earn('coalition', earned);
+    this.balanceMeter.onTankerScored();
+    this.audio.tankerScored();
+    return earned;
+  }
+
+  placeAirDefense(x, y, stats) {
+    const ad = new AirDefense(this, x, y, stats);
+    this.coalitionDefenses.add(ad);
+    this._applyGlobalUpgrades(ad);
+    this.showPlacementConfirmation(x, y);
+  }
+
+  placeAirfield(x, y, stats) {
+    const af = new Airfield(this, x, y, stats);
+    this.coalitionDefenses.add(af);
+    this._applyGlobalUpgrades(af);
+    this.showPlacementConfirmation(x, y);
+    this.audio.place();
+  }
+
+  deploySubmarine(clickX, clickY, stats) {
+    const route = SHIP_ROUTES[Math.floor(Math.random() * SHIP_ROUTES.length)];
+    const [startX, startY] = route[0];
+    const sub = new CoalitionSubmarine(this, startX, startY, stats);
+    sub.waypoints = [...route];
+    this.coalitionShips.add(sub);
+    this._applyGlobalUpgrades(sub);
+    this.showPlacementConfirmation(clickX, clickY);
+    this.showDeployIndicator(startX, startY);
+    this.audio.place();
+  }
+
+  /** Apply all current global upgrades to a newly created coalition unit */
+  _applyGlobalUpgrades(unit) {
+    const typeKey = unit.stats?.key;
+    if (!typeKey || !this.globalUpgrades[typeKey]) return;
+    const upgrades = this.globalUpgrades[typeKey];
+    for (const [key, level] of Object.entries(upgrades)) {
+      for (let i = 0; i < level; i++) {
+        if (unit.applyUpgrade) unit.applyUpgrade(key);
+      }
+    }
+  }
+
+  _onAdvancedUnlock() {
+    this.advancedUnlocked = true;
+
+    const banner = this.add.text(960, 450, '⚠ ADVANCED THREATS INCOMING ⚠', {
+      fontSize: '32px', fontFamily: '"Black Ops One", cursive',
+      color: '#ef5350', stroke: '#000000', strokeThickness: 5,
+    }).setOrigin(0.5).setDepth(200);
+
+    const sub = this.add.text(960, 495, 'MISSILES • DRONES • FAST BOATS — DEPLOY DEFENSES NOW', {
+      fontSize: '14px', fontFamily: '"Share Tech Mono", monospace',
+      color: '#ff9800', stroke: '#000000', strokeThickness: 2,
+    }).setOrigin(0.5).setDepth(200).setAlpha(0);
+
+    this.tweens.add({
+      targets: banner,
+      alpha: { from: 0, to: 1 },
+      scaleX: { from: 0.5, to: 1 },
+      scaleY: { from: 0.5, to: 1 },
+      duration: 500,
+      ease: 'Back.easeOut',
+    });
+    this.tweens.add({
+      targets: sub, alpha: 1, duration: 400, delay: 400,
+    });
+
+    // Flash screen
+    const flash = this.add.rectangle(960, 770, 1920, 1539, 0xFFD54F, 0).setDepth(199);
+    this.tweens.add({
+      targets: flash, fillAlpha: { from: 0, to: 0.15 },
+      duration: 200, yoyo: true,
+    });
+
+    this.tweens.add({
+      targets: [banner, sub], alpha: 0, duration: 500, delay: 3000,
+      onComplete: () => { banner.destroy(); sub.destroy(); flash.destroy(); },
+    });
+  }
+
+  findCoalitionUnitAt(x, y) {
+    const radius = 45;
+    for (const rig of this.coalitionRigs.getChildren()) {
+      if (!rig.active || rig.side !== 'coalition') continue;
+      if (Phaser.Math.Distance.Between(x, y, rig.x, rig.y) < radius) return rig;
+    }
+    for (const ship of this.coalitionShips.getChildren()) {
+      if (!ship.active || !ship.alive) continue;
+      if (Phaser.Math.Distance.Between(x, y, ship.x, ship.y) < radius) return ship;
+    }
+    for (const def of this.coalitionDefenses.getChildren()) {
+      if (!def.active) continue;
+      if (Phaser.Math.Distance.Between(x, y, def.x, def.y) < radius) return def;
+    }
+    return null;
+  }
+
+  findEnemyUnitAt(x, y) {
+    const radius = 50;
+    for (const t of this.irgcTowers.getChildren()) {
+      if (!t.active) continue;
+      if (Phaser.Math.Distance.Between(x, y, t.x, t.y) < radius) return t;
+    }
+    for (const r of this.irgcRigs.getChildren()) {
+      if (!r.active) continue;
+      if (Phaser.Math.Distance.Between(x, y, r.x, r.y) < radius) return r;
+    }
+    for (const m of this.mines.getChildren()) {
+      if (!m.active || !m.detected) continue; // only detected mines
+      if (Phaser.Math.Distance.Between(x, y, m.x, m.y) < radius) return m;
+    }
+    for (const a of this.irgcAir.getChildren()) {
+      if (!a.active || !a.alive) continue;
+      if (Phaser.Math.Distance.Between(x, y, a.x, a.y) < radius) return a;
+    }
+    for (const b of this.irgcBoats.getChildren()) {
+      if (!b.active || !b.alive) continue;
+      if (b.isSub && b.submerged && !b.detected) continue;
+      if (Phaser.Math.Distance.Between(x, y, b.x, b.y) < radius) return b;
+    }
+    return null;
   }
 
   /** Green circle expanding and fading — placement/deploy confirmation. */
@@ -220,8 +477,56 @@ export class GameScene extends Phaser.Scene {
     });
   }
 
+  showZoneOutlines(unitKey) {
+    this._clearZoneOutlines();
+    const zoneName = unitKey === 'OIL_RIG' ? 'COALITION_OIL' : 'COALITION_DEPLOY';
+    const outlines = this.zoneManager.createZoneOutlines(zoneName);
+    this._zoneOutlines = outlines;
+  }
+
+  _clearZoneOutlines() {
+    if (this._zoneOutlines) {
+      this._zoneOutlines.forEach(gfx => { if (gfx?.active) gfx.destroy(); });
+      this._zoneOutlines = [];
+    }
+  }
+
+  toggleSettings() {
+    this.settingsModal.toggle();
+  }
+
+  pauseGame() {
+    this._settingsOpen = true;
+    this.time.paused = true;
+    this.tweens.pauseAll();
+    this.hud.onPause();
+    this.balanceMeter.onPause();
+    this.ai.onPause();
+  }
+
+  resumeGame() {
+    this._settingsOpen = false;
+    this.time.paused = false;
+    this.tweens.resumeAll();
+    this.hud.onResume();
+    this.balanceMeter.onResume();
+    this.ai.onResume();
+  }
+
   checkGameOver() {
-    // Grace period — don't check game over for the first N seconds
+    if (this._gameEnded) return;
+
+    // Balance meter win/lose (primary condition)
+    if (this.balanceMeter.isDefeat()) {
+      this.endGame('defeat');
+      return;
+    }
+    if (this.balanceMeter.isVictory()) {
+      this.endGame('victory');
+      return;
+    }
+
+    // Resource exhaustion fallback (with grace period)
     if (this.time.now - this.createTime < TIMING.GAME_OVER_GRACE_MS) return;
 
     const oil = this.economy.coalitionOil;
@@ -229,12 +534,64 @@ export class GameScene extends Phaser.Scene {
     const ships = this.coalitionShips.getLength();
     const cheapest = Math.min(...Object.values(COALITION_UNITS).map(u => u.cost));
 
-    // Game over: no rigs, no ships, can't afford anything
     if (rigs === 0 && ships === 0 && oil < cheapest) {
-      this.scene.start('GameOver', {
-        score: this.score,
-        time: this.hud.getTimeString(),
-      });
+      this.endGame('defeat');
     }
+  }
+
+  endGame(outcome) {
+    if (this._gameEnded) return;
+    this._gameEnded = true;
+    this.balanceMeter.ended = true;
+
+    const data = {
+      score: this.score,
+      time: this.hud.getTimeString(),
+      timeSeconds: Math.floor((Date.now() - this.hud.startTime - this.hud._totalPauseMs) / 1000),
+      outcome,
+      balance: Math.round(this.balanceMeter.value),
+    };
+
+    if (outcome === 'victory') this.audio.victory();
+    else this.audio.defeat();
+
+    LeaderboardManager.save(data);
+    this.scene.start('GameOver', data);
+  }
+
+  _activateOilCheat() {
+    this.economy.coalitionOil = 999999;
+
+    // Screen flash
+    const flash = this.add.rectangle(960, 770, 1920, 1539, 0xFFD54F, 0).setDepth(250);
+    this.tweens.add({
+      targets: flash, fillAlpha: { from: 0, to: 0.25 },
+      duration: 150, yoyo: true,
+      onComplete: () => flash.destroy(),
+    });
+
+    // Banner
+    const banner = this.add.text(960, 400, '🛢️ UNLIMITED OIL RESERVES 🛢️', {
+      fontSize: '36px', fontFamily: '"Black Ops One", cursive',
+      color: '#FFD54F', stroke: '#000000', strokeThickness: 5,
+    }).setOrigin(0.5).setDepth(251).setAlpha(0);
+
+    const sub = this.add.text(960, 450, 'EXECUTIVE ORDER APPROVED', {
+      fontSize: '14px', fontFamily: '"Share Tech Mono", monospace',
+      color: '#ffb300', stroke: '#000000', strokeThickness: 2,
+    }).setOrigin(0.5).setDepth(251).setAlpha(0);
+
+    this.tweens.add({
+      targets: banner,
+      alpha: { from: 0, to: 1 },
+      scaleX: { from: 0.5, to: 1 },
+      scaleY: { from: 0.5, to: 1 },
+      duration: 400, ease: 'Back.easeOut',
+    });
+    this.tweens.add({ targets: sub, alpha: 1, duration: 300, delay: 300 });
+    this.tweens.add({
+      targets: [banner, sub], alpha: 0, duration: 500, delay: 3000,
+      onComplete: () => { banner.destroy(); sub.destroy(); },
+    });
   }
 }
