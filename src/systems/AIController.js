@@ -282,19 +282,22 @@ export class AIController {
     const cost = Math.floor(stats.cost * (ECONOMY.IRGC_OIL_RIG_COST_MULT || 1));
     if (!this.economy.canAfford('irgc', cost)) return false;
 
-    const zone = this.zoneManager.zoneGraphics.IRGC_OIL;
-    if (!zone) return false;
+    // IRGC can place oil rigs in water (IRGC_OIL) or on land (IRGC_BUILD)
+    const zones = ['IRGC_OIL', 'IRGC_BUILD'];
+    for (const zoneName of zones) {
+      const zone = this.zoneManager.zoneGraphics[zoneName];
+      if (!zone) continue;
 
-    // IRGC_OIL zone may have multiple geoms — try each
-    for (const geom of zone.geoms) {
-      const bounds = Phaser.Geom.Polygon.GetAABB(geom);
-      for (let attempt = 0; attempt < 10; attempt++) {
-        const x = Phaser.Math.Between(bounds.x + 30, bounds.right - 30);
-        const y = Phaser.Math.Between(bounds.y + 30, bounds.bottom - 30);
-        if (this.zoneManager.isInZone('IRGC_OIL', x, y)) {
-          this.economy.spend('irgc', cost);
-          this.scene.placeIRGCOilRig(x, y, stats);
-          return true;
+      for (const geom of zone.geoms) {
+        const bounds = Phaser.Geom.Polygon.GetAABB(geom);
+        for (let attempt = 0; attempt < 10; attempt++) {
+          const x = Phaser.Math.Between(bounds.x + 30, bounds.right - 30);
+          const y = Phaser.Math.Between(bounds.y + 30, bounds.bottom - 30);
+          if (this.zoneManager.isInZone(zoneName, x, y)) {
+            this.economy.spend('irgc', cost);
+            this.scene.placeIRGCOilRig(x, y, stats);
+            return true;
+          }
         }
       }
     }
