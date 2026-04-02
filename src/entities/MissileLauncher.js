@@ -44,16 +44,16 @@ export class MissileLauncher extends Phaser.GameObjects.Container {
     this.add(this.railSprite);
 
     // --- HP bar ---
-    this.hpBarBg = scene.add.rectangle(0, -28, 36, 5, 0x000000, 0.5).setOrigin(0.5);
-    this.hpBar = scene.add.rectangle(-16, -28, 32, 3, 0x4caf50).setOrigin(0, 0.5);
+    this.hpBarBg = scene.add.rectangle(0, -30, 40, 5, 0x000000, 0.5).setOrigin(0.5);
+    this.hpBar = scene.add.rectangle(-18, -30, 36, 3, 0x4caf50).setOrigin(0, 0.5);
     this.hpBarBorder = scene.add.graphics();
     this.hpBarBorder.lineStyle(0.8, 0xffffff, 0.4);
-    this.hpBarBorder.strokeRect(-18, -30, 36, 5);
+    this.hpBarBorder.strokeRect(-20, -32, 40, 5);
     this.add([this.hpBarBg, this.hpBar, this.hpBarBorder]);
 
     scene.add.existing(this);
     scene.physics.add.existing(this, true);
-    if (this.body) this.body.setCircle(18, -18, -18);
+    if (this.body) this.body.setCircle(20, -20, -20);
     this.setDepth(4);
   }
 
@@ -118,8 +118,8 @@ export class MissileLauncher extends Phaser.GameObjects.Container {
     const dist = Math.sqrt(dx * dx + dy * dy);
     const dirX = dx / dist;
     const dirY = dy / dist;
-    const muzzleX = this.x + dirX * 16;
-    const muzzleY = this.y + dirY * 16;
+    const muzzleX = this.x + dirX * 20;
+    const muzzleY = this.y + dirY * 20;
 
     const angle = Math.atan2(dy, dx) * (180 / Math.PI);
 
@@ -215,7 +215,7 @@ export class MissileLauncher extends Phaser.GameObjects.Container {
   takeDamage(amount) {
     this.hp -= amount;
     const pct = Math.max(0, this.hp / this.stats.hp);
-    this.hpBar.width = 32 * pct;
+    this.hpBar.width = 36 * pct;
     this.hpBar.fillColor = pct > 0.5 ? 0x4caf50 : pct > 0.25 ? 0xffeb3b : 0xf44336;
 
     // Flash on damage

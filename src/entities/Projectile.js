@@ -91,15 +91,15 @@ export class Projectile extends Phaser.GameObjects.Container {
     if (this.trailEmitter && this.trailEmitter.active) {
       const rad = this.rotation;
       this.trailEmitter.setPosition(
-        this.x - Math.cos(rad) * 6,
-        this.y - Math.sin(rad) * 6
+        this.x - Math.cos(rad) * 8,
+        this.y - Math.sin(rad) * 8
       );
     }
     if (this.smokeTrail && this.smokeTrail.active) {
       const rad = this.rotation;
       this.smokeTrail.setPosition(
-        this.x - Math.cos(rad) * 8,
-        this.y - Math.sin(rad) * 8
+        this.x - Math.cos(rad) * 10,
+        this.y - Math.sin(rad) * 10
       );
     }
   }

@@ -178,7 +178,6 @@ export class CoalitionSubmarine extends Ship {
   }
 
   _updateSonar() {
-    const now = this.scene.time.now;
     const range = this.getEffectiveSonarRange();
 
     // Detect IRGC subs
@@ -186,12 +185,6 @@ export class CoalitionSubmarine extends Ship {
       if (!boat.active || !boat.isSub) continue;
       const dist = Phaser.Math.Distance.Between(this.x, this.y, boat.x, boat.y);
       boat.detected = dist < range;
-    }
-
-    // Periodic sonar pulse visual (every 3s)
-    if (now - this.sonarPulseTime > 3000) {
-      this.sonarPulseTime = now;
-      this._sonarPulse();
     }
   }
 

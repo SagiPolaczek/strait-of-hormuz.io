@@ -16,7 +16,7 @@ export class AirDefense extends Phaser.GameObjects.Container {
     this.add(this.baseSprite);
 
     // Gun sprite (replaces rotating radar dish)
-    this.gunSprite = scene.add.image(0, -4, 'spr_air_defense_gun').setOrigin(0.5, 0.7);
+    this.gunSprite = scene.add.image(0, -6, 'spr_air_defense_gun').setOrigin(0.5, 0.7);
     this.add(this.gunSprite);
 
     // Range circle
@@ -26,13 +26,13 @@ export class AirDefense extends Phaser.GameObjects.Container {
     this.add(this.rangeGfx);
 
     // HP bar
-    this.hpBarBg = scene.add.rectangle(0, -24, 36, 5, 0x000000, 0.5).setOrigin(0.5);
-    this.hpBar = scene.add.rectangle(-16, -24, 32, 3, 0x4caf50).setOrigin(0, 0.5);
+    this.hpBarBg = scene.add.rectangle(0, -38, 44, 5, 0x000000, 0.5).setOrigin(0.5);
+    this.hpBar = scene.add.rectangle(-20, -38, 40, 3, 0x4caf50).setOrigin(0, 0.5);
     this.add([this.hpBarBg, this.hpBar]);
 
     scene.add.existing(this);
     scene.physics.add.existing(this, true);
-    if (this.body) this.body.setCircle(16, -16, -16);
+    if (this.body) this.body.setCircle(42, -42, -42);
     this.setDepth(4);
   }
 
@@ -77,7 +77,7 @@ export class AirDefense extends Phaser.GameObjects.Container {
     this.scene.fireProjectile(this.x, this.y, target, PROJECTILES.INTERCEPTOR, 'coalition');
 
     // Muzzle flash
-    const flash = this.scene.add.circle(this.x, this.y - 8, 4, 0x00e5ff, 0.8).setDepth(12);
+    const flash = this.scene.add.circle(this.x, this.y - 14, 4, 0x00e5ff, 0.8).setDepth(12);
     this.scene.tweens.add({
       targets: flash, scaleX: 2.5, scaleY: 2.5, alpha: 0,
       duration: 200, onComplete: () => flash.destroy(),
@@ -99,7 +99,7 @@ export class AirDefense extends Phaser.GameObjects.Container {
   takeDamage(amount) {
     this.hp -= amount;
     const pct = Math.max(0, this.hp / this.stats.hp);
-    this.hpBar.width = 32 * pct;
+    this.hpBar.width = 40 * pct;
     this.hpBar.fillColor = pct > 0.5 ? 0x4caf50 : pct > 0.25 ? 0xffeb3b : 0xf44336;
 
     if (this.baseSprite?.active) {

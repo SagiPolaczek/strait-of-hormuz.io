@@ -16,8 +16,8 @@ export class CruiseMissile extends Phaser.GameObjects.Container {
     this.add(this.bodySprite);
 
     // HP bar
-    this.hpBarBg = scene.add.rectangle(0, -14, 28, 3, 0x000000, 0.5).setOrigin(0.5);
-    this.hpBar = scene.add.rectangle(-12, -14, 24, 2, 0xef5350).setOrigin(0, 0.5);
+    this.hpBarBg = scene.add.rectangle(0, -16, 34, 3, 0x000000, 0.5).setOrigin(0.5);
+    this.hpBar = scene.add.rectangle(-15, -16, 30, 2, 0xef5350).setOrigin(0, 0.5);
     this.add([this.hpBarBg, this.hpBar]);
 
     // Smoke trail
@@ -73,7 +73,7 @@ export class CruiseMissile extends Phaser.GameObjects.Container {
 
     if (this.trail?.active) {
       const rad = this.rotation;
-      this.trail.setPosition(this.x - Math.cos(rad) * 12, this.y - Math.sin(rad) * 12);
+      this.trail.setPosition(this.x - Math.cos(rad) * 15, this.y - Math.sin(rad) * 15);
     }
   }
 
@@ -100,7 +100,7 @@ export class CruiseMissile extends Phaser.GameObjects.Container {
 
   takeDamage(amount) {
     this.hp -= amount;
-    this.hpBar.width = 24 * Math.max(0, this.hp / 60);
+    this.hpBar.width = 30 * Math.max(0, this.hp / 60);
     if (this.hp <= 0) {
       this.alive = false;
       this._onDestroyed();

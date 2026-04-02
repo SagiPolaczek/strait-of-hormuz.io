@@ -27,7 +27,7 @@ export class CombatManager {
       const child = children[i];
       const isDead = !child.active || (child.hp !== undefined && child.hp <= 0);
       if (isDead) {
-        group.remove(child, true, child.active);
+        group.remove(child, true, true);
       } else if (child.update) {
         child.update();
       }
@@ -44,7 +44,7 @@ export class CombatManager {
         if (child.stats?.type === 'building') {
           this.scene.economy.unregisterRig(side, child);
         }
-        group.remove(child, true, child.active);
+        group.remove(child, true, true);
       }
     }
   }
