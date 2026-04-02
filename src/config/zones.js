@@ -167,6 +167,30 @@ export const SHIP_ROUTES = [
     [860, 410],  [1080, 360], [1280, 420], [1480, 740],
     [1700, 790], [1900, 900],
   ],
+  // Route E: Far south — Oman coastal hug (safest, longest path)
+  [
+    [140, 1050], [350, 850],  [560, 700],  [750, 650],
+    [930, 500],  [1090, 430], [1280, 500], [1480, 800],
+    [1760, 840], [1900, 1100],
+  ],
+  // Route F: North-central — weaves between islands (moderate risk)
+  [
+    [70, 700],   [200, 580],  [420, 500],  [640, 490],
+    [830, 390],  [1060, 340], [1240, 380], [1440, 710],
+    [1680, 770], [1900, 850],
+  ],
+  // Route G: Mid-channel express — direct center line (fastest, most exposed)
+  [
+    [110, 800],  [280, 650],  [510, 560],  [730, 530],
+    [930, 410],  [1110, 360], [1310, 450], [1510, 760],
+    [1790, 810], [1900, 940],
+  ],
+  // Route H: Southern island dodge — skirts south of Qeshm (avoids towers)
+  [
+    [130, 900],  [320, 780],  [540, 640],  [760, 600],
+    [960, 470],  [1130, 420], [1350, 490], [1540, 790],
+    [1770, 830], [1900, 1000],
+  ],
 ];
 
 // Keep a single default for AI route-proximity calculations

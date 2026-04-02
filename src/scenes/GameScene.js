@@ -265,18 +265,31 @@ export class GameScene extends Phaser.Scene {
   }
 
   deployShip(clickX, clickY, stats, ShipClass) {
-    // Ship picks its own random route — create at its route's start position
-    const route = SHIP_ROUTES[Math.floor(Math.random() * SHIP_ROUTES.length)];
+    // Pick the route whose start is closest to the click position
+    let bestRoute = SHIP_ROUTES[0];
+    let bestDist = Infinity;
+    for (const route of SHIP_ROUTES) {
+      const [sx, sy] = route[0];
+      const dist = Phaser.Math.Distance.Between(clickX, clickY, sx, sy);
+      if (dist < bestDist) {
+        bestDist = dist;
+        bestRoute = route;
+      }
+    }
+    // If two routes tie (within 50px), add slight randomness
+    const candidates = SHIP_ROUTES.filter(route => {
+      const [sx, sy] = route[0];
+      return Phaser.Math.Distance.Between(clickX, clickY, sx, sy) < bestDist + 50;
+    });
+    const route = candidates[Math.floor(Math.random() * candidates.length)];
+
     const [startX, startY] = route[0];
     const ship = new ShipClass(this, startX, startY, stats);
     ship.waypoints = [...route];
     this.coalitionShips.add(ship);
     this._applyGlobalUpgrades(ship);
 
-    // Visual feedback at click location
     this.showPlacementConfirmation(clickX, clickY);
-
-    // Visual indicator at route start — flash to show where ship actually spawns
     this.showDeployIndicator(startX, startY);
     this.audio.place();
   }
@@ -323,10 +336,16 @@ export class GameScene extends Phaser.Scene {
   }
 
   deploySubmarine(clickX, clickY, stats) {
-    const route = SHIP_ROUTES[Math.floor(Math.random() * SHIP_ROUTES.length)];
-    const [startX, startY] = route[0];
+    // Spawn near the click, but pick the closest route start for a valid water position
+    let bestRoute = SHIP_ROUTES[0];
+    let bestDist = Infinity;
+    for (const route of SHIP_ROUTES) {
+      const [sx, sy] = route[0];
+      const dist = Phaser.Math.Distance.Between(clickX, clickY, sx, sy);
+      if (dist < bestDist) { bestDist = dist; bestRoute = route; }
+    }
+    const [startX, startY] = bestRoute[0];
     const sub = new CoalitionSubmarine(this, startX, startY, stats);
-    sub.waypoints = [...route];
     this.coalitionShips.add(sub);
     this._applyGlobalUpgrades(sub);
     this.showPlacementConfirmation(clickX, clickY);
