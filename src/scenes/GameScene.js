@@ -1031,7 +1031,7 @@ export class GameScene extends Phaser.Scene {
       const W = 1920, H = 1539;
 
       const trump = this.add.image(W - 100, H + 200, 'trump')
-        .setOrigin(0.5, 1).setDepth(260).setScale(0.65);
+        .setOrigin(0.5, 1).setDepth(260).setScale(1.3);
       this.tweens.add({ targets: trump, y: H - 100, duration: 500, ease: 'Back.easeOut' });
 
       const bubbleX = W - 500, bubbleY = 450;

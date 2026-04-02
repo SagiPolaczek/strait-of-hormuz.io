@@ -82,8 +82,8 @@ export class TrumpShock {
     if (this.active) { this._scheduleNext(); return; }
     this.active = true;
 
-    // Random K% change (10-25), random sign — meaningful swings
-    const k = Phaser.Math.Between(10, 25);
+    // Fixed 10% swing, random sign
+    const k = 10;
     const positive = Math.random() < 0.5;
     const change = positive ? (1 + k / 100) : (1 - k / 100);
 
@@ -114,7 +114,7 @@ export class TrumpShock {
     const trump = this.scene.add.image(W - 100, H + 200, 'trump')
       .setOrigin(0.5, 1)
       .setDepth(180)
-      .setScale(0.65);
+      .setScale(1.3);
 
     this.scene.tweens.add({
       targets: trump,
