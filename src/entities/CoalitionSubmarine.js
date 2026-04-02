@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { Ship } from './Ship.js';
 import { PROJECTILES } from '../config/units.js';
+import { WATER_POLYGON } from '../config/zones.js';
 
 export class CoalitionSubmarine extends Ship {
   constructor(scene, x, y, stats) {
@@ -10,6 +11,16 @@ export class CoalitionSubmarine extends Ship {
     this.sonarPulseTime = 0;
     this.sonarRange = stats.sonarRange || 300;
     this.upgrades = {};
+
+    // Patrol behavior (overrides Ship route-following)
+    this.patrolState = 'PATROL'; // PATROL or PURSUE
+    this.patrolTarget = null; // {x, y} point to patrol toward
+
+    // Cache water polygon geometry for patrol point sampling
+    const waterPoints = WATER_POLYGON.map(([px, py]) => new Phaser.Geom.Point(px, py));
+    this._waterGeom = new Phaser.Geom.Polygon(waterPoints);
+
+    this._pickPatrolPoint();
 
     // Force depth below surface ships (Ship constructor sets 5)
     super.setDepth(3);
@@ -42,6 +53,22 @@ export class CoalitionSubmarine extends Ship {
     this._sonarPulseGfx = null;
   }
 
+  _pickPatrolPoint() {
+    // Random point inside WATER_POLYGON using rejection sampling
+    // Bias toward central strait (x: 400-1400, y: 400-1000) for gameplay relevance
+    const bounds = { minX: 100, maxX: 1800, minY: 350, maxY: 1200 };
+    for (let i = 0; i < 50; i++) {
+      const x = Phaser.Math.Between(bounds.minX, bounds.maxX);
+      const y = Phaser.Math.Between(bounds.minY, bounds.maxY);
+      if (Phaser.Geom.Polygon.Contains(this._waterGeom, x, y)) {
+        this.patrolTarget = { x, y };
+        return;
+      }
+    }
+    // Fallback: center of map (always in water)
+    this.patrolTarget = { x: 800, y: 700 };
+  }
+
   getEffectiveSonarRange() {
     return this.sonarRange * (1 + 0.25 * (this.upgrades.SONAR || 0));
   }
@@ -55,30 +82,73 @@ export class CoalitionSubmarine extends Ship {
   }
 
   update() {
-    super.update(); // Ship route following
     if (!this.alive) return;
     const now = this.scene.time.now;
 
-    // --- Sonar detection: reveal IRGC submarines ---
+    // --- Sonar detection ---
     this._updateSonar();
 
-    // --- Fire torpedoes at IRGC boats/surfaced subs ---
-    if (now - this.lastFired >= this.getEffectiveFireRate()) {
-      const target = this._findTarget();
-      if (target) {
-        this.lastFired = now;
-        const config = { ...PROJECTILES.TORPEDO, damage: this.getEffectiveDamage() };
-        this.scene.fireProjectile(this.x, this.y, target, config, 'coalition');
-        this._torpedoFlash();
+    // --- Patrol / Pursue behavior ---
+    const enemy = this._findTarget();
+
+    if (enemy) {
+      this.patrolState = 'PURSUE';
+      const dx = enemy.x - this.x;
+      const dy = enemy.y - this.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      const speed = this.getEffectiveSpeed();
+
+      if (dist > 40) {
+        if (this.body) this.body.setVelocity((dx / dist) * speed, (dy / dist) * speed);
+        this.angle = Math.atan2(dy, dx) * (180 / Math.PI);
+      } else {
+        if (this.body) this.body.setVelocity(0, 0);
+      }
+
+      // Fire torpedoes
+      if (now - this.lastFired >= this.getEffectiveFireRate()) {
+        if (dist < this.stats.range) {
+          this.lastFired = now;
+          const config = { ...PROJECTILES.TORPEDO, damage: this.getEffectiveDamage() };
+          this.scene.fireProjectile(this.x, this.y, enemy, config, 'coalition');
+          this._torpedoFlash();
+        }
+      }
+    } else {
+      this.patrolState = 'PATROL';
+      if (!this.patrolTarget) this._pickPatrolPoint();
+
+      const dx = this.patrolTarget.x - this.x;
+      const dy = this.patrolTarget.y - this.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      const speed = this.getEffectiveSpeed() * 0.6; // slower patrol speed
+
+      if (dist < 30) {
+        this._pickPatrolPoint(); // reached patrol point, pick next
+      } else {
+        if (this.body) this.body.setVelocity((dx / dist) * speed, (dy / dist) * speed);
+        this.angle = Math.atan2(dy, dx) * (180 / Math.PI);
       }
     }
 
-    // --- Sonar range ring (static, subtle) ---
+    // --- Wake emitter position ---
+    if (this.wakeEmitter?.active) {
+      const rad = this.rotation;
+      this.wakeEmitter.setPosition(this.x - Math.cos(rad) * 16, this.y - Math.sin(rad) * 16);
+    }
+
+    // --- Sonar range ring (update only when range changes) ---
     if (this._sonarDirty !== this.getEffectiveSonarRange()) {
       this._sonarDirty = this.getEffectiveSonarRange();
       this.sonarRingGfx.clear();
       this.sonarRingGfx.lineStyle(1, 0x42a5f5, 0.08);
       this.sonarRingGfx.strokeCircle(0, 0, this._sonarDirty);
+    }
+
+    // --- Sonar pulse visual (every 3s) ---
+    if (now - this.sonarPulseTime > 3000) {
+      this.sonarPulseTime = now;
+      this._sonarPulse();
     }
   }
 
@@ -176,14 +246,6 @@ export class CoalitionSubmarine extends Ship {
     for (const boat of this.scene?.irgcBoats?.getChildren() || []) {
       if (boat.isSub) boat.detected = false;
     }
-  }
-
-  onReachedEnd() {
-    this._clearSonarDetections();
-    this.alive = false;
-    if (this.body) this.body.setVelocity(0, 0);
-    this._cleanupEffects();
-    this.destroy();
   }
 
   destroy(fromScene) {
