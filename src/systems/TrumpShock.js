@@ -82,8 +82,8 @@ export class TrumpShock {
     if (this.active) { this._scheduleNext(); return; }
     this.active = true;
 
-    // Fixed 10% swing, random sign
-    const k = 10;
+    // Random K% change between 1-10, random sign (range: -10% to +10%)
+    const k = Phaser.Math.Between(1, 10);
     const positive = Math.random() < 0.5;
     const change = positive ? (1 + k / 100) : (1 - k / 100);
 
