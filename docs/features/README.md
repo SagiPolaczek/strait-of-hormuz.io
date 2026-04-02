@@ -44,9 +44,25 @@ Every feature file follows the template in `_template.md`.
 | 0004 | [Minesweeper unit](0004-minesweeper-unit.md) | P1 | draft |
 | 0005 | [Fighter jet air strike](0005-fighter-jet-airstrike.md) | P1 | draft |
 | 0006 | [IRGC speedboat swarms](0006-speedboat-swarms.md) | P1 | draft |
-| 0007 | [Leaderboard + sharing](0007-leaderboard-sharing.md) | P1 | draft |
+| 0007 | [Leaderboard + sharing](0007-leaderboard-sharing.md) | P1 | shipped |
 | 0008 | [Sound design](0008-sound-design.md) | P2 | draft |
 | 0009 | [Mobile touch controls](0009-mobile-controls.md) | P2 | draft |
 | 0010 | [IRGC drone launchers](0010-drone-launchers.md) | P2 | draft |
 | 0011 | [Tutorial / onboarding](0011-tutorial-onboarding.md) | P1 | draft |
 | 0012 | [Convoy escort mode](0012-convoy-escort-mode.md) | P3 | draft |
+| 0013 | [Unit upgrades (skills)](0013-unit-upgrades.md) | P1 | shipped |
+| 0014 | [Pressure balance meter (tug-of-war)](0014-pressure-balance-meter.md) | P1 | shipped |
+| 0015 | [Advanced weapons unlock (missiles, UAVs, air defense)](0015-advanced-weapons-unlock.md) | P1 | shipped |
+| 0016 | [F-22 air strikes](0016-f22-air-strikes.md) | P1 | draft |
+| | **News-Inspired (Apr 2026 Hormuz Crisis)** | | |
+| 0017 | [Naval mines & minefields](0017-naval-mines.md) | P0 | shipped |
+| 0018 | [IRGC fast boat swarms](0018-fast-boat-swarms.md) | P0 | draft |
+| 0019 | [HELIOS laser defense tower](0019-helios-laser-defense.md) | P1 | draft |
+| 0020 | [Helicopter boarding raids](0020-helicopter-boarding-raids.md) | P1 | draft |
+| 0021 | [Oil price surge mechanic](0021-oil-price-surge.md) | P1 | draft |
+| 0022 | [Explosive drone boats (USVs)](0022-explosive-drone-boats.md) | P1 | draft |
+| 0023 | [Mini-submarines](0023-mini-submarines.md) | P2 | draft |
+| 0024 | [Layered gauntlet waves](0024-layered-gauntlet-waves.md) | P1 | draft |
+| 0025 | [IRGC toll blockade / checkpoint](0025-irgc-toll-blockade.md) | P2 | draft |
+| 0026 | [Tunnel / cave spawners](0026-tunnel-spawners.md) | P2 | draft |
+| 0027 | [Trump oil shock events](0027-trump-oil-shock.md) | P2 | shipped |

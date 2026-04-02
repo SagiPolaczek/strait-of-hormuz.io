@@ -1,0 +1,2358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>STRAIT OF HORMUZ — Asset Catalog</title>
+<link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Share+Tech+Mono&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #050a0f;
+    --panel: #0a0e14;
+    --green: #33ff66;
+    --green-dim: rgba(51, 255, 102, 0.15);
+    --green-glow: rgba(51, 255, 102, 0.4);
+    --amber: #ffb300;
+    --red: #ef5350;
+    --blue: #42a5f5;
+    --blue-dim: rgba(66, 165, 245, 0.15);
+    --red-dim: rgba(239, 83, 80, 0.15);
+    --text: #c0c8d0;
+    --text-dim: #667080;
+    --mono: 'Share Tech Mono', monospace;
+    --display: 'Black Ops One', cursive;
+    --data: 'Orbitron', sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--mono);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Scanlines overlay */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      transparent 0px, transparent 2px,
+      rgba(0,0,0,0.08) 2px, rgba(0,0,0,0.08) 3px
+    );
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  /* ─── HEADER ─── */
+  .header {
+    background: var(--panel);
+    border-bottom: 1px solid var(--green-dim);
+    padding: 20px 40px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .header-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  .header h1 {
+    font-family: var(--display);
+    font-size: 28px;
+    color: var(--green);
+    letter-spacing: 2px;
+    text-shadow: 0 0 20px rgba(51,255,102,0.3);
+  }
+  .header .classification {
+    font-size: 11px;
+    color: var(--red);
+    letter-spacing: 3px;
+    opacity: 0.5;
+  }
+  .header .subtitle {
+    font-size: 13px;
+    color: var(--amber);
+    letter-spacing: 1px;
+    opacity: 0.7;
+  }
+
+  /* ─── FILTER TABS ─── */
+  .filters {
+    display: flex;
+    gap: 4px;
+    padding: 0 40px;
+    margin-top: -1px;
+    background: var(--panel);
+    border-bottom: 1px solid var(--green-dim);
+    position: sticky;
+    top: 82px;
+    z-index: 99;
+  }
+  .filter-tab {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--text-dim);
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    padding: 12px 20px;
+    cursor: pointer;
+    letter-spacing: 1px;
+    transition: all 0.2s;
+  }
+  .filter-tab:hover { color: var(--text); }
+  .filter-tab.active {
+    color: var(--green);
+    border-bottom-color: var(--green);
+  }
+  .filter-tab .count {
+    font-size: 10px;
+    opacity: 0.5;
+    margin-left: 6px;
+  }
+
+  /* ─── MAIN CONTENT ─── */
+  .content {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 30px 40px;
+  }
+
+  /* ─── CATEGORY SECTION ─── */
+  .category {
+    margin-bottom: 50px;
+  }
+  .category-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--green-dim);
+  }
+  .category-header h2 {
+    font-family: var(--display);
+    font-size: 18px;
+    color: var(--green);
+    letter-spacing: 1px;
+  }
+  .category-header .badge {
+    font-size: 10px;
+    padding: 3px 10px;
+    border-radius: 2px;
+    letter-spacing: 2px;
+  }
+  .badge-coalition {
+    background: var(--blue-dim);
+    color: var(--blue);
+    border: 1px solid rgba(66,165,245,0.3);
+  }
+  .badge-irgc {
+    background: var(--red-dim);
+    color: var(--red);
+    border: 1px solid rgba(239,83,80,0.3);
+  }
+  .badge-fx {
+    background: rgba(255,179,0,0.1);
+    color: var(--amber);
+    border: 1px solid rgba(255,179,0,0.3);
+  }
+
+  /* ─── ASSET ROW ─── */
+  .asset-row {
+    margin-bottom: 36px;
+  }
+  .asset-info {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 14px;
+  }
+  .asset-name {
+    font-family: var(--display);
+    font-size: 16px;
+    color: #e0e0e0;
+  }
+  .asset-stats {
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+  }
+  .asset-stats span {
+    margin-right: 16px;
+  }
+  .asset-stats .stat-val {
+    color: var(--amber);
+    font-family: var(--data);
+  }
+
+  /* ─── VARIANT GRID ─── */
+  .variants {
+    display: flex;
+    gap: 16px;
+    overflow-x: auto;
+    padding-bottom: 8px;
+  }
+  .variants::-webkit-scrollbar { height: 4px; }
+  .variants::-webkit-scrollbar-track { background: transparent; }
+  .variants::-webkit-scrollbar-thumb { background: var(--green-dim); border-radius: 2px; }
+
+  .variant-card {
+    flex-shrink: 0;
+    width: 200px;
+    background: var(--panel);
+    border: 1px solid var(--green-dim);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .variant-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      transparent 0px, transparent 2px,
+      rgba(0,0,0,0.04) 2px, rgba(0,0,0,0.04) 3px
+    );
+    pointer-events: none;
+  }
+  .variant-card:hover {
+    border-color: var(--green-glow);
+    box-shadow: 0 0 16px rgba(51,255,102,0.1);
+    transform: translateY(-2px);
+  }
+  .variant-card.selected {
+    border-color: var(--green);
+    box-shadow: 0 0 20px rgba(51,255,102,0.2);
+  }
+  .variant-card.selected::after {
+    content: '✓ SELECTED';
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--green);
+    background: rgba(0,0,0,0.7);
+    padding: 2px 8px;
+    border-radius: 2px;
+    letter-spacing: 1px;
+    z-index: 2;
+  }
+
+  .variant-canvas-wrap {
+    height: 140px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #0d1a2a;
+    border-bottom: 1px solid var(--green-dim);
+    position: relative;
+  }
+  .variant-canvas-wrap canvas {
+    image-rendering: pixelated;
+    display: block;
+  }
+
+  /* Water background for sea units */
+  .variant-canvas-wrap.water {
+    background:
+      radial-gradient(ellipse at 30% 60%, rgba(21,101,192,0.25) 0%, transparent 60%),
+      radial-gradient(ellipse at 70% 40%, rgba(21,101,192,0.15) 0%, transparent 50%),
+      #0a1628;
+  }
+  .variant-canvas-wrap.sky {
+    background:
+      radial-gradient(ellipse at 50% 80%, rgba(21,101,192,0.2) 0%, transparent 60%),
+      linear-gradient(180deg, #0d1a30 0%, #0a1222 100%);
+  }
+
+  .variant-label {
+    padding: 10px 12px;
+  }
+  .variant-label .name {
+    font-size: 13px;
+    color: #e0e0e0;
+    margin-bottom: 4px;
+  }
+  .variant-label .desc {
+    font-size: 10px;
+    color: var(--text-dim);
+    line-height: 1.5;
+  }
+  .variant-label .style-tag {
+    display: inline-block;
+    font-size: 9px;
+    color: var(--amber);
+    border: 1px solid rgba(255,179,0,0.2);
+    padding: 1px 6px;
+    border-radius: 2px;
+    margin-top: 6px;
+    letter-spacing: 1px;
+  }
+
+  /* ─── SELECTION SUMMARY (bottom bar) ─── */
+  .summary-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--panel);
+    border-top: 1px solid var(--green-dim);
+    padding: 14px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    z-index: 100;
+    transform: translateY(100%);
+    transition: transform 0.3s ease;
+  }
+  .summary-bar.visible { transform: translateY(0); }
+  .summary-bar .selected-count {
+    font-family: var(--data);
+    font-size: 14px;
+    color: var(--green);
+  }
+  .summary-bar .selected-list {
+    font-size: 12px;
+    color: var(--text-dim);
+    max-width: 60%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .summary-bar > div:first-child {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+  }
+  .summary-bar .export-btn {
+    flex-shrink: 0;
+    font-family: var(--display);
+    font-size: 14px;
+    color: var(--green);
+    background: rgba(51,255,102,0.1);
+    border: 1px solid var(--green-glow);
+    padding: 8px 24px;
+    border-radius: 4px;
+    cursor: pointer;
+    letter-spacing: 1px;
+    transition: all 0.2s;
+  }
+  .summary-bar .export-btn:hover {
+    background: rgba(51,255,102,0.2);
+    box-shadow: 0 0 12px rgba(51,255,102,0.2);
+  }
+
+  .notes-field {
+    width: 100%;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid var(--green-dim);
+    border-radius: 4px;
+    padding: 12px 16px;
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 13px;
+    resize: vertical;
+    min-height: 48px;
+    margin-top: 8px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .notes-field:focus { border-color: var(--green-glow); }
+  .notes-field::placeholder { color: var(--text-dim); }
+
+  /* Fade-in animation */
+  .category { animation: fadeUp 0.4s ease both; }
+  .category:nth-child(2) { animation-delay: 0.05s; }
+  .category:nth-child(3) { animation-delay: 0.1s; }
+  .category:nth-child(4) { animation-delay: 0.15s; }
+  .category:nth-child(5) { animation-delay: 0.2s; }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .spacer-bottom { height: 80px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <h1>ASSET CATALOG</h1>
+    <span class="classification">CENTCOM // EQUIPMENT PROCUREMENT // NOFORN</span>
+  </div>
+  <div class="subtitle">Select visual style for each unit — click to toggle selection</div>
+</div>
+
+<div class="filters">
+  <button class="filter-tab active" onclick="filterCategory('all')">ALL <span class="count" id="count-all"></span></button>
+  <button class="filter-tab" onclick="filterCategory('coalition')">COALITION <span class="count" id="count-coalition"></span></button>
+  <button class="filter-tab" onclick="filterCategory('irgc')">IRGC <span class="count" id="count-irgc"></span></button>
+  <button class="filter-tab" onclick="filterCategory('projectile')">PROJECTILES <span class="count" id="count-projectile"></span></button>
+  <button class="filter-tab" onclick="filterCategory('effect')">EFFECTS <span class="count" id="count-effect"></span></button>
+</div>
+
+<div class="content" id="catalog"></div>
+
+<div class="summary-bar" id="summaryBar">
+  <div>
+    <span class="selected-count" id="selectedCount">0 SELECTED</span>
+    <div class="selected-list" id="selectedList"></div>
+  </div>
+  <button class="export-btn" onclick="exportSelections()">COPY SELECTIONS</button>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════
+//  ASSET DATA
+// ═══════════════════════════════════════════════
+
+const ASSETS = [
+  // ── COALITION ──
+  {
+    id: 'destroyer', name: 'DESTROYER', faction: 'coalition', env: 'water',
+    stats: { HP: 180, DMG: 40, RNG: 200, SPD: 55 },
+    variants: [
+      { name: 'Stealth Cutter', style: 'ANGULAR', desc: 'Sharp angular hull, low-profile silhouette. Aggressive geometric look.', draw: drawDestroyerV1 },
+      { name: 'Classic Frigate', style: 'REALISTIC', desc: 'Traditional naval silhouette with distinct superstructure and gun turret.', draw: drawDestroyerV2 },
+      { name: 'Pixel Warship', style: 'PIXEL ART', desc: 'Chunky pixel art with clear color blocks. Retro military feel.', draw: drawDestroyerV3 },
+      { name: 'Neon Vector', style: 'WIREFRAME', desc: 'Glowing wireframe outline on dark. Matches the HUD aesthetic.', draw: drawDestroyerV4 },
+    ]
+  },
+  {
+    id: 'tanker', name: 'OIL TANKER', faction: 'coalition', env: 'water',
+    stats: { HP: 100, SPD: 60, SCORE: 1, OIL: 500 },
+    variants: [
+      { name: 'Supertanker', style: 'REALISTIC', desc: 'Long bulky hull with orange deck markings. Clearly reads as cargo.', draw: drawTankerV1 },
+      { name: 'Mini Hauler', style: 'COMPACT', desc: 'Shorter, rounder profile. Friendly and readable at small sizes.', draw: drawTankerV2 },
+      { name: 'Pixel Barge', style: 'PIXEL ART', desc: 'Bold pixel blocks, bright orange cargo area. Unmistakable.', draw: drawTankerV3 },
+      { name: 'Neon Cargo', style: 'WIREFRAME', desc: 'Outlined hull with glowing cargo markers.', draw: drawTankerV4 },
+    ]
+  },
+  {
+    id: 'oil_rig', name: 'OIL RIG', faction: 'coalition', env: 'water',
+    stats: { HP: 200, 'OIL/s': 2, COST: 500 },
+    variants: [
+      { name: 'Derrick Platform', style: 'DETAILED', desc: 'Classic oil platform with lattice derrick tower and animated pump arm.', draw: drawOilRigV1 },
+      { name: 'Compact Rig', style: 'MINIMAL', desc: 'Simplified platform with clear silhouette. Reads well zoomed out.', draw: drawOilRigV2 },
+      { name: 'Pixel Rig', style: 'PIXEL ART', desc: 'Chunky pixelated platform. Nostalgic tower defense look.', draw: drawOilRigV3 },
+      { name: 'Neon Rig', style: 'WIREFRAME', desc: 'Glowing green wireframe with pulsing extraction indicator.', draw: drawOilRigV4 },
+    ]
+  },
+  {
+    id: 'air_defense', name: 'AIR DEFENSE', faction: 'coalition', env: 'water',
+    stats: { HP: 250, DMG: 80, RNG: 400, UNLOCK: '3:00' },
+    variants: [
+      { name: 'CIWS Turret', style: 'MILITARY', desc: 'Phalanx-style close-in weapon system. Rotating radar + gun barrel.', draw: drawAirDefenseV1 },
+      { name: 'SAM Platform', style: 'DETAILED', desc: 'Surface-to-air missile battery on a square platform.', draw: drawAirDefenseV2 },
+      { name: 'Pixel Radar', style: 'PIXEL ART', desc: 'Retro radar dish with bold blue accents.', draw: drawAirDefenseV3 },
+      { name: 'Neon Shield', style: 'WIREFRAME', desc: 'Wireframe dome with scanning beam effect.', draw: drawAirDefenseV4 },
+    ]
+  },
+
+  // ── IRGC ──
+  {
+    id: 'missile_launcher', name: 'MISSILE LAUNCHER', faction: 'irgc', env: 'water',
+    stats: { HP: 150, DMG: 50, RNG: 350, RATE: '2.5s' },
+    variants: [
+      { name: 'Bunker Launch', style: 'MILITARY', desc: 'Hexagonal fortified bunker with rotating launch tube.', draw: drawMissileLauncherV1 },
+      { name: 'Mobile TEL', style: 'REALISTIC', desc: 'Truck-mounted erector-launcher. More aggressive silhouette.', draw: drawMissileLauncherV2 },
+      { name: 'Pixel Turret', style: 'PIXEL ART', desc: 'Red pixel fortress with visible missile rack.', draw: drawMissileLauncherV3 },
+      { name: 'Neon Launcher', style: 'WIREFRAME', desc: 'Red wireframe with glowing threat indicator.', draw: drawMissileLauncherV4 },
+    ]
+  },
+  {
+    id: 'cruise_missile', name: 'CRUISE MISSILE', faction: 'irgc', env: 'sky',
+    stats: { HP: 60, DMG: 120, SPD: 180 },
+    variants: [
+      { name: 'Shahab Cruise', style: 'DETAILED', desc: 'Elongated body with tail fins and glowing warhead.', draw: drawCruiseMissileV1 },
+      { name: 'Fat Boy', style: 'COMPACT', desc: 'Thicker, chunkier missile. Reads well at game zoom.', draw: drawCruiseMissileV2 },
+      { name: 'Pixel Rocket', style: 'PIXEL ART', desc: 'Bold red pixel missile with flame trail.', draw: drawCruiseMissileV3 },
+      { name: 'Neon Streak', style: 'WIREFRAME', desc: 'Red wireframe with glowing exhaust cone.', draw: drawCruiseMissileV4 },
+    ]
+  },
+  {
+    id: 'exploding_uav', name: 'EXPLODING UAV', faction: 'irgc', env: 'sky',
+    stats: { HP: 40, DMG: 80, SPD: 120 },
+    variants: [
+      { name: 'Shahed Delta', style: 'MILITARY', desc: 'Delta-wing drone with blinking red nose light.', draw: drawUAVV1 },
+      { name: 'Quad Rotor', style: 'COMPACT', desc: 'Small quadcopter with payload. Different visual identity.', draw: drawUAVV2 },
+      { name: 'Pixel Drone', style: 'PIXEL ART', desc: 'Triangular pixel drone with red accent.', draw: drawUAVV3 },
+      { name: 'Neon Wing', style: 'WIREFRAME', desc: 'Red wireframe delta with scanning line.', draw: drawUAVV4 },
+    ]
+  },
+  {
+    id: 'mine', name: 'NAVAL MINE', faction: 'irgc', env: 'water',
+    stats: { DMG: 100, TRIGGER: '22px', DETECT: '80px' },
+    variants: [
+      { name: 'Contact Mine', style: 'CLASSIC', desc: 'Spherical mine with horn detonators. Classic naval threat.', draw: drawMineV1 },
+      { name: 'Flat Disc', style: 'MINIMAL', desc: 'Low-profile disc mine. Harder to spot, simpler visual.', draw: drawMineV2 },
+      { name: 'Pixel Mine', style: 'PIXEL ART', desc: 'Round pixel mine with visible spikes.', draw: drawMineV3 },
+      { name: 'Neon Hazard', style: 'WIREFRAME', desc: 'Wireframe sphere with pulsing warning ring.', draw: drawMineV4 },
+    ]
+  },
+
+  // ── PROJECTILES ──
+  {
+    id: 'proj_missile', name: 'IRGC MISSILE', faction: 'projectile', env: 'sky',
+    stats: { SPD: 250, DMG: 50, SIZE: '4px' },
+    variants: [
+      { name: 'Flame Trail', style: 'DETAILED', desc: 'Pointed missile body with orange exhaust glow and smoke trail.', draw: drawProjMissileV1 },
+      { name: 'Pixel Shot', style: 'PIXEL ART', desc: 'Small pixel projectile with bright trail.', draw: drawProjMissileV2 },
+      { name: 'Neon Bolt', style: 'WIREFRAME', desc: 'Glowing line with expanding glow tip.', draw: drawProjMissileV3 },
+    ]
+  },
+  {
+    id: 'proj_shell', name: 'COALITION SHELL', faction: 'projectile', env: 'sky',
+    stats: { SPD: 350, DMG: 40, SIZE: '3px' },
+    variants: [
+      { name: 'Blue Tracer', style: 'DETAILED', desc: 'Blue-tipped round with light trail.', draw: drawProjShellV1 },
+      { name: 'Pixel Round', style: 'PIXEL ART', desc: 'Tiny blue pixel bullet.', draw: drawProjShellV2 },
+      { name: 'Neon Bolt', style: 'WIREFRAME', desc: 'Cyan wireframe bolt with glow.', draw: drawProjShellV3 },
+    ]
+  },
+
+  // ── EFFECTS ──
+  {
+    id: 'explosion', name: 'EXPLOSION', faction: 'effect', env: 'sky',
+    stats: {},
+    variants: [
+      { name: 'Fire Burst', style: 'DETAILED', desc: 'Orange-red expanding fireball with debris.', draw: drawExplosionV1 },
+      { name: 'Pixel Boom', style: 'PIXEL ART', desc: 'Chunky pixel explosion with shrapnel.', draw: drawExplosionV2 },
+      { name: 'Neon Ring', style: 'WIREFRAME', desc: 'Expanding glowing ring with particle scatter.', draw: drawExplosionV3 },
+    ]
+  },
+  {
+    id: 'wake_trail', name: 'SHIP WAKE', faction: 'effect', env: 'water',
+    stats: {},
+    variants: [
+      { name: 'Foam Trail', style: 'REALISTIC', desc: 'White churning foam V-shape behind ship.', draw: drawWakeV1 },
+      { name: 'Pixel Wake', style: 'PIXEL ART', desc: 'Pixelated white trail dots.', draw: drawWakeV2 },
+      { name: 'Neon Trail', style: 'WIREFRAME', desc: 'Glowing blue/white dissipating lines.', draw: drawWakeV3 },
+    ]
+  },
+
+  // ── NEW UNITS (Apr 2026) ──
+  {
+    id: 'airfield', name: 'AIRFIELD', faction: 'coalition', env: 'water',
+    stats: { HP: 300, COST: 800, UNLOCK: '3:00' },
+    variants: [
+      { name: 'Forward Base', style: 'MILITARY', desc: 'Runway with control tower, radar dish, and hangar. Blue coalition markings.', draw: drawAirfieldV1 },
+      { name: 'Carrier Deck', style: 'COMPACT', desc: 'Angled deck with catapult markings. Compact carrier look.', draw: drawAirfieldV2 },
+      { name: 'Neon Strip', style: 'WIREFRAME', desc: 'Glowing runway lights with wireframe tower.', draw: drawAirfieldV3 },
+    ]
+  },
+  {
+    id: 'f22', name: 'F-22 RAPTOR', faction: 'coalition', env: 'sky',
+    stats: { DMG: 100, SPD: 250, REFUEL: '15s' },
+    variants: [
+      { name: 'Stealth Raptor', style: 'MILITARY', desc: 'Angular delta-wing with afterburner glow. Shadow on water below.', draw: drawF22V1 },
+      { name: 'Ghost Wing', style: 'MINIMAL', desc: 'Simplified silhouette, emphasis on speed lines and trail.', draw: drawF22V2 },
+      { name: 'Neon Jet', style: 'WIREFRAME', desc: 'Blue wireframe jet with glowing engine exhaust.', draw: drawF22V3 },
+    ]
+  },
+  {
+    id: 'coalition_sub', name: 'COALITION SUBMARINE', faction: 'coalition', env: 'water',
+    stats: { HP: 120, DMG: 80, SONAR: 300, SPD: 50 },
+    variants: [
+      { name: 'Virginia Class', style: 'MILITARY', desc: 'Sleek teardrop hull with blue accents, sonar dome, periscope mast.', draw: drawCoalitionSubV1 },
+      { name: 'Shadow Hunter', style: 'STEALTH', desc: 'Dark angular hull, minimal profile. Emphasizes the underwater threat.', draw: drawCoalitionSubV2 },
+      { name: 'Neon Sub', style: 'WIREFRAME', desc: 'Blue wireframe with pulsing sonar ring effect.', draw: drawCoalitionSubV3 },
+    ]
+  },
+  {
+    id: 'fast_boat_gun', name: 'FAST BOAT (GUN)', faction: 'irgc', env: 'water',
+    stats: { HP: 50, DMG: '8/shot', SPD: 150, RATE: '0.8s' },
+    variants: [
+      { name: 'Boghammar', style: 'MILITARY', desc: 'Tiny aggressive speedboat with mounted gun. Grey hull, white wake.', draw: drawFastBoatGunV1 },
+      { name: 'Attack Skiff', style: 'COMPACT', desc: 'Even smaller, nimble boat. Emphasizes speed over firepower.', draw: drawFastBoatGunV2 },
+      { name: 'Neon Raider', style: 'WIREFRAME', desc: 'Red wireframe with rapid-fire muzzle flash.', draw: drawFastBoatGunV3 },
+    ]
+  },
+  {
+    id: 'fast_boat_suicide', name: 'FAST BOAT (SUICIDE)', faction: 'irgc', env: 'water',
+    stats: { HP: 30, DMG: 100, SPD: 200 },
+    variants: [
+      { name: 'Explosive Ram', style: 'MILITARY', desc: 'Red-glowing hull packed with explosives. Sparking bow.', draw: drawFastBoatSuicideV1 },
+      { name: 'Fire Ship', style: 'AGGRESSIVE', desc: 'Flames licking from hull, charging at full speed.', draw: drawFastBoatSuicideV2 },
+      { name: 'Neon Kamikaze', style: 'WIREFRAME', desc: 'Pulsing red wireframe with countdown indicator.', draw: drawFastBoatSuicideV3 },
+    ]
+  },
+  {
+    id: 'mini_sub', name: 'MINI-SUBMARINE', faction: 'irgc', env: 'water',
+    stats: { HP: 80, TORP: 100, SPD: '70/40', DIVE: '12s' },
+    variants: [
+      { name: 'Ghadir Class', style: 'MILITARY', desc: 'Compact submarine with conning tower, torpedo tube, and red IRGC accents.', draw: drawMiniSubV1 },
+      { name: 'Stealth Midget', style: 'MINIMAL', desc: 'Ultra-low profile, almost invisible. Emphasis on periscope wake.', draw: drawMiniSubV2 },
+      { name: 'Neon Predator', style: 'WIREFRAME', desc: 'Red wireframe with sonar detection outline when revealed.', draw: drawMiniSubV3 },
+    ]
+  },
+  {
+    id: 'torpedo', name: 'TORPEDO', faction: 'projectile', env: 'water',
+    stats: { SPD: 200, DMG: 100, SIZE: '4px' },
+    variants: [
+      { name: 'Bubble Trail', style: 'DETAILED', desc: 'Cyan torpedo with distinctive bubble wake behind it.', draw: drawTorpedoV1 },
+      { name: 'Neon Bolt', style: 'WIREFRAME', desc: 'Glowing teal bolt with expanding ring trail.', draw: drawTorpedoV2 },
+    ]
+  },
+];
+
+// ═══════════════════════════════════════════════
+//  DRAWING FUNCTIONS
+// ═══════════════════════════════════════════════
+
+function getCtx(canvas, w = 200, h = 140) {
+  canvas.width = w * 2;
+  canvas.height = h * 2;
+  canvas.style.width = w + 'px';
+  canvas.style.height = h + 'px';
+  const ctx = canvas.getContext('2d');
+  ctx.scale(2, 2);
+  // Paint a subtle grid background so sprites are clearly visible
+  ctx.fillStyle = '#0e1e30';
+  ctx.fillRect(0, 0, w, h);
+  ctx.strokeStyle = 'rgba(51, 255, 102, 0.04)';
+  ctx.lineWidth = 0.5;
+  for (let x = 0; x < w; x += 20) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke(); }
+  for (let y = 0; y < h; y += 20) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke(); }
+  // Crosshair at center
+  ctx.strokeStyle = 'rgba(51, 255, 102, 0.08)';
+  ctx.beginPath(); ctx.moveTo(w/2, 0); ctx.lineTo(w/2, h); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(0, h/2); ctx.lineTo(w, h/2); ctx.stroke();
+  return ctx;
+}
+
+// ── DESTROYER VARIANTS ──
+function drawDestroyerV1(canvas) {
+  const ctx = getCtx(canvas);
+  const cx = 100, cy = 70;
+  // Angular stealth hull
+  ctx.fillStyle = '#607d8b';
+  ctx.beginPath();
+  ctx.moveTo(cx + 30, cy); // bow point
+  ctx.lineTo(cx + 18, cy - 7);
+  ctx.lineTo(cx - 8, cy - 8);
+  ctx.lineTo(cx - 22, cy - 6);
+  ctx.lineTo(cx - 22, cy + 6);
+  ctx.lineTo(cx - 8, cy + 8);
+  ctx.lineTo(cx + 18, cy + 7);
+  ctx.closePath();
+  ctx.fill();
+  ctx.strokeStyle = '#b0bec5';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+  // Superstructure
+  ctx.fillStyle = '#90a4ae';
+  ctx.fillRect(cx - 6, cy - 5, 12, 10);
+  ctx.strokeRect(cx - 6, cy - 5, 12, 10);
+  // Gun turret
+  ctx.fillStyle = '#a0b0bc';
+  ctx.beginPath();
+  ctx.arc(cx + 14, cy, 3, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillRect(cx + 14, cy - 1, 10, 2);
+  // Blue accent
+  ctx.strokeStyle = '#42a5f5';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(cx - 20, cy - 7);
+  ctx.lineTo(cx + 16, cy - 7);
+  ctx.stroke();
+  // Radar
+  ctx.strokeStyle = '#82b1ff';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.arc(cx - 2, cy - 8, 4, -Math.PI * 0.8, -Math.PI * 0.2);
+  ctx.stroke();
+}
+
+function drawDestroyerV2(canvas) {
+  const ctx = getCtx(canvas);
+  const cx = 100, cy = 70;
+  // Traditional hull
+  ctx.fillStyle = '#a0b0bc';
+  ctx.beginPath();
+  ctx.moveTo(cx + 32, cy);
+  ctx.lineTo(cx + 20, cy - 8);
+  ctx.lineTo(cx - 15, cy - 9);
+  ctx.lineTo(cx - 25, cy - 6);
+  ctx.lineTo(cx - 25, cy + 6);
+  ctx.lineTo(cx - 15, cy + 9);
+  ctx.lineTo(cx + 20, cy + 8);
+  ctx.closePath();
+  ctx.fill();
+  ctx.strokeStyle = '#a0b0bc';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+  // Waterline
+  ctx.strokeStyle = '#263238';
+  ctx.beginPath();
+  ctx.moveTo(cx - 24, cy + 2);
+  ctx.lineTo(cx + 28, cy + 2);
+  ctx.stroke();
+  // Bridge
+  ctx.fillStyle = '#607d8b';
+  ctx.fillRect(cx - 8, cy - 12, 16, 8);
+  ctx.fillStyle = '#90caf9';
+  ctx.fillRect(cx - 6, cy - 11, 3, 3);
+  ctx.fillRect(cx - 1, cy - 11, 3, 3);
+  ctx.fillRect(cx + 4, cy - 11, 3, 3);
+  // Funnel
+  ctx.fillStyle = '#263238';
+  ctx.fillRect(cx + 2, cy - 16, 4, 5);
+  ctx.fillStyle = '#ff8a65';
+  ctx.fillRect(cx + 2, cy - 16, 4, 1);
+  // Forward turret
+  ctx.fillStyle = '#90a4ae';
+  ctx.beginPath();
+  ctx.arc(cx + 18, cy - 2, 4, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillRect(cx + 20, cy - 3, 8, 2);
+  ctx.fillRect(cx + 20, cy + 1, 8, 2);
+}
+
+function drawDestroyerV3(canvas) {
+  const ctx = getCtx(canvas);
+  const cx = 100, cy = 70;
+  ctx.imageSmoothingEnabled = false;
+  const px = 3;
+  const drawPx = (x, y, c) => { ctx.fillStyle = c; ctx.fillRect(cx + x * px, cy + y * px, px, px); };
+  // Hull
+  const hull = '#a0b0bc';
+  const hullL = '#90a4ae';
+  const deck = '#b0bec5';
+  for (let x = -8; x <= 8; x++) { drawPx(x, 0, hull); drawPx(x, 1, hull); }
+  for (let x = -7; x <= 7; x++) { drawPx(x, -1, hullL); drawPx(x, 2, hull); }
+  for (let x = -6; x <= 6; x++) { drawPx(x, -2, deck); }
+  drawPx(9, 0, hull); drawPx(10, 0, '#a0b0bc');
+  drawPx(9, 1, hull);
+  // Bridge
+  for (let x = -2; x <= 2; x++) { drawPx(x, -3, '#37474f'); drawPx(x, -4, '#37474f'); }
+  drawPx(-1, -4, '#90caf9'); drawPx(1, -4, '#90caf9');
+  // Turret
+  drawPx(6, -1, '#a0b0bc'); drawPx(7, -1, '#a0b0bc'); drawPx(8, -2, '#42a5f5');
+  // Blue stripe
+  for (let x = -7; x <= 8; x++) drawPx(x, -2, '#42a5f5');
+}
+
+function drawDestroyerV4(canvas) {
+  const ctx = getCtx(canvas);
+  const cx = 100, cy = 70;
+  ctx.shadowColor = '#42a5f5';
+  ctx.shadowBlur = 8;
+  ctx.strokeStyle = '#42a5f5';
+  ctx.lineWidth = 1.5;
+  // Hull outline
+  ctx.beginPath();
+  ctx.moveTo(cx + 30, cy);
+  ctx.lineTo(cx + 18, cy - 7);
+  ctx.lineTo(cx - 22, cy - 7);
+  ctx.lineTo(cx - 22, cy + 7);
+  ctx.lineTo(cx + 18, cy + 7);
+  ctx.closePath();
+  ctx.stroke();
+  // Bridge
+  ctx.strokeRect(cx - 6, cy - 12, 12, 7);
+  // Turret
+  ctx.beginPath();
+  ctx.arc(cx + 14, cy, 3, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(cx + 17, cy);
+  ctx.lineTo(cx + 26, cy);
+  ctx.stroke();
+  // Glow dot
+  ctx.shadowBlur = 12;
+  ctx.fillStyle = '#42a5f5';
+  ctx.beginPath();
+  ctx.arc(cx + 30, cy, 2, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.shadowBlur = 0;
+}
+
+// ── TANKER VARIANTS ──
+function drawTankerV1(canvas) {
+  const ctx = getCtx(canvas);
+  const cx = 100, cy = 72;
+  ctx.fillStyle = '#607d8b';
+  ctx.beginPath();
+  ctx.moveTo(cx + 34, cy);
+  ctx.lineTo(cx + 24, cy - 10);
+  ctx.lineTo(cx - 26, cy - 10);
+  ctx.lineTo(cx - 30, cy);
+  ctx.lineTo(cx - 26, cy + 10);
+  ctx.lineTo(cx + 24, cy + 10);
+  ctx.closePath();
+  ctx.fill();
+  ctx.strokeStyle = '#546e7a';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+  // Deck cargo (orange)
+  ctx.fillStyle = '#e65100';
+  for (let i = 0; i < 3; i++) {
+    ctx.fillRect(cx - 20 + i * 14, cy - 6, 10, 12);
+    ctx.strokeStyle = '#bf360c';
+    ctx.strokeRect(cx - 20 + i * 14, cy - 6, 10, 12);
+  }
+  // Bridge at stern
+  ctx.fillStyle = '#a0b0bc';
+  ctx.fillRect(cx - 28, cy - 8, 6, 6);
+  ctx.fillStyle = '#90caf9';
+  ctx.fillRect(cx - 27, cy - 7, 2, 2);
+}
+
+function drawTankerV2(canvas) {
+  const ctx = getCtx(canvas);
+  const cx = 100, cy = 72;
+  ctx.fillStyle = '#a0b0bc';
+  ctx.beginPath();
+  ctx.moveTo(cx + 22, cy);
+  ctx.lineTo(cx + 14, cy - 9);
+  ctx.lineTo(cx - 16, cy - 9);
+  ctx.lineTo(cx - 20, cy);
+  ctx.lineTo(cx - 16, cy + 9);
+  ctx.lineTo(cx + 14, cy + 9);
+  ctx.closePath();
+  ctx.fill();
+  ctx.strokeStyle = '#a0b0bc';
+  ctx.stroke();
+  // Orange belly
+  ctx.fillStyle = '#ff8f00';
+  ctx.beginPath();
+  ctx.moveTo(cx + 14, cy + 3);
+  ctx.lineTo(cx - 16, cy + 3);
+  ctx.lineTo(cx - 18, cy + 8);
+  ctx.lineTo(cx + 12, cy + 8);
+  ctx.closePath();
+  ctx.fill();
+  // Bridge
+  ctx.fillStyle = '#607d8b';
+  ctx.fillRect(cx - 16, cy - 12, 8, 5);
+}
+
+function drawTankerV3(canvas) {
+  const ctx = getCtx(canvas);
+  const cx = 100, cy = 70;
+  ctx.imageSmoothingEnabled = false;
+  const px = 3;
+  const drawPx = (x, y, c) => { ctx.fillStyle = c; ctx.fillRect(cx + x * px, cy + y * px, px, px); };
+  for (let x = -10; x <= 10; x++) { drawPx(x, 0, '#455a64'); drawPx(x, 1, '#455a64'); drawPx(x, 2, '#37474f'); }
+  for (let x = -9; x <= 9; x++) { drawPx(x, -1, '#546e7a'); drawPx(x, 3, '#37474f'); }
+  drawPx(11, 0, '#546e7a'); drawPx(11, 1, '#546e7a');
+  // Orange cargo
+  for (let x = -6; x <= 6; x++) { drawPx(x, -1, '#e65100'); drawPx(x, -2, '#ff8f00'); }
+  // Bridge
+  drawPx(-9, -2, '#37474f'); drawPx(-8, -2, '#37474f'); drawPx(-9, -3, '#37474f'); drawPx(-8, -3, '#90caf9');
+}
+
+function drawTankerV4(canvas) {
+  const ctx = getCtx(canvas);
+  const cx = 100, cy = 72;
+  ctx.shadowColor = '#ff8f00';
+  ctx.shadowBlur = 6;
+  ctx.strokeStyle = '#ff8f00';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(cx + 30, cy);
+  ctx.lineTo(cx + 20, cy - 10);
+  ctx.lineTo(cx - 24, cy - 10);
+  ctx.lineTo(cx - 28, cy);
+  ctx.lineTo(cx - 24, cy + 10);
+  ctx.lineTo(cx + 20, cy + 10);
+  ctx.closePath();
+  ctx.stroke();
+  // Cargo markers
+  ctx.shadowBlur = 10;
+  ctx.fillStyle = '#ff8f00';
+  for (let i = 0; i < 3; i++) {
+    ctx.beginPath();
+    ctx.arc(cx - 14 + i * 14, cy, 3, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.shadowBlur = 0;
+}
+
+// ── OIL RIG VARIANTS ──
+function drawOilRigV1(canvas) {
+  const ctx = getCtx(canvas);
+  const cx = 100, cy = 80;
+  // Platform
+  ctx.fillStyle = '#607d8b';
+  ctx.fillRect(cx - 20, cy, 40, 6);
+  ctx.strokeStyle = '#42a5f5';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(cx - 20, cy, 40, 1);
+  // Legs
+  ctx.strokeStyle = '#546e7a';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(cx - 16, cy + 6); ctx.lineTo(cx - 20, cy + 20);
+  ctx.moveTo(cx - 6, cy + 6); ctx.lineTo(cx - 8, cy + 20);
+  ctx.moveTo(cx + 6, cy + 6); ctx.lineTo(cx + 8, cy + 20);
+  ctx.moveTo(cx + 16, cy + 6); ctx.lineTo(cx + 20, cy + 20);
+  ctx.stroke();
+  // Derrick
+  ctx.strokeStyle = '#a0b0bc';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(cx - 8, cy); ctx.lineTo(cx, cy - 26);
+  ctx.moveTo(cx + 8, cy); ctx.lineTo(cx, cy - 26);
+  ctx.stroke();
+  // Cross braces
+  for (let i = 1; i <= 3; i++) {
+    const y = cy - i * 6;
+    const w = 8 - i * 1.5;
+    ctx.beginPath(); ctx.moveTo(cx - w, y); ctx.lineTo(cx + w, y); ctx.stroke();
+  }
+  // Top
+  ctx.fillStyle = '#42a5f5';
+  ctx.fillRect(cx - 2, cy - 28, 4, 3);
+  // Pump arm
+  ctx.strokeStyle = '#ffb300';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(cx + 10, cy - 2);
+  ctx.lineTo(cx + 22, cy - 8);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(cx + 22, cy - 8, 2.5, 0, Math.PI * 2);
+  ctx.stroke();
+}
+
+function drawOilRigV2(canvas) {
+  const ctx = getCtx(canvas);
+  const cx = 100, cy = 80;
+  ctx.fillStyle = '#607d8b';
+  ctx.fillRect(cx - 14, cy, 28, 5);
+  ctx.strokeStyle = '#42a5f5'; ctx.lineWidth = 1;
+  ctx.strokeRect(cx - 14, cy, 28, 1);
+  // Simple tower
+  ctx.fillStyle = '#90a4ae';
+  ctx.beginPath();
+  ctx.moveTo(cx - 4, cy); ctx.lineTo(cx, cy - 20); ctx.lineTo(cx + 4, cy);
+  ctx.closePath(); ctx.fill();
+  ctx.strokeStyle = '#a0b0bc'; ctx.stroke();
+  // Top light
+  ctx.fillStyle = '#ffb300';
+  ctx.beginPath(); ctx.arc(cx, cy - 21, 2, 0, Math.PI * 2); ctx.fill();
+  // Legs
+  ctx.strokeStyle = '#455a64'; ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(cx - 10, cy + 5); ctx.lineTo(cx - 14, cy + 16);
+  ctx.moveTo(cx + 10, cy + 5); ctx.lineTo(cx + 14, cy + 16);
+  ctx.stroke();
+}
+
+function drawOilRigV3(canvas) {
+  const ctx = getCtx(canvas);
+  const cx = 100, cy = 78;
+  ctx.imageSmoothingEnabled = false;
+  const px = 3;
+  const drawPx = (x, y, c) => { ctx.fillStyle = c; ctx.fillRect(cx + x * px, cy + y * px, px, px); };
+  // Platform
+  for (let x = -5; x <= 5; x++) { drawPx(x, 0, '#37474f'); drawPx(x, 1, '#455a64'); }
+  // Legs
+  drawPx(-4, 2, '#546e7a'); drawPx(-5, 3, '#546e7a');
+  drawPx(4, 2, '#546e7a'); drawPx(5, 3, '#546e7a');
+  // Derrick
+  drawPx(0, -1, '#a0b0bc'); drawPx(0, -2, '#a0b0bc'); drawPx(0, -3, '#a0b0bc');
+  drawPx(-1, -1, '#a0b0bc'); drawPx(1, -1, '#a0b0bc');
+  drawPx(0, -4, '#42a5f5');
+  // Pump
+  drawPx(2, -1, '#ffb300'); drawPx(3, -2, '#ffb300');
+}
+
+function drawOilRigV4(canvas) {
+  const ctx = getCtx(canvas);
+  const cx = 100, cy = 80;
+  ctx.shadowColor = '#33ff66';
+  ctx.shadowBlur = 6;
+  ctx.strokeStyle = '#33ff66';
+  ctx.lineWidth = 1;
+  // Platform
+  ctx.strokeRect(cx - 18, cy, 36, 5);
+  // Tower
+  ctx.beginPath();
+  ctx.moveTo(cx - 6, cy); ctx.lineTo(cx, cy - 24); ctx.lineTo(cx + 6, cy);
+  ctx.stroke();
+  // Cross
+  ctx.beginPath();
+  ctx.moveTo(cx - 3, cy - 8); ctx.lineTo(cx + 3, cy - 8);
+  ctx.moveTo(cx - 2, cy - 16); ctx.lineTo(cx + 2, cy - 16);
+  ctx.stroke();
+  // Glow top
+  ctx.shadowBlur = 14;
+  ctx.fillStyle = '#33ff66';
+  ctx.beginPath(); ctx.arc(cx, cy - 25, 2, 0, Math.PI * 2); ctx.fill();
+  // Legs
+  ctx.shadowBlur = 4;
+  ctx.beginPath();
+  ctx.moveTo(cx - 14, cy + 5); ctx.lineTo(cx - 18, cy + 18);
+  ctx.moveTo(cx + 14, cy + 5); ctx.lineTo(cx + 18, cy + 18);
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+}
+
+// ── AIR DEFENSE VARIANTS ──
+function drawAirDefenseV1(canvas) {
+  const ctx = getCtx(canvas);
+  const cx = 100, cy = 72;
+  ctx.fillStyle = '#1a237e';
+  ctx.fillRect(cx - 14, cy - 14, 28, 28);
+  ctx.strokeStyle = '#42a5f5'; ctx.lineWidth = 1;
+  ctx.strokeRect(cx - 14, cy - 14, 28, 28);
+  ctx.fillStyle = '#283593';
+  ctx.fillRect(cx - 10, cy - 10, 20, 20);
+  // Gun
+  ctx.fillStyle = '#90a4ae';
+  ctx.fillRect(cx - 1, cy - 20, 2, 12);
+  ctx.fillRect(cx - 3, cy - 22, 6, 4);
+  // Radar arc
+  ctx.strokeStyle = '#82b1ff';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.arc(cx, cy - 4, 8, -Math.PI, 0);
+  ctx.stroke();
+  // Center
+  ctx.fillStyle = '#1565c0';
+  ctx.beginPath(); ctx.arc(cx, cy, 4, 0, Math.PI * 2); ctx.fill();
+}
+
+function drawAirDefenseV2(canvas) {
+  const ctx = getCtx(canvas);
+  const cx = 100, cy = 72;
+  ctx.fillStyle = '#1a237e';
+  ctx.fillRect(cx - 16, cy - 6, 32, 16);
+  ctx.strokeStyle = '#42a5f5'; ctx.lineWidth = 1;
+  ctx.strokeRect(cx - 16, cy - 6, 32, 16);
+  // Missile tubes
+  ctx.fillStyle = '#283593';
+  for (let i = 0; i < 4; i++) {
+    ctx.fillRect(cx - 12 + i * 8, cy - 16, 4, 12);
+    ctx.strokeStyle = '#42a5f5';
+    ctx.strokeRect(cx - 12 + i * 8, cy - 16, 4, 12);
+  }
+  // Tips
+  ctx.fillStyle = '#82b1ff';
+  for (let i = 0; i < 4; i++) {
+    ctx.beginPath(); ctx.arc(cx - 10 + i * 8, cy - 16, 2, 0, Math.PI * 2); ctx.fill();
+  }
+}
+
+function drawAirDefenseV3(canvas) {
+  const ctx = getCtx(canvas);
+  const cx = 100, cy = 72;
+  ctx.imageSmoothingEnabled = false;
+  const px = 3;
+  const drawPx = (x, y, c) => { ctx.fillStyle = c; ctx.fillRect(cx + x * px, cy + y * px, px, px); };
+  for (let x = -4; x <= 4; x++) for (let y = -4; y <= 4; y++) drawPx(x, y, '#1a237e');
+  for (let x = -3; x <= 3; x++) for (let y = -3; y <= 3; y++) drawPx(x, y, '#283593');
+  drawPx(0, -5, '#42a5f5'); drawPx(-1, -5, '#42a5f5'); drawPx(1, -5, '#42a5f5');
+  drawPx(0, -6, '#82b1ff');
+  drawPx(0, 0, '#1565c0');
+}
+
+function drawAirDefenseV4(canvas) {
+  const ctx = getCtx(canvas);
+  const cx = 100, cy = 72;
+  ctx.shadowColor = '#42a5f5'; ctx.shadowBlur = 8;
+  ctx.strokeStyle = '#42a5f5'; ctx.lineWidth = 1.5;
+  ctx.strokeRect(cx - 14, cy - 14, 28, 28);
+  ctx.beginPath(); ctx.arc(cx, cy, 16, 0, Math.PI * 2); ctx.stroke();
+  ctx.beginPath(); ctx.arc(cx, cy, 3, 0, Math.PI * 2); ctx.stroke();
+  // Scanning beam
+  ctx.shadowBlur = 12;
+  ctx.beginPath();
+  ctx.moveTo(cx, cy);
+  ctx.lineTo(cx + 14, cy - 10);
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+}
+
+// ── MISSILE LAUNCHER VARIANTS ──
+function drawMissileLauncherV1(canvas) {
+  const ctx = getCtx(canvas);
+  const cx = 100, cy = 72;
+  // Hexagon
+  ctx.fillStyle = '#4a1a1a';
+  ctx.beginPath();
+  for (let i = 0; i < 6; i++) {
+    const a = Math.PI / 3 * i - Math.PI / 6;
+    ctx.lineTo(cx + 16 * Math.cos(a), cy + 16 * Math.sin(a));
+  }
+  ctx.closePath(); ctx.fill();
+  ctx.strokeStyle = '#ef5350'; ctx.lineWidth = 1.5; ctx.stroke();
+  // Center
+  ctx.fillStyle = '#556677';
+  ctx.beginPath(); ctx.arc(cx, cy, 6, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = '#ef5350'; ctx.lineWidth = 1; ctx.stroke();
+  // Barrel
+  ctx.fillStyle = '#5d4037';
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.rotate(-0.3);
+  ctx.fillRect(0, -2.5, 18, 5);
+  ctx.fillStyle = '#ef5350';
+  ctx.fillRect(16, -3, 3, 6);
+  ctx.restore();
+}
+
+function drawMissileLauncherV2(canvas) {
+  const ctx = getCtx(canvas);
+  const cx = 100, cy = 72;
+  // Truck body
+  ctx.fillStyle = '#4a3728';
+  ctx.fillRect(cx - 20, cy - 4, 30, 12);
+  ctx.strokeStyle = '#795548'; ctx.lineWidth = 1;
+  ctx.strokeRect(cx - 20, cy - 4, 30, 12);
+  // Cab
+  ctx.fillStyle = '#3e2723';
+  ctx.fillRect(cx - 24, cy - 2, 6, 10);
+  // Launcher rail
+  ctx.fillStyle = '#5d4037';
+  ctx.save();
+  ctx.translate(cx - 5, cy);
+  ctx.rotate(-0.5);
+  ctx.fillRect(0, -2, 28, 4);
+  ctx.restore();
+  // Missile on rail
+  ctx.fillStyle = '#ef5350';
+  ctx.save();
+  ctx.translate(cx - 5, cy);
+  ctx.rotate(-0.5);
+  ctx.fillRect(16, -1.5, 10, 3);
+  ctx.fillStyle = '#ff8a65';
+  ctx.beginPath(); ctx.moveTo(26, -1.5); ctx.lineTo(29, 0); ctx.lineTo(26, 1.5); ctx.fill();
+  ctx.restore();
+  // Wheels
+  ctx.fillStyle = '#212121';
+  ctx.beginPath(); ctx.arc(cx - 14, cy + 10, 3, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(cx + 4, cy + 10, 3, 0, Math.PI * 2); ctx.fill();
+}
+
+function drawMissileLauncherV3(canvas) {
+  const ctx = getCtx(canvas);
+  const cx = 100, cy = 72;
+  ctx.imageSmoothingEnabled = false;
+  const px = 3;
+  const drawPx = (x, y, c) => { ctx.fillStyle = c; ctx.fillRect(cx + x * px, cy + y * px, px, px); };
+  // Base
+  for (let x = -4; x <= 4; x++) for (let y = -4; y <= 4; y++) {
+    if (Math.abs(x) + Math.abs(y) <= 5) drawPx(x, y, '#4a1a1a');
+  }
+  // Border
+  for (let x = -4; x <= 4; x++) for (let y = -4; y <= 4; y++) {
+    if (Math.abs(x) + Math.abs(y) === 5) drawPx(x, y, '#ef5350');
+  }
+  // Barrel
+  drawPx(1, -1, '#5d4037'); drawPx(2, -1, '#5d4037'); drawPx(3, -2, '#5d4037');
+  drawPx(4, -2, '#ef5350'); drawPx(5, -3, '#ff4444');
+  drawPx(0, 0, '#556677'); drawPx(1, 0, '#556677');
+}
+
+function drawMissileLauncherV4(canvas) {
+  const ctx = getCtx(canvas);
+  const cx = 100, cy = 72;
+  ctx.shadowColor = '#ef5350'; ctx.shadowBlur = 8;
+  ctx.strokeStyle = '#ef5350'; ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  for (let i = 0; i < 6; i++) {
+    const a = Math.PI / 3 * i - Math.PI / 6;
+    ctx.lineTo(cx + 16 * Math.cos(a), cy + 16 * Math.sin(a));
+  }
+  ctx.closePath(); ctx.stroke();
+  // Barrel
+  ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + 22, cy - 8); ctx.stroke();
+  // Glow tip
+  ctx.shadowBlur = 14;
+  ctx.fillStyle = '#ef5350';
+  ctx.beginPath(); ctx.arc(cx + 22, cy - 8, 3, 0, Math.PI * 2); ctx.fill();
+  ctx.shadowBlur = 0;
+}
+
+// ── CRUISE MISSILE VARIANTS ──
+function drawCruiseMissileV1(canvas) {
+  const ctx = getCtx(canvas);
+  const cx = 100, cy = 70;
+  // Glow
+  ctx.fillStyle = 'rgba(255,68,0,0.15)';
+  ctx.beginPath(); ctx.arc(cx, cy, 14, 0, Math.PI * 2); ctx.fill();
+  // Body
+  ctx.fillStyle = '#cc3333';
+  ctx.beginPath();
+  ctx.moveTo(cx + 18, cy);
+  ctx.lineTo(cx + 8, cy - 4);
+  ctx.lineTo(cx - 14, cy - 3);
+  ctx.lineTo(cx - 14, cy + 3);
+  ctx.lineTo(cx + 8, cy + 4);
+  ctx.closePath(); ctx.fill();
+  ctx.strokeStyle = '#ef5350'; ctx.lineWidth = 0.5; ctx.stroke();
+  // Fins
+  ctx.fillStyle = '#8b1a1a';
+  ctx.beginPath(); ctx.moveTo(cx - 14, cy - 3); ctx.lineTo(cx - 18, cy - 8); ctx.lineTo(cx - 10, cy - 2); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(cx - 14, cy + 3); ctx.lineTo(cx - 18, cy + 8); ctx.lineTo(cx - 10, cy + 2); ctx.fill();
+  // Warhead glow
+  ctx.fillStyle = '#ff6600';
+  ctx.beginPath(); ctx.arc(cx + 16, cy, 2.5, 0, Math.PI * 2); ctx.fill();
+  // Trail
+  ctx.strokeStyle = 'rgba(255,100,0,0.3)';
+  ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(cx - 14, cy); ctx.lineTo(cx - 40, cy + 2); ctx.stroke();
+}
+
+function drawCruiseMissileV2(canvas) {
+  const ctx = getCtx(canvas);
+  const cx = 100, cy = 70;
+  ctx.fillStyle = '#b71c1c';
+  ctx.beginPath();
+  ctx.moveTo(cx + 14, cy);
+  ctx.lineTo(cx + 6, cy - 5);
+  ctx.lineTo(cx - 10, cy - 5);
+  ctx.lineTo(cx - 10, cy + 5);
+  ctx.lineTo(cx + 6, cy + 5);
+  ctx.closePath(); ctx.fill();
+  ctx.strokeStyle = '#ef5350'; ctx.lineWidth = 1; ctx.stroke();
+  // Fins
+  ctx.fillStyle = '#7f0000';
+  ctx.beginPath(); ctx.moveTo(cx - 10, cy - 5); ctx.lineTo(cx - 14, cy - 10); ctx.lineTo(cx - 6, cy - 4); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(cx - 10, cy + 5); ctx.lineTo(cx - 14, cy + 10); ctx.lineTo(cx - 6, cy + 4); ctx.fill();
+  // Nose
+  ctx.fillStyle = '#ff8a65';
+  ctx.beginPath(); ctx.arc(cx + 12, cy, 3, 0, Math.PI * 2); ctx.fill();
+}
+
+function drawCruiseMissileV3(canvas) {
+  const ctx = getCtx(canvas);
+  const cx = 100, cy = 70;
+  ctx.imageSmoothingEnabled = false;
+  const px = 3;
+  const drawPx = (x, y, c) => { ctx.fillStyle = c; ctx.fillRect(cx + x * px, cy + y * px, px, px); };
+  for (let x = -4; x <= 4; x++) { drawPx(x, 0, '#cc3333'); }
+  for (let x = -3; x <= 3; x++) { drawPx(x, -1, '#b71c1c'); drawPx(x, 1, '#b71c1c'); }
+  drawPx(5, 0, '#ff6600'); drawPx(6, 0, '#ffab00');
+  drawPx(-5, -2, '#7f0000'); drawPx(-5, 2, '#7f0000');
+  // Trail
+  drawPx(-5, 0, '#ff8a65'); drawPx(-6, 0, '#ff6600'); drawPx(-7, 0, 'rgba(255,100,0,0.4)');
+}
+
+function drawCruiseMissileV4(canvas) {
+  const ctx = getCtx(canvas);
+  const cx = 100, cy = 70;
+  ctx.shadowColor = '#ef5350'; ctx.shadowBlur = 8;
+  ctx.strokeStyle = '#ef5350'; ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(cx + 18, cy);
+  ctx.lineTo(cx + 8, cy - 4);
+  ctx.lineTo(cx - 14, cy - 3);
+  ctx.lineTo(cx - 14, cy + 3);
+  ctx.lineTo(cx + 8, cy + 4);
+  ctx.closePath(); ctx.stroke();
+  // Fins
+  ctx.beginPath(); ctx.moveTo(cx - 14, cy - 3); ctx.lineTo(cx - 18, cy - 8); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx - 14, cy + 3); ctx.lineTo(cx - 18, cy + 8); ctx.stroke();
+  // Glow tip
+  ctx.shadowBlur = 14;
+  ctx.fillStyle = '#ef5350';
+  ctx.beginPath(); ctx.arc(cx + 18, cy, 2.5, 0, Math.PI * 2); ctx.fill();
+  ctx.shadowBlur = 0;
+}
+
+// ── UAV VARIANTS ──
+function drawUAVV1(canvas) {
+  const ctx = getCtx(canvas);
+  const cx = 100, cy = 70;
+  ctx.fillStyle = '#778899';
+  ctx.beginPath();
+  ctx.moveTo(cx + 12, cy);
+  ctx.lineTo(cx - 8, cy - 12);
+  ctx.lineTo(cx - 8, cy + 12);
+  ctx.closePath(); ctx.fill();
+  ctx.strokeStyle = '#888'; ctx.lineWidth = 1; ctx.stroke();
+  ctx.fillStyle = '#ef5350';
+  ctx.beginPath(); ctx.arc(cx + 10, cy, 2, 0, Math.PI * 2); ctx.fill();
+}
+
+function drawUAVV2(canvas) {
+  const ctx = getCtx(canvas);
+  const cx = 100, cy = 70;
+  // Central body
+  ctx.fillStyle = '#667788';
+  ctx.fillRect(cx - 5, cy - 5, 10, 10);
+  ctx.strokeStyle = '#777'; ctx.strokeRect(cx - 5, cy - 5, 10, 10);
+  // Arms
+  ctx.strokeStyle = '#8899aa'; ctx.lineWidth = 2;
+  [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([dx, dy]) => {
+    ctx.beginPath(); ctx.moveTo(cx + dx * 5, cy + dy * 5); ctx.lineTo(cx + dx * 14, cy + dy * 14); ctx.stroke();
+    ctx.fillStyle = '#778899';
+    ctx.beginPath(); ctx.arc(cx + dx * 14, cy + dy * 14, 4, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = '#777'; ctx.stroke();
+  });
+  // Payload
+  ctx.fillStyle = '#ef5350';
+  ctx.beginPath(); ctx.arc(cx, cy + 2, 3, 0, Math.PI * 2); ctx.fill();
+}
+
+function drawUAVV3(canvas) {
+  const ctx = getCtx(canvas);
+  const cx = 100, cy = 70;
+  ctx.imageSmoothingEnabled = false;
+  const px = 3;
+  const drawPx = (x, y, c) => { ctx.fillStyle = c; ctx.fillRect(cx + x * px, cy + y * px, px, px); };
+  drawPx(0, 0, '#778899'); drawPx(1, 0, '#778899'); drawPx(2, 0, '#8899aa');
+  drawPx(-1, -1, '#778899'); drawPx(-2, -2, '#778899'); drawPx(-3, -3, '#667788');
+  drawPx(-1, 1, '#778899'); drawPx(-2, 2, '#778899'); drawPx(-3, 3, '#667788');
+  drawPx(3, 0, '#ef5350');
+}
+
+function drawUAVV4(canvas) {
+  const ctx = getCtx(canvas);
+  const cx = 100, cy = 70;
+  ctx.shadowColor = '#ef5350'; ctx.shadowBlur = 6;
+  ctx.strokeStyle = '#ef5350'; ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(cx + 12, cy);
+  ctx.lineTo(cx - 8, cy - 12);
+  ctx.lineTo(cx - 8, cy + 12);
+  ctx.closePath(); ctx.stroke();
+  ctx.shadowBlur = 12;
+  ctx.fillStyle = '#ef5350';
+  ctx.beginPath(); ctx.arc(cx + 10, cy, 2, 0, Math.PI * 2); ctx.fill();
+  ctx.shadowBlur = 0;
+}
+
+// ── MINE VARIANTS ──
+function drawMineV1(canvas) {
+  const ctx = getCtx(canvas);
+  const cx = 100, cy = 70;
+  ctx.fillStyle = '#556677';
+  ctx.beginPath(); ctx.arc(cx, cy, 8, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = '#778899'; ctx.lineWidth = 1; ctx.stroke();
+  // Horns
+  for (let i = 0; i < 8; i++) {
+    const a = (Math.PI / 4) * i;
+    ctx.fillStyle = '#667788';
+    ctx.beginPath();
+    ctx.arc(cx + Math.cos(a) * 10, cy + Math.sin(a) * 10, 2.5, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  // Warning
+  ctx.strokeStyle = 'rgba(239,83,80,0.5)';
+  ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.arc(cx, cy, 16, 0, Math.PI * 2); ctx.stroke();
+}
+
+function drawMineV2(canvas) {
+  const ctx = getCtx(canvas);
+  const cx = 100, cy = 70;
+  ctx.fillStyle = '#2a2a2a';
+  ctx.beginPath(); ctx.ellipse(cx, cy, 12, 6, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = '#778899'; ctx.stroke();
+  ctx.fillStyle = '#ef5350';
+  ctx.beginPath(); ctx.arc(cx, cy, 2, 0, Math.PI * 2); ctx.fill();
+}
+
+function drawMineV3(canvas) {
+  const ctx = getCtx(canvas);
+  const cx = 100, cy = 70;
+  ctx.imageSmoothingEnabled = false;
+  const px = 3;
+  const drawPx = (x, y, c) => { ctx.fillStyle = c; ctx.fillRect(cx + x * px, cy + y * px, px, px); };
+  // Body
+  for (let x = -2; x <= 2; x++) for (let y = -2; y <= 2; y++) {
+    if (x*x + y*y <= 5) drawPx(x, y, '#556677');
+  }
+  // Spikes
+  drawPx(0, -3, '#778899'); drawPx(0, 3, '#778899');
+  drawPx(-3, 0, '#778899'); drawPx(3, 0, '#778899');
+  drawPx(2, -2, '#778899'); drawPx(-2, -2, '#778899');
+  drawPx(2, 2, '#778899'); drawPx(-2, 2, '#778899');
+  drawPx(0, 0, '#ef5350');
+}
+
+function drawMineV4(canvas) {
+  const ctx = getCtx(canvas);
+  const cx = 100, cy = 70;
+  ctx.shadowColor = '#ef5350'; ctx.shadowBlur = 6;
+  ctx.strokeStyle = '#ef5350'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.arc(cx, cy, 8, 0, Math.PI * 2); ctx.stroke();
+  for (let i = 0; i < 8; i++) {
+    const a = (Math.PI / 4) * i;
+    ctx.beginPath();
+    ctx.arc(cx + Math.cos(a) * 12, cy + Math.sin(a) * 12, 2, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+  ctx.shadowBlur = 14;
+  ctx.strokeStyle = 'rgba(239,83,80,0.4)';
+  ctx.beginPath(); ctx.arc(cx, cy, 18, 0, Math.PI * 2); ctx.stroke();
+  ctx.shadowBlur = 0;
+}
+
+// ── PROJECTILE VARIANTS ──
+function drawProjMissileV1(canvas) {
+  const ctx = getCtx(canvas);
+  const cx = 100, cy = 70;
+  ctx.fillStyle = 'rgba(255,68,0,0.2)';
+  ctx.beginPath(); ctx.arc(cx + 4, cy, 8, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#ff4444';
+  ctx.beginPath();
+  ctx.moveTo(cx + 10, cy); ctx.lineTo(cx + 4, cy - 3); ctx.lineTo(cx - 6, cy - 2);
+  ctx.lineTo(cx - 6, cy + 2); ctx.lineTo(cx + 4, cy + 3);
+  ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#fff';
+  ctx.beginPath(); ctx.arc(cx + 2, cy, 1, 0, Math.PI * 2); ctx.fill();
+  // Trail
+  const grad = ctx.createLinearGradient(cx - 30, cy, cx - 6, cy);
+  grad.addColorStop(0, 'transparent'); grad.addColorStop(1, 'rgba(255,100,0,0.4)');
+  ctx.strokeStyle = grad; ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.moveTo(cx - 30, cy); ctx.lineTo(cx - 6, cy); ctx.stroke();
+}
+
+function drawProjMissileV2(canvas) {
+  const ctx = getCtx(canvas);
+  const cx = 100, cy = 70;
+  ctx.imageSmoothingEnabled = false;
+  const px = 4;
+  const drawPx = (x, y, c) => { ctx.fillStyle = c; ctx.fillRect(cx + x * px, cy + y * px, px, px); };
+  drawPx(0, 0, '#ff4444'); drawPx(1, 0, '#ff6600'); drawPx(2, 0, '#ffab00');
+  drawPx(-1, 0, '#cc3333'); drawPx(-2, 0, 'rgba(255,68,0,0.5)'); drawPx(-3, 0, 'rgba(255,68,0,0.2)');
+}
+
+function drawProjMissileV3(canvas) {
+  const ctx = getCtx(canvas);
+  const cx = 100, cy = 70;
+  ctx.shadowColor = '#ff4444'; ctx.shadowBlur = 10;
+  ctx.strokeStyle = '#ff4444'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(cx - 20, cy); ctx.lineTo(cx + 10, cy); ctx.stroke();
+  ctx.shadowBlur = 16;
+  ctx.fillStyle = '#ff4444';
+  ctx.beginPath(); ctx.arc(cx + 10, cy, 3, 0, Math.PI * 2); ctx.fill();
+  ctx.shadowBlur = 0;
+}
+
+function drawProjShellV1(canvas) {
+  const ctx = getCtx(canvas);
+  const cx = 100, cy = 70;
+  ctx.fillStyle = 'rgba(66,165,245,0.2)';
+  ctx.beginPath(); ctx.arc(cx + 2, cy, 6, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#42a5f5';
+  ctx.beginPath();
+  ctx.moveTo(cx + 8, cy); ctx.lineTo(cx + 2, cy - 2); ctx.lineTo(cx - 4, cy - 1.5);
+  ctx.lineTo(cx - 4, cy + 1.5); ctx.lineTo(cx + 2, cy + 2);
+  ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#fff';
+  ctx.beginPath(); ctx.arc(cx + 1, cy, 0.8, 0, Math.PI * 2); ctx.fill();
+  const grad = ctx.createLinearGradient(cx - 24, cy, cx - 4, cy);
+  grad.addColorStop(0, 'transparent'); grad.addColorStop(1, 'rgba(66,165,245,0.3)');
+  ctx.strokeStyle = grad; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(cx - 24, cy); ctx.lineTo(cx - 4, cy); ctx.stroke();
+}
+
+function drawProjShellV2(canvas) {
+  const ctx = getCtx(canvas);
+  const cx = 100, cy = 70;
+  ctx.imageSmoothingEnabled = false;
+  const px = 4;
+  const drawPx = (x, y, c) => { ctx.fillStyle = c; ctx.fillRect(cx + x * px, cy + y * px, px, px); };
+  drawPx(0, 0, '#42a5f5'); drawPx(1, 0, '#82b1ff');
+  drawPx(-1, 0, 'rgba(66,165,245,0.5)'); drawPx(-2, 0, 'rgba(66,165,245,0.2)');
+}
+
+function drawProjShellV3(canvas) {
+  const ctx = getCtx(canvas);
+  const cx = 100, cy = 70;
+  ctx.shadowColor = '#42a5f5'; ctx.shadowBlur = 10;
+  ctx.strokeStyle = '#42a5f5'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(cx - 16, cy); ctx.lineTo(cx + 8, cy); ctx.stroke();
+  ctx.shadowBlur = 14;
+  ctx.fillStyle = '#42a5f5';
+  ctx.beginPath(); ctx.arc(cx + 8, cy, 2.5, 0, Math.PI * 2); ctx.fill();
+  ctx.shadowBlur = 0;
+}
+
+// ── EFFECT VARIANTS ──
+function drawExplosionV1(canvas) {
+  const ctx = getCtx(canvas);
+  const cx = 100, cy = 70;
+  // Outer glow
+  const grad = ctx.createRadialGradient(cx, cy, 4, cx, cy, 28);
+  grad.addColorStop(0, 'rgba(255,200,50,0.8)');
+  grad.addColorStop(0.4, 'rgba(255,100,0,0.5)');
+  grad.addColorStop(1, 'transparent');
+  ctx.fillStyle = grad;
+  ctx.beginPath(); ctx.arc(cx, cy, 28, 0, Math.PI * 2); ctx.fill();
+  // Core
+  ctx.fillStyle = '#fff8e1';
+  ctx.beginPath(); ctx.arc(cx, cy, 6, 0, Math.PI * 2); ctx.fill();
+  // Debris
+  ctx.fillStyle = '#ff8a65';
+  for (let i = 0; i < 8; i++) {
+    const a = (Math.PI / 4) * i + 0.2;
+    const r = 16 + Math.random() * 8;
+    ctx.beginPath();
+    ctx.arc(cx + Math.cos(a) * r, cy + Math.sin(a) * r, 1.5 + Math.random(), 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
+function drawExplosionV2(canvas) {
+  const ctx = getCtx(canvas);
+  const cx = 100, cy = 70;
+  ctx.imageSmoothingEnabled = false;
+  const px = 4;
+  const drawPx = (x, y, c) => { ctx.fillStyle = c; ctx.fillRect(cx + x * px, cy + y * px, px, px); };
+  // Core
+  drawPx(0, 0, '#fff8e1'); drawPx(1, 0, '#ffcc02'); drawPx(-1, 0, '#ffcc02');
+  drawPx(0, 1, '#ff8f00'); drawPx(0, -1, '#ff8f00');
+  // Mid ring
+  drawPx(2, 0, '#ff6600'); drawPx(-2, 0, '#ff6600');
+  drawPx(0, 2, '#ff6600'); drawPx(0, -2, '#ff6600');
+  drawPx(1, -1, '#ff8a65'); drawPx(-1, -1, '#ff8a65');
+  drawPx(1, 1, '#ff8a65'); drawPx(-1, 1, '#ff8a65');
+  // Debris
+  drawPx(3, -1, '#ef5350'); drawPx(-2, -3, '#ef5350');
+  drawPx(2, 3, '#ff8a65'); drawPx(-3, 1, '#ff6600');
+}
+
+function drawExplosionV3(canvas) {
+  const ctx = getCtx(canvas);
+  const cx = 100, cy = 70;
+  ctx.shadowColor = '#ff8f00'; ctx.shadowBlur = 12;
+  ctx.strokeStyle = '#ff8f00'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.arc(cx, cy, 16, 0, Math.PI * 2); ctx.stroke();
+  ctx.strokeStyle = '#ffcc02'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.arc(cx, cy, 8, 0, Math.PI * 2); ctx.stroke();
+  ctx.shadowBlur = 16;
+  ctx.fillStyle = '#fff8e1';
+  ctx.beginPath(); ctx.arc(cx, cy, 3, 0, Math.PI * 2); ctx.fill();
+  // Sparks
+  ctx.strokeStyle = '#ff8a65'; ctx.lineWidth = 1;
+  for (let i = 0; i < 6; i++) {
+    const a = (Math.PI / 3) * i + 0.3;
+    ctx.beginPath();
+    ctx.moveTo(cx + Math.cos(a) * 18, cy + Math.sin(a) * 18);
+    ctx.lineTo(cx + Math.cos(a) * 24, cy + Math.sin(a) * 24);
+    ctx.stroke();
+  }
+  ctx.shadowBlur = 0;
+}
+
+function drawWakeV1(canvas) {
+  const ctx = getCtx(canvas);
+  const cx = 130, cy = 70;
+  ctx.strokeStyle = 'rgba(255,255,255,0.4)';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(cx, cy); ctx.quadraticCurveTo(cx - 30, cy - 8, cx - 60, cy - 4); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx, cy); ctx.quadraticCurveTo(cx - 30, cy + 8, cx - 60, cy + 4); ctx.stroke();
+  // Foam dots
+  ctx.fillStyle = 'rgba(255,255,255,0.3)';
+  for (let i = 0; i < 12; i++) {
+    const t = i / 12;
+    const x = cx - t * 60;
+    const y = cy + (Math.random() - 0.5) * 8 * t;
+    ctx.beginPath(); ctx.arc(x, y, 1 + Math.random(), 0, Math.PI * 2); ctx.fill();
+  }
+}
+
+function drawWakeV2(canvas) {
+  const ctx = getCtx(canvas);
+  const cx = 130, cy = 70;
+  ctx.imageSmoothingEnabled = false;
+  const px = 3;
+  const drawPx = (x, y, c) => { ctx.fillStyle = c; ctx.fillRect(cx + x * px, cy + y * px, px, px); };
+  for (let i = 0; i < 10; i++) {
+    const alpha = 1 - i * 0.1;
+    drawPx(-i * 2, 0, `rgba(255,255,255,${alpha * 0.4})`);
+    if (i > 2) {
+      drawPx(-i * 2, -1, `rgba(255,255,255,${alpha * 0.2})`);
+      drawPx(-i * 2, 1, `rgba(255,255,255,${alpha * 0.2})`);
+    }
+  }
+}
+
+function drawWakeV3(canvas) {
+  const ctx = getCtx(canvas);
+  const cx = 130, cy = 70;
+  ctx.shadowColor = '#82b1ff'; ctx.shadowBlur = 4;
+  for (let i = 0; i < 6; i++) {
+    const alpha = 0.6 - i * 0.1;
+    ctx.strokeStyle = `rgba(130,177,255,${alpha})`;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(cx - i * 12, cy - 2 - i);
+    ctx.lineTo(cx - i * 12 - 8, cy - 2 - i);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(cx - i * 12, cy + 2 + i);
+    ctx.lineTo(cx - i * 12 - 8, cy + 2 + i);
+    ctx.stroke();
+  }
+  ctx.shadowBlur = 0;
+}
+
+
+// ═══════════════════════════════════════════════
+//  NEW UNIT DRAWING FUNCTIONS (Apr 2026)
+// ═══════════════════════════════════════════════
+
+// ── AIRFIELD VARIANTS ──
+function drawAirfieldV1(canvas) {
+  const ctx = getCtx(canvas);
+  const cx = 100, cy = 70;
+  // Runway
+  ctx.fillStyle = '#455a64';
+  ctx.fillRect(cx - 34, cy - 14, 68, 28);
+  ctx.strokeStyle = '#607d8b';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(cx - 34, cy - 14, 68, 28);
+  // Runway center dashes
+  ctx.strokeStyle = 'rgba(255,255,255,0.4)';
+  ctx.lineWidth = 1.5;
+  ctx.setLineDash([5, 4]);
+  ctx.beginPath(); ctx.moveTo(cx - 28, cy); ctx.lineTo(cx + 28, cy); ctx.stroke();
+  ctx.setLineDash([]);
+  // Threshold markings
+  ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+  ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(cx - 30, cy - 8); ctx.lineTo(cx - 30, cy + 8); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx + 30, cy - 8); ctx.lineTo(cx + 30, cy + 8); ctx.stroke();
+  // Taxiway lights
+  ctx.fillStyle = '#ffeb3b';
+  for (let i = -28; i <= 28; i += 8) { ctx.beginPath(); ctx.arc(cx + i, cy - 14, 1.2, 0, Math.PI * 2); ctx.fill(); ctx.beginPath(); ctx.arc(cx + i, cy + 14, 1.2, 0, Math.PI * 2); ctx.fill(); }
+  // Blue accent
+  ctx.fillStyle = 'rgba(33,150,243,0.4)';
+  ctx.fillRect(cx - 34, cy - 14, 68, 2.5);
+  ctx.fillRect(cx - 34, cy + 11.5, 68, 2.5);
+  // Control tower
+  ctx.fillStyle = '#546e7a';
+  ctx.fillRect(cx - 20, cy - 24, 10, 12);
+  ctx.strokeStyle = '#78909c';
+  ctx.lineWidth = 0.8;
+  ctx.strokeRect(cx - 20, cy - 24, 10, 12);
+  ctx.fillStyle = '#b3e5fc';
+  ctx.fillRect(cx - 18, cy - 22, 3, 3);
+  ctx.fillRect(cx - 14, cy - 22, 3, 3);
+  // Radar dish
+  ctx.strokeStyle = '#42a5f5';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.arc(cx - 15, cy - 28, 6, -0.5, 0.5); ctx.stroke();
+  ctx.fillStyle = '#42a5f5';
+  ctx.beginPath(); ctx.arc(cx - 15, cy - 28, 2, 0, Math.PI * 2); ctx.fill();
+  // Hangar
+  ctx.fillStyle = '#37474f';
+  ctx.fillRect(cx + 14, cy - 24, 14, 12);
+  ctx.strokeStyle = '#455a64';
+  ctx.strokeRect(cx + 14, cy - 24, 14, 12);
+}
+
+function drawAirfieldV2(canvas) {
+  const ctx = getCtx(canvas);
+  const cx = 100, cy = 70;
+  // Angled carrier deck
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.rotate(-0.15);
+  ctx.fillStyle = '#37474f';
+  ctx.fillRect(-30, -16, 60, 32);
+  ctx.strokeStyle = 'rgba(33,150,243,0.5)';
+  ctx.lineWidth = 1.5;
+  ctx.strokeRect(-30, -16, 60, 32);
+  // Catapult track
+  ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+  ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(-24, -4); ctx.lineTo(24, -4); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(-24, 4); ctx.lineTo(24, 4); ctx.stroke();
+  // Deck markings
+  ctx.strokeStyle = '#ffeb3b';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([3, 3]);
+  ctx.beginPath(); ctx.moveTo(-20, 0); ctx.lineTo(20, 0); ctx.stroke();
+  ctx.setLineDash([]);
+  // Island superstructure
+  ctx.fillStyle = '#546e7a';
+  ctx.fillRect(16, -22, 10, 10);
+  ctx.fillStyle = '#42a5f5';
+  ctx.fillRect(18, -20, 2, 2);
+  ctx.fillRect(22, -20, 2, 2);
+  ctx.restore();
+}
+
+function drawAirfieldV3(canvas) {
+  const ctx = getCtx(canvas);
+  const cx = 100, cy = 70;
+  ctx.shadowColor = '#42a5f5';
+  ctx.shadowBlur = 8;
+  ctx.strokeStyle = '#42a5f5';
+  ctx.lineWidth = 1.2;
+  ctx.strokeRect(cx - 32, cy - 12, 64, 24);
+  // Runway glow lights
+  ctx.fillStyle = '#42a5f5';
+  for (let i = -26; i <= 26; i += 8) { ctx.beginPath(); ctx.arc(cx + i, cy - 12, 1.5, 0, Math.PI * 2); ctx.fill(); ctx.beginPath(); ctx.arc(cx + i, cy + 12, 1.5, 0, Math.PI * 2); ctx.fill(); }
+  // Center line
+  ctx.strokeStyle = 'rgba(66,165,245,0.5)';
+  ctx.setLineDash([4, 4]);
+  ctx.beginPath(); ctx.moveTo(cx - 26, cy); ctx.lineTo(cx + 26, cy); ctx.stroke();
+  ctx.setLineDash([]);
+  // Tower wireframe
+  ctx.strokeStyle = '#42a5f5';
+  ctx.strokeRect(cx - 18, cy - 24, 8, 14);
+  ctx.shadowBlur = 0;
+}
+
+// ── F-22 VARIANTS ──
+function drawF22V1(canvas) {
+  const ctx = getCtx(canvas);
+  const cx = 100, cy = 70;
+  // Shadow on water
+  ctx.fillStyle = 'rgba(0,0,0,0.15)';
+  ctx.beginPath();
+  ctx.ellipse(cx + 4, cy + 10, 14, 5, 0, 0, Math.PI * 2);
+  ctx.fill();
+  // Afterburner trail
+  ctx.fillStyle = 'rgba(255,136,0,0.3)';
+  ctx.beginPath(); ctx.ellipse(cx - 24, cy, 12, 3, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = 'rgba(66,136,255,0.2)';
+  ctx.beginPath(); ctx.ellipse(cx - 32, cy, 8, 2, 0, 0, Math.PI * 2); ctx.fill();
+  // F-22 body
+  ctx.fillStyle = '#607d8b';
+  ctx.beginPath();
+  ctx.moveTo(cx + 20, cy);
+  ctx.lineTo(cx + 6, cy - 4);
+  ctx.lineTo(cx - 8, cy - 14);
+  ctx.lineTo(cx - 12, cy - 5);
+  ctx.lineTo(cx - 16, cy - 7);
+  ctx.lineTo(cx - 14, cy - 1);
+  ctx.lineTo(cx - 14, cy + 1);
+  ctx.lineTo(cx - 16, cy + 7);
+  ctx.lineTo(cx - 12, cy + 5);
+  ctx.lineTo(cx - 8, cy + 14);
+  ctx.lineTo(cx + 6, cy + 4);
+  ctx.closePath();
+  ctx.fill();
+  ctx.strokeStyle = '#90a4ae';
+  ctx.lineWidth = 0.8;
+  ctx.stroke();
+  // Cockpit
+  ctx.fillStyle = 'rgba(66,165,245,0.7)';
+  ctx.beginPath();
+  ctx.moveTo(cx + 14, cy);
+  ctx.lineTo(cx + 7, cy - 2);
+  ctx.lineTo(cx + 3, cy);
+  ctx.lineTo(cx + 7, cy + 2);
+  ctx.closePath();
+  ctx.fill();
+  // Blue stripe
+  ctx.strokeStyle = 'rgba(33,150,243,0.5)';
+  ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(cx - 6, cy); ctx.lineTo(cx + 12, cy); ctx.stroke();
+  // Engine glow
+  ctx.fillStyle = '#ff6600';
+  ctx.beginPath(); ctx.arc(cx - 14, cy, 2.5, 0, Math.PI * 2); ctx.fill();
+}
+
+function drawF22V2(canvas) {
+  const ctx = getCtx(canvas);
+  const cx = 100, cy = 70;
+  // Speed lines
+  ctx.strokeStyle = 'rgba(66,165,245,0.15)';
+  ctx.lineWidth = 1;
+  for (let i = 0; i < 5; i++) {
+    const y = cy - 8 + i * 4;
+    ctx.beginPath(); ctx.moveTo(cx - 50, y); ctx.lineTo(cx - 20, y); ctx.stroke();
+  }
+  // Simplified jet
+  ctx.fillStyle = '#78909c';
+  ctx.beginPath();
+  ctx.moveTo(cx + 16, cy);
+  ctx.lineTo(cx + 4, cy - 3);
+  ctx.lineTo(cx - 6, cy - 10);
+  ctx.lineTo(cx - 10, cy);
+  ctx.lineTo(cx - 6, cy + 10);
+  ctx.lineTo(cx + 4, cy + 3);
+  ctx.closePath();
+  ctx.fill();
+  // Trail
+  ctx.fillStyle = 'rgba(255,136,0,0.4)';
+  ctx.beginPath(); ctx.ellipse(cx - 14, cy, 8, 2, 0, 0, Math.PI * 2); ctx.fill();
+}
+
+function drawF22V3(canvas) {
+  const ctx = getCtx(canvas);
+  const cx = 100, cy = 70;
+  ctx.shadowColor = '#42a5f5';
+  ctx.shadowBlur = 8;
+  ctx.strokeStyle = '#42a5f5';
+  ctx.lineWidth = 1.2;
+  ctx.beginPath();
+  ctx.moveTo(cx + 18, cy);
+  ctx.lineTo(cx + 6, cy - 4);
+  ctx.lineTo(cx - 6, cy - 12);
+  ctx.lineTo(cx - 10, cy - 5);
+  ctx.lineTo(cx - 14, cy - 6);
+  ctx.lineTo(cx - 12, cy);
+  ctx.lineTo(cx - 14, cy + 6);
+  ctx.lineTo(cx - 10, cy + 5);
+  ctx.lineTo(cx - 6, cy + 12);
+  ctx.lineTo(cx + 6, cy + 4);
+  ctx.closePath();
+  ctx.stroke();
+  // Glow engine
+  ctx.fillStyle = 'rgba(255,136,0,0.6)';
+  ctx.beginPath(); ctx.arc(cx - 12, cy, 3, 0, Math.PI * 2); ctx.fill();
+  ctx.shadowBlur = 0;
+}
+
+// ── COALITION SUBMARINE VARIANTS ──
+function drawCoalitionSubV1(canvas) {
+  const ctx = getCtx(canvas);
+  const cx = 100, cy = 70;
+  // Sonar ring
+  ctx.strokeStyle = 'rgba(66,165,245,0.15)';
+  ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.arc(cx, cy, 35, 0, Math.PI * 2); ctx.stroke();
+  // Submarine hull
+  ctx.fillStyle = '#455a64';
+  ctx.beginPath();
+  ctx.moveTo(cx + 20, cy);
+  ctx.lineTo(cx + 14, cy - 5);
+  ctx.lineTo(cx - 12, cy - 5);
+  ctx.lineTo(cx - 18, cy - 3);
+  ctx.lineTo(cx - 20, cy);
+  ctx.lineTo(cx - 18, cy + 3);
+  ctx.lineTo(cx - 12, cy + 5);
+  ctx.lineTo(cx + 14, cy + 5);
+  ctx.closePath();
+  ctx.fill();
+  ctx.strokeStyle = '#2196f3';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+  // Conning tower (sail)
+  ctx.fillStyle = '#546e7a';
+  ctx.fillRect(cx - 2, cy - 11, 8, 7);
+  ctx.strokeStyle = 'rgba(33,150,243,0.5)';
+  ctx.lineWidth = 0.8;
+  ctx.strokeRect(cx - 2, cy - 11, 8, 7);
+  // Periscope
+  ctx.strokeStyle = '#64b5f6';
+  ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(cx + 2, cy - 11); ctx.lineTo(cx + 2, cy - 16); ctx.stroke();
+  ctx.fillStyle = '#64b5f6';
+  ctx.beginPath(); ctx.arc(cx + 2, cy - 16, 2, 0, Math.PI * 2); ctx.fill();
+  // Torpedo tubes
+  ctx.fillStyle = '#263238';
+  ctx.beginPath(); ctx.arc(cx + 18, cy - 2, 1.5, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(cx + 18, cy + 2, 1.5, 0, Math.PI * 2); ctx.fill();
+  // Propeller
+  ctx.fillStyle = '#546e7a';
+  ctx.beginPath(); ctx.arc(cx - 19, cy, 2.5, 0, Math.PI * 2); ctx.fill();
+  // Blue stripe
+  ctx.strokeStyle = 'rgba(66,165,245,0.4)';
+  ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(cx - 12, cy); ctx.lineTo(cx + 14, cy); ctx.stroke();
+  // Sonar dome
+  ctx.fillStyle = 'rgba(66,165,245,0.4)';
+  ctx.beginPath(); ctx.arc(cx + 14, cy + 3, 2.5, 0, Math.PI * 2); ctx.fill();
+}
+
+function drawCoalitionSubV2(canvas) {
+  const ctx = getCtx(canvas);
+  const cx = 100, cy = 70;
+  // Dark angular hull
+  ctx.fillStyle = '#2d3436';
+  ctx.beginPath();
+  ctx.moveTo(cx + 22, cy);
+  ctx.lineTo(cx + 12, cy - 4);
+  ctx.lineTo(cx - 14, cy - 3);
+  ctx.lineTo(cx - 20, cy);
+  ctx.lineTo(cx - 14, cy + 3);
+  ctx.lineTo(cx + 12, cy + 4);
+  ctx.closePath();
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(33,150,243,0.3)';
+  ctx.lineWidth = 0.8;
+  ctx.stroke();
+  // Minimal sail
+  ctx.fillStyle = '#37474f';
+  ctx.fillRect(cx - 1, cy - 8, 5, 5);
+  // Periscope trail (V wake)
+  ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+  ctx.lineWidth = 0.8;
+  ctx.beginPath(); ctx.moveTo(cx + 4, cy - 1); ctx.lineTo(cx - 10, cy - 5); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx + 4, cy + 1); ctx.lineTo(cx - 10, cy + 5); ctx.stroke();
+}
+
+function drawCoalitionSubV3(canvas) {
+  const ctx = getCtx(canvas);
+  const cx = 100, cy = 70;
+  ctx.shadowColor = '#42a5f5';
+  ctx.shadowBlur = 6;
+  // Sonar ring
+  ctx.strokeStyle = 'rgba(66,165,245,0.2)';
+  ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.arc(cx, cy, 30, 0, Math.PI * 2); ctx.stroke();
+  // Wireframe hull
+  ctx.strokeStyle = '#42a5f5';
+  ctx.lineWidth = 1.2;
+  ctx.beginPath();
+  ctx.moveTo(cx + 18, cy);
+  ctx.lineTo(cx + 12, cy - 5);
+  ctx.lineTo(cx - 10, cy - 5);
+  ctx.lineTo(cx - 16, cy);
+  ctx.lineTo(cx - 10, cy + 5);
+  ctx.lineTo(cx + 12, cy + 5);
+  ctx.closePath();
+  ctx.stroke();
+  // Sail wireframe
+  ctx.strokeRect(cx - 1, cy - 10, 6, 6);
+  ctx.shadowBlur = 0;
+}
+
+// ── FAST BOAT (GUN) VARIANTS ──
+function drawFastBoatGunV1(canvas) {
+  const ctx = getCtx(canvas);
+  const cx = 100, cy = 70;
+  // Wake trail
+  ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+  ctx.lineWidth = 0.8;
+  ctx.beginPath(); ctx.moveTo(cx - 6, cy - 1); ctx.lineTo(cx - 20, cy - 6); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx - 6, cy + 1); ctx.lineTo(cx - 20, cy + 6); ctx.stroke();
+  // Hull
+  ctx.fillStyle = '#546e7a';
+  ctx.beginPath();
+  ctx.moveTo(cx + 14, cy);
+  ctx.lineTo(cx + 7, cy - 5);
+  ctx.lineTo(cx - 10, cy - 4.5);
+  ctx.lineTo(cx - 13, cy);
+  ctx.lineTo(cx - 10, cy + 4.5);
+  ctx.lineTo(cx + 7, cy + 5);
+  ctx.closePath();
+  ctx.fill();
+  ctx.strokeStyle = '#78909c';
+  ctx.lineWidth = 0.8;
+  ctx.stroke();
+  // Gun turret
+  ctx.fillStyle = '#455a64';
+  ctx.beginPath(); ctx.arc(cx + 4, cy, 2.5, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#37474f';
+  ctx.fillRect(cx + 4, cy - 0.6, 7, 1.2);
+  // Muzzle flash hint
+  ctx.fillStyle = 'rgba(255,200,50,0.3)';
+  ctx.beginPath(); ctx.arc(cx + 12, cy, 2, 0, Math.PI * 2); ctx.fill();
+}
+
+function drawFastBoatGunV2(canvas) {
+  const ctx = getCtx(canvas);
+  const cx = 100, cy = 70;
+  // Tiny nimble boat
+  ctx.fillStyle = '#607d8b';
+  ctx.beginPath();
+  ctx.moveTo(cx + 10, cy);
+  ctx.lineTo(cx + 5, cy - 3.5);
+  ctx.lineTo(cx - 8, cy - 3);
+  ctx.lineTo(cx - 10, cy);
+  ctx.lineTo(cx - 8, cy + 3);
+  ctx.lineTo(cx + 5, cy + 3.5);
+  ctx.closePath();
+  ctx.fill();
+  // Small gun
+  ctx.fillStyle = '#455a64';
+  ctx.fillRect(cx + 2, cy - 0.5, 5, 1);
+}
+
+function drawFastBoatGunV3(canvas) {
+  const ctx = getCtx(canvas);
+  const cx = 100, cy = 70;
+  ctx.shadowColor = '#f44336';
+  ctx.shadowBlur = 5;
+  ctx.strokeStyle = '#f44336';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(cx + 12, cy);
+  ctx.lineTo(cx + 6, cy - 4);
+  ctx.lineTo(cx - 9, cy - 3.5);
+  ctx.lineTo(cx - 12, cy);
+  ctx.lineTo(cx - 9, cy + 3.5);
+  ctx.lineTo(cx + 6, cy + 4);
+  ctx.closePath();
+  ctx.stroke();
+  // Gun flash
+  ctx.fillStyle = 'rgba(255,68,68,0.5)';
+  ctx.beginPath(); ctx.arc(cx + 14, cy, 2.5, 0, Math.PI * 2); ctx.fill();
+  ctx.shadowBlur = 0;
+}
+
+// ── FAST BOAT (SUICIDE) VARIANTS ──
+function drawFastBoatSuicideV1(canvas) {
+  const ctx = getCtx(canvas);
+  const cx = 100, cy = 70;
+  // Wake
+  ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+  ctx.lineWidth = 0.8;
+  ctx.beginPath(); ctx.moveTo(cx - 6, cy - 1); ctx.lineTo(cx - 22, cy - 7); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx - 6, cy + 1); ctx.lineTo(cx - 22, cy + 7); ctx.stroke();
+  // Hull (red glow)
+  ctx.fillStyle = '#8b1a1a';
+  ctx.beginPath();
+  ctx.moveTo(cx + 14, cy);
+  ctx.lineTo(cx + 7, cy - 5);
+  ctx.lineTo(cx - 10, cy - 4.5);
+  ctx.lineTo(cx - 13, cy);
+  ctx.lineTo(cx - 10, cy + 4.5);
+  ctx.lineTo(cx + 7, cy + 5);
+  ctx.closePath();
+  ctx.fill();
+  ctx.strokeStyle = '#f44336';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+  // Explosive payload glow
+  ctx.fillStyle = 'rgba(255,68,0,0.5)';
+  ctx.beginPath(); ctx.arc(cx, cy, 4, 0, Math.PI * 2); ctx.fill();
+  // Bow detonator
+  ctx.fillStyle = '#ff0000';
+  ctx.beginPath(); ctx.arc(cx + 10, cy, 2, 0, Math.PI * 2); ctx.fill();
+  // Sparks
+  ctx.fillStyle = 'rgba(255,200,50,0.6)';
+  ctx.beginPath(); ctx.arc(cx + 12, cy - 2, 1, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(cx + 11, cy + 1.5, 0.8, 0, Math.PI * 2); ctx.fill();
+}
+
+function drawFastBoatSuicideV2(canvas) {
+  const ctx = getCtx(canvas);
+  const cx = 100, cy = 70;
+  // Hull
+  ctx.fillStyle = '#6d1111';
+  ctx.beginPath();
+  ctx.moveTo(cx + 12, cy);
+  ctx.lineTo(cx + 6, cy - 4);
+  ctx.lineTo(cx - 9, cy - 3.5);
+  ctx.lineTo(cx - 11, cy);
+  ctx.lineTo(cx - 9, cy + 3.5);
+  ctx.lineTo(cx + 6, cy + 4);
+  ctx.closePath();
+  ctx.fill();
+  // Flames from hull
+  ctx.fillStyle = 'rgba(255,136,0,0.5)';
+  ctx.beginPath(); ctx.ellipse(cx - 4, cy - 5, 3, 6, -0.3, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = 'rgba(255,200,50,0.3)';
+  ctx.beginPath(); ctx.ellipse(cx + 2, cy - 4, 2, 4, -0.2, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = 'rgba(255,68,0,0.4)';
+  ctx.beginPath(); ctx.ellipse(cx - 2, cy + 4, 2.5, 5, 0.2, 0, Math.PI * 2); ctx.fill();
+}
+
+function drawFastBoatSuicideV3(canvas) {
+  const ctx = getCtx(canvas);
+  const cx = 100, cy = 70;
+  ctx.shadowColor = '#ff0000';
+  ctx.shadowBlur = 8;
+  ctx.strokeStyle = '#ff4444';
+  ctx.lineWidth = 1.2;
+  ctx.beginPath();
+  ctx.moveTo(cx + 12, cy);
+  ctx.lineTo(cx + 6, cy - 4);
+  ctx.lineTo(cx - 9, cy - 3.5);
+  ctx.lineTo(cx - 11, cy);
+  ctx.lineTo(cx - 9, cy + 3.5);
+  ctx.lineTo(cx + 6, cy + 4);
+  ctx.closePath();
+  ctx.stroke();
+  // Pulsing red core
+  ctx.fillStyle = 'rgba(255,0,0,0.4)';
+  ctx.beginPath(); ctx.arc(cx, cy, 4, 0, Math.PI * 2); ctx.fill();
+  ctx.shadowBlur = 0;
+}
+
+// ── MINI-SUBMARINE VARIANTS ──
+function drawMiniSubV1(canvas) {
+  const ctx = getCtx(canvas);
+  const cx = 100, cy = 70;
+  // Submarine hull
+  ctx.fillStyle = '#3d3d3d';
+  ctx.beginPath();
+  ctx.moveTo(cx + 16, cy);
+  ctx.lineTo(cx + 10, cy - 5);
+  ctx.lineTo(cx - 10, cy - 5);
+  ctx.lineTo(cx - 16, cy - 3);
+  ctx.lineTo(cx - 16, cy + 3);
+  ctx.lineTo(cx - 10, cy + 5);
+  ctx.lineTo(cx + 10, cy + 5);
+  ctx.closePath();
+  ctx.fill();
+  ctx.strokeStyle = '#f44336';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+  // Conning tower
+  ctx.fillStyle = '#4a4a4a';
+  ctx.fillRect(cx - 3, cy - 10, 8, 6);
+  ctx.strokeStyle = 'rgba(244,67,54,0.4)';
+  ctx.lineWidth = 0.8;
+  ctx.strokeRect(cx - 3, cy - 10, 8, 6);
+  // Periscope
+  ctx.strokeStyle = '#555';
+  ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(cx, cy - 10); ctx.lineTo(cx, cy - 14); ctx.stroke();
+  // Torpedo tube
+  ctx.fillStyle = '#222';
+  ctx.beginPath(); ctx.arc(cx + 14, cy, 2, 0, Math.PI * 2); ctx.fill();
+  // Propeller
+  ctx.fillStyle = '#555';
+  ctx.beginPath(); ctx.arc(cx - 15, cy, 2.5, 0, Math.PI * 2); ctx.fill();
+}
+
+function drawMiniSubV2(canvas) {
+  const ctx = getCtx(canvas);
+  const cx = 100, cy = 70;
+  // Very low profile hull
+  ctx.fillStyle = '#2d2d2d';
+  ctx.beginPath();
+  ctx.moveTo(cx + 14, cy);
+  ctx.lineTo(cx + 8, cy - 3);
+  ctx.lineTo(cx - 12, cy - 2.5);
+  ctx.lineTo(cx - 14, cy);
+  ctx.lineTo(cx - 12, cy + 2.5);
+  ctx.lineTo(cx + 8, cy + 3);
+  ctx.closePath();
+  ctx.fill();
+  // Periscope wake (V trail)
+  ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+  ctx.lineWidth = 0.6;
+  ctx.beginPath(); ctx.moveTo(cx + 8, cy - 0.5); ctx.lineTo(cx - 8, cy - 4); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx + 8, cy + 0.5); ctx.lineTo(cx - 8, cy + 4); ctx.stroke();
+  // Tiny periscope dot
+  ctx.fillStyle = '#555';
+  ctx.beginPath(); ctx.arc(cx + 8, cy - 3, 1.2, 0, Math.PI * 2); ctx.fill();
+}
+
+function drawMiniSubV3(canvas) {
+  const ctx = getCtx(canvas);
+  const cx = 100, cy = 70;
+  ctx.shadowColor = '#f44336';
+  ctx.shadowBlur = 6;
+  // Wireframe hull
+  ctx.strokeStyle = '#f44336';
+  ctx.lineWidth = 1.2;
+  ctx.beginPath();
+  ctx.moveTo(cx + 14, cy);
+  ctx.lineTo(cx + 8, cy - 5);
+  ctx.lineTo(cx - 10, cy - 5);
+  ctx.lineTo(cx - 14, cy);
+  ctx.lineTo(cx - 10, cy + 5);
+  ctx.lineTo(cx + 8, cy + 5);
+  ctx.closePath();
+  ctx.stroke();
+  // Sail
+  ctx.strokeRect(cx - 2, cy - 10, 6, 6);
+  // Sonar detection ring (when revealed)
+  ctx.strokeStyle = 'rgba(244,67,54,0.3)';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.ellipse(cx, cy, 22, 10, 0, 0, Math.PI * 2); ctx.stroke();
+  ctx.shadowBlur = 0;
+}
+
+// ── TORPEDO VARIANTS ──
+function drawTorpedoV1(canvas) {
+  const ctx = getCtx(canvas);
+  const cx = 100, cy = 70;
+  // Bubble trail
+  ctx.fillStyle = 'rgba(100,181,246,0.2)';
+  for (let i = 0; i < 8; i++) {
+    const bx = cx - 12 - i * 5 + Math.random() * 3;
+    const by = cy + (Math.random() - 0.5) * 4;
+    const br = 1.5 - i * 0.15;
+    if (br > 0) { ctx.beginPath(); ctx.arc(bx, by, br, 0, Math.PI * 2); ctx.fill(); }
+  }
+  // Torpedo body
+  ctx.fillStyle = '#00897b';
+  ctx.beginPath();
+  ctx.moveTo(cx + 10, cy);
+  ctx.lineTo(cx + 5, cy - 2.5);
+  ctx.lineTo(cx - 8, cy - 2);
+  ctx.lineTo(cx - 10, cy);
+  ctx.lineTo(cx - 8, cy + 2);
+  ctx.lineTo(cx + 5, cy + 2.5);
+  ctx.closePath();
+  ctx.fill();
+  // Glow tip
+  ctx.fillStyle = '#00bcd4';
+  ctx.beginPath(); ctx.arc(cx + 8, cy, 2, 0, Math.PI * 2); ctx.fill();
+  // Propeller fins
+  ctx.strokeStyle = '#00695c';
+  ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(cx - 9, cy - 3); ctx.lineTo(cx - 9, cy + 3); ctx.stroke();
+}
+
+function drawTorpedoV2(canvas) {
+  const ctx = getCtx(canvas);
+  const cx = 100, cy = 70;
+  ctx.shadowColor = '#00bcd4';
+  ctx.shadowBlur = 8;
+  // Wireframe torpedo
+  ctx.strokeStyle = '#00bcd4';
+  ctx.lineWidth = 1.2;
+  ctx.beginPath();
+  ctx.moveTo(cx + 10, cy);
+  ctx.lineTo(cx + 4, cy - 2.5);
+  ctx.lineTo(cx - 8, cy - 2);
+  ctx.lineTo(cx - 10, cy);
+  ctx.lineTo(cx - 8, cy + 2);
+  ctx.lineTo(cx + 4, cy + 2.5);
+  ctx.closePath();
+  ctx.stroke();
+  // Trail rings
+  for (let i = 0; i < 3; i++) {
+    ctx.strokeStyle = `rgba(0,188,212,${0.3 - i * 0.1})`;
+    ctx.beginPath(); ctx.arc(cx - 14 - i * 8, cy, 3 - i * 0.5, 0, Math.PI * 2); ctx.stroke();
+  }
+  ctx.shadowBlur = 0;
+}
+
+
+// ═══════════════════════════════════════════════
+//  CATALOG RENDERER
+// ═══════════════════════════════════════════════
+
+const selections = {};
+
+function renderCatalog(filter = 'all') {
+  const container = document.getElementById('catalog');
+  container.innerHTML = '';
+
+  const factions = {
+    coalition: { label: 'COALITION FORCES', badge: 'badge-coalition' },
+    irgc: { label: 'IRGC FORCES', badge: 'badge-irgc' },
+    projectile: { label: 'PROJECTILES', badge: 'badge-fx' },
+    effect: { label: 'EFFECTS', badge: 'badge-fx' },
+  };
+
+  // Group by faction
+  const groups = {};
+  ASSETS.forEach(a => {
+    if (filter !== 'all' && a.faction !== filter) return;
+    if (!groups[a.faction]) groups[a.faction] = [];
+    groups[a.faction].push(a);
+  });
+
+  Object.entries(groups).forEach(([faction, assets]) => {
+    const section = document.createElement('div');
+    section.className = 'category';
+    section.dataset.faction = faction;
+
+    const f = factions[faction];
+    section.innerHTML = `
+      <div class="category-header">
+        <h2>${f.label}</h2>
+        <span class="badge ${f.badge}">${assets.length} UNITS</span>
+      </div>
+    `;
+
+    assets.forEach(asset => {
+      const row = document.createElement('div');
+      row.className = 'asset-row';
+
+      const statsHtml = Object.entries(asset.stats)
+        .map(([k, v]) => `<span>${k}: <span class="stat-val">${v}</span></span>`)
+        .join('');
+
+      row.innerHTML = `
+        <div class="asset-info">
+          <span class="asset-name">${asset.name}</span>
+          <span class="asset-stats">${statsHtml}</span>
+        </div>
+        <div class="variants" id="variants-${asset.id}"></div>
+      `;
+      section.appendChild(row);
+
+      // Render variant cards
+      const variantsContainer = row.querySelector('.variants');
+      asset.variants.forEach((variant, vi) => {
+        const card = document.createElement('div');
+        card.className = 'variant-card' + (selections[asset.id] === vi ? ' selected' : '');
+        card.innerHTML = `
+          <div class="variant-canvas-wrap ${asset.env}">
+            <canvas></canvas>
+          </div>
+          <div class="variant-label">
+            <div class="name">${variant.name}</div>
+            <div class="desc">${variant.desc}</div>
+            <span class="style-tag">${variant.style}</span>
+          </div>
+        `;
+
+        card.addEventListener('click', () => {
+          if (selections[asset.id] === vi) {
+            delete selections[asset.id];
+          } else {
+            selections[asset.id] = vi;
+          }
+          renderCatalog(filter);
+          updateSummary();
+        });
+
+        variantsContainer.appendChild(card);
+
+        // Draw on the canvas
+        const canvas = card.querySelector('canvas');
+        variant.draw(canvas);
+      });
+    });
+
+    container.appendChild(section);
+  });
+
+  const spacer = document.createElement('div');
+  spacer.className = 'spacer-bottom';
+  container.appendChild(spacer);
+
+  // Update counts
+  document.getElementById('count-all').textContent = ASSETS.length;
+  ['coalition', 'irgc', 'projectile', 'effect'].forEach(f => {
+    document.getElementById('count-' + f).textContent = ASSETS.filter(a => a.faction === f).length;
+  });
+}
+
+function filterCategory(cat) {
+  document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+  event.target.closest('.filter-tab').classList.add('active');
+  renderCatalog(cat);
+}
+
+function updateSummary() {
+  const bar = document.getElementById('summaryBar');
+  const count = Object.keys(selections).length;
+  document.getElementById('selectedCount').textContent = `${count} SELECTED`;
+
+  const names = Object.entries(selections).map(([id, vi]) => {
+    const asset = ASSETS.find(a => a.id === id);
+    return `${asset.name}: ${asset.variants[vi].name}`;
+  });
+  document.getElementById('selectedList').textContent = names.join('  //  ');
+
+  bar.classList.toggle('visible', count > 0);
+}
+
+function exportSelections() {
+  const lines = Object.entries(selections).map(([id, vi]) => {
+    const asset = ASSETS.find(a => a.id === id);
+    const v = asset.variants[vi];
+    return `${asset.name}: ${v.name} (${v.style}) — ${v.desc}`;
+  });
+  const text = 'ASSET SELECTIONS\n' + '═'.repeat(40) + '\n' + lines.join('\n');
+  navigator.clipboard.writeText(text).then(() => {
+    document.querySelector('.export-btn').textContent = 'COPIED!';
+    setTimeout(() => document.querySelector('.export-btn').textContent = 'COPY SELECTIONS', 1500);
+  });
+}
+
+// Init
+renderCatalog();
+</script>
+</body>
+</html>
