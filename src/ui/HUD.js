@@ -9,7 +9,7 @@ export class HUD {
     const DEPTH_TEXT = 102;
     const DEPTH_GLOW = 103;
 
-    const panelH = 68;
+    const panelH = 82;
     const panelY = panelH / 2;
 
     // ── Main bar background (dark translucent) ──
@@ -48,19 +48,28 @@ export class HUD {
 
     // ── CLASSIFICATION LABEL ──
     this.classLabel = scene.add.text(16, panelY, 'CENTCOM // LIVE', {
-      fontSize: '13px',
+      fontSize: '16px',
       fontFamily: '"Share Tech Mono", monospace',
       color: '#33ff66',
       letterSpacing: 2,
     }).setOrigin(0, 0.5).setDepth(DEPTH_TEXT).setScrollFactor(0).setAlpha(0.5);
 
-    // ── OIL SECTION (x: 180–420) ──
-    this.oilLabel = scene.add.text(185, 10, 'FUEL RESERVES', {
-      fontSize: '13px',
+    // ── CALLSIGN ──
+    const callsign = localStorage.getItem('hormuz_callsign') || 'UNKNOWN';
+    this.callsignText = scene.add.text(16, panelY + 22, `ADM. ${callsign}`, {
+      fontSize: '11px',
       fontFamily: '"Share Tech Mono", monospace',
       color: '#ffb300',
       letterSpacing: 1,
-    }).setDepth(DEPTH_TEXT).setScrollFactor(0).setAlpha(0.6);
+    }).setOrigin(0, 0.5).setDepth(DEPTH_TEXT).setScrollFactor(0).setAlpha(0.7);
+
+    // ── OIL SECTION (x: 180–420) ──
+    this.oilLabel = scene.add.text(185, 10, 'FUEL RESERVES', {
+      fontSize: '16px',
+      fontFamily: '"Share Tech Mono", monospace',
+      color: '#ffb300',
+      letterSpacing: 1,
+    }).setDepth(DEPTH_TEXT).setScrollFactor(0).setAlpha(1);
 
     // Oil bar background
     this.oilBarBg = scene.add.graphics().setDepth(DEPTH_PANEL).setScrollFactor(0);
@@ -73,42 +82,23 @@ export class HUD {
     this.oilBarFill = scene.add.graphics().setDepth(DEPTH_PANEL + 0.5).setScrollFactor(0);
 
     this.oilText = scene.add.text(374, 8, '0', {
-      fontSize: '22px',
+      fontSize: '36px',
       fontFamily: '"Orbitron", sans-serif',
       fontStyle: 'bold',
       color: '#ffb300',
     }).setDepth(DEPTH_TEXT).setScrollFactor(0);
 
-    this.rigCountText = scene.add.text(374, 38, '0 RIGS', {
-      fontSize: '12px',
-      fontFamily: '"Share Tech Mono", monospace',
-      color: '#ffb300',
-    }).setDepth(DEPTH_TEXT).setScrollFactor(0).setAlpha(0.6);
-
-    // ── SCORE / TANKERS THROUGH (x: 500–780) ──
-    this.scoreLabel = scene.add.text(510, 10, 'TANKERS THROUGH', {
-      fontSize: '13px',
-      fontFamily: '"Share Tech Mono", monospace',
-      color: '#4CAF50',
-      letterSpacing: 1,
-    }).setDepth(DEPTH_TEXT).setScrollFactor(0).setAlpha(0.6);
-
-    this.scoreText = scene.add.text(510, 28, '000', {
-      fontSize: '30px',
-      fontFamily: '"Black Ops One", cursive',
-      color: '#4CAF50',
-    }).setDepth(DEPTH_TEXT).setScrollFactor(0);
 
     // ── MISSION CLOCK (x: 820–1160) ──
     this.timerLabel = scene.add.text(830, 10, 'MISSION CLOCK', {
-      fontSize: '13px',
+      fontSize: '16px',
       fontFamily: '"Share Tech Mono", monospace',
       color: '#90CAF9',
       letterSpacing: 1,
-    }).setDepth(DEPTH_TEXT).setScrollFactor(0).setAlpha(0.6);
+    }).setDepth(DEPTH_TEXT).setScrollFactor(0).setAlpha(1);
 
-    this.timerText = scene.add.text(830, 26, '00:00', {
-      fontSize: '32px',
+    this.timerText = scene.add.text(830, 28, '00:00', {
+      fontSize: '40px',
       fontFamily: '"Orbitron", sans-serif',
       fontStyle: 'bold',
       color: '#90CAF9',
@@ -116,14 +106,14 @@ export class HUD {
 
     // ── THREAT LEVEL (x: 1200–1530) ──
     this.threatLabel = scene.add.text(1200, 10, 'THREAT LEVEL', {
-      fontSize: '13px',
+      fontSize: '16px',
       fontFamily: '"Share Tech Mono", monospace',
       color: '#ef5350',
       letterSpacing: 1,
-    }).setDepth(DEPTH_TEXT).setScrollFactor(0).setAlpha(0.6);
+    }).setDepth(DEPTH_TEXT).setScrollFactor(0).setAlpha(1);
 
-    this.threatText = scene.add.text(1200, 26, 'LOW', {
-      fontSize: '28px',
+    this.threatText = scene.add.text(1200, 28, 'LOW', {
+      fontSize: '36px',
       fontFamily: '"Black Ops One", cursive',
       color: '#4CAF50',
     }).setDepth(DEPTH_TEXT).setScrollFactor(0);
@@ -134,7 +124,7 @@ export class HUD {
 
     // ── LIVE INDICATOR (top-right area) ──
     this.liveText = scene.add.text(1860, panelY, 'LIVE', {
-      fontSize: '14px',
+      fontSize: '18px',
       fontFamily: '"Share Tech Mono", monospace',
       color: '#ef5350',
       fontStyle: 'bold',
@@ -163,17 +153,48 @@ export class HUD {
 
     // ── Coordinates display (bottom-right corner vibe) ──
     this.coordText = scene.add.text(1550, panelY, '26.5667N  56.2500E', {
-      fontSize: '12px',
+      fontSize: '15px',
       fontFamily: '"Share Tech Mono", monospace',
       color: '#33ff66',
-    }).setOrigin(0, 0.5).setDepth(DEPTH_TEXT).setScrollFactor(0).setAlpha(0.3);
+    }).setOrigin(0, 0.5).setDepth(DEPTH_TEXT).setScrollFactor(0).setAlpha(1);
+
+    // ── Settings gear button ──
+    this.gearBtn = scene.add.text(1740, panelY, '⚙', {
+      fontSize: '40px',
+      fontFamily: '"Share Tech Mono", monospace',
+      color: '#33ff66',
+    }).setOrigin(0.5).setDepth(DEPTH_GLOW).setScrollFactor(0)
+      .setInteractive({ useHandCursor: true }).setAlpha(0.75);
+
+    this.gearBtn.on('pointerover', () => this.gearBtn.setAlpha(1));
+    this.gearBtn.on('pointerout', () => this.gearBtn.setAlpha(0.75));
+    this.gearBtn.on('pointerdown', () => {
+      if (this._onSettingsClick) this._onSettingsClick();
+    });
+
+    // Pause time tracking
+    this._pauseStart = 0;
+    this._totalPauseMs = 0;
 
     // Track previous threat for pulse animation
     this._prevThreat = null;
   }
 
+  /** Call when game pauses — records the pause start time. */
+  onPause() {
+    this._pauseStart = Date.now();
+  }
+
+  /** Call when game resumes — accumulates pause duration so clock stays accurate. */
+  onResume() {
+    if (this._pauseStart > 0) {
+      this._totalPauseMs += Date.now() - this._pauseStart;
+      this._pauseStart = 0;
+    }
+  }
+
   update(score) {
-    const elapsed = Math.floor((Date.now() - this.startTime) / 1000);
+    const elapsed = Math.floor((Date.now() - this.startTime - this._totalPauseMs) / 1000);
     const oil = Math.floor(this.economy.coalitionOil);
     const rigs = this.economy.coalitionRigs.length;
 
@@ -198,12 +219,10 @@ export class HUD {
 
     if (rigs !== this._prevRigs) {
       this._prevRigs = rigs;
-      this.rigCountText.setText(`${rigs} RIG${rigs !== 1 ? 'S' : ''} ACTIVE`);
     }
 
     if (score !== this._prevScore) {
       this._prevScore = score;
-      this.scoreText.setText(String(score).padStart(3, '0'));
     }
 
     // Timer — only update when second changes
@@ -254,7 +273,7 @@ export class HUD {
   }
 
   getTimeString() {
-    const elapsed = Math.floor((Date.now() - this.startTime) / 1000);
+    const elapsed = Math.floor((Date.now() - this.startTime - this._totalPauseMs) / 1000);
     const minutes = Math.floor(elapsed / 60);
     const seconds = String(elapsed % 60).padStart(2, '0');
     return `${minutes}:${seconds}`;

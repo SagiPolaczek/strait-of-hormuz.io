@@ -10,7 +10,8 @@ const config = {
   type: Phaser.CANVAS,
   width: MAP_WIDTH,
   height: MAP_HEIGHT,
-  parent: document.body,
+  resolution: Math.min(window.devicePixelRatio || 1, 2),
+  parent: 'game-wrapper',
   scale: {
     mode: Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH,
@@ -18,7 +19,7 @@ const config = {
   render: {
     pixelArt: false,
     antialias: true,
-    roundPixels: false,
+    roundPixels: true,
   },
   physics: {
     default: 'arcade',
@@ -29,4 +30,57 @@ const config = {
   scene: [BootScene, GameScene, GameOverScene],
 };
 
-new Phaser.Game(config);
+function startGame() {
+  new Phaser.Game(config);
+}
+
+function showCallsignPrompt(onComplete) {
+  const modal = document.getElementById('callsign-modal');
+  const input = document.getElementById('callsign-input');
+  const btn = document.getElementById('callsign-submit');
+  modal.style.display = 'flex';
+
+  // Auto-size input to content
+  const sizer = document.createElement('span');
+  sizer.style.cssText = 'position:absolute;visibility:hidden;font:28px "Share Tech Mono",monospace;letter-spacing:4px;';
+  document.body.appendChild(sizer);
+
+  const resize = () => {
+    sizer.textContent = input.value || '';
+    input.style.width = Math.max(1, sizer.offsetWidth) + 'px';
+  };
+
+  const validate = () => {
+    const val = input.value.replace(/[^a-zA-Z0-9\-]/g, '').toUpperCase();
+    input.value = val;
+    btn.disabled = val.length < 3;
+    resize();
+  };
+
+  input.addEventListener('input', validate);
+
+  const submit = () => {
+    const callsign = input.value.trim().toUpperCase();
+    if (callsign.length < 3) return;
+    localStorage.setItem('hormuz_callsign', callsign);
+    modal.style.display = 'none';
+    sizer.remove();
+    onComplete();
+  };
+
+  btn.addEventListener('click', submit);
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !btn.disabled) submit();
+  });
+
+  // Auto-focus after a brief delay (allows fonts to load)
+  setTimeout(() => input.focus(), 100);
+}
+
+// Check for existing callsign
+const existingCallsign = localStorage.getItem('hormuz_callsign');
+if (existingCallsign) {
+  startGame();
+} else {
+  showCallsignPrompt(startGame);
+}

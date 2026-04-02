@@ -9,15 +9,332 @@
   <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Black+Ops+One&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { background: #000; overflow: hidden; display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+    body { background: #000; overflow: hidden; }
+
+    #app {
+      display: flex;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    /* ── Upgrade panel — always visible LEFT of the game canvas ── */
+    #upgrade-panel {
+      width: 270px;
+      flex-shrink: 0;
+      background: #0a0e14;
+      border-right: 1px solid rgba(51, 255, 102, 0.15);
+      font-family: 'Share Tech Mono', monospace;
+      color: #e0e0e0;
+      position: relative;
+      overflow: hidden;
+    }
+    #upgrade-panel .panel-inner {
+      width: 270px;
+      padding: 18px 16px;
+      height: 100vh;
+      overflow-y: auto;
+      position: relative;
+    }
+    #upgrade-panel .panel-inner::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      pointer-events: none;
+      background: repeating-linear-gradient(
+        transparent 0px, transparent 2px,
+        rgba(0,0,0,0.05) 2px, rgba(0,0,0,0.05) 3px
+      );
+    }
+
+    .panel-header {
+      font-size: 11px;
+      color: #33ff66;
+      letter-spacing: 3px;
+      margin-bottom: 8px;
+      opacity: 0.5;
+    }
+    .panel-unit-name {
+      font-family: 'Black Ops One', cursive;
+      font-size: 20px;
+      color: #e0e0e0;
+      margin-bottom: 6px;
+    }
+    .panel-hp {
+      font-size: 15px;
+      color: #90CAF9;
+      margin-bottom: 14px;
+    }
+    .panel-divider {
+      border: none;
+      border-top: 1px solid rgba(51, 255, 102, 0.15);
+      margin: 10px 0;
+    }
+
+    .upgrade-row {
+      background: rgba(20, 28, 36, 0.85);
+      border: 1px solid rgba(51, 255, 102, 0.15);
+      border-radius: 5px;
+      padding: 14px;
+      margin-bottom: 10px;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .upgrade-row:hover {
+      background: rgba(27, 58, 27, 0.6);
+      border-color: rgba(51, 255, 102, 0.35);
+    }
+    .upgrade-row.cant-afford:hover {
+      background: rgba(58, 27, 27, 0.5);
+      border-color: rgba(239, 83, 80, 0.3);
+    }
+    .upgrade-row.maxed {
+      cursor: default;
+      opacity: 0.6;
+      border-color: rgba(255, 213, 79, 0.3);
+    }
+    .upgrade-row.maxed:hover {
+      background: rgba(20, 28, 36, 0.85);
+    }
+    .upgrade-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .upgrade-name { font-size: 16px; font-weight: bold; }
+    .upgrade-pips { font-size: 18px; color: #90CAF9; letter-spacing: 3px; }
+    .upgrade-pips.maxed { color: #FFD54F; }
+    .upgrade-bottom {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .upgrade-cost {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 14px;
+      color: #ffb300;
+    }
+    .upgrade-cost.cant-afford { color: #ef5350; }
+    .upgrade-cost.max-label { color: #FFD54F; font-weight: bold; }
+    .upgrade-desc { font-size: 12px; color: #666; }
+
+    /* Enemy intel stats */
+    .intel-stat {
+      display: flex;
+      justify-content: space-between;
+      padding: 5px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .intel-stat-label {
+      font-size: 11px;
+      color: #777;
+      letter-spacing: 1px;
+    }
+    .intel-stat-value {
+      font-size: 13px;
+      color: #e0e0e0;
+      font-family: 'Orbitron', sans-serif;
+    }
+
+    /* ── Game canvas wrapper ── */
+    #game-wrapper {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 0;
+    }
     canvas {
       display: block;
-      image-rendering: -webkit-optimize-contrast;
-      image-rendering: crisp-edges;
+    }
+
+    /* ── Mobile / tablet responsive ── */
+    @media (max-width: 1024px) {
+      #app {
+        flex-direction: column-reverse;
+      }
+      #upgrade-panel {
+        width: 100%;
+        height: auto;
+        max-height: 30vh;
+        border-right: none;
+        border-top: 1px solid rgba(51, 255, 102, 0.15);
+      }
+      #upgrade-panel .panel-inner {
+        width: 100%;
+        height: auto;
+        max-height: 30vh;
+        padding: 12px 16px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .upgrade-row {
+        flex: 1 1 200px;
+        margin-bottom: 0;
+      }
+      .panel-header, .panel-unit-name, .panel-hp {
+        width: 100%;
+      }
+    }
+
+    @media (max-width: 600px) {
+      #upgrade-panel .panel-inner {
+        padding: 8px;
+      }
+      .upgrade-row {
+        padding: 10px;
+        flex: 1 1 150px;
+      }
+      .upgrade-name { font-size: 14px; }
+      .upgrade-pips { font-size: 16px; }
+    }
+    /* ── Callsign prompt modal ── */
+    #callsign-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .cs-overlay {
+      position: absolute;
+      inset: 0;
+      background: #000 url('assets/strait.jpg') center/cover no-repeat;
+    }
+    .cs-overlay::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+    }
+    .cs-box {
+      position: relative;
+      width: 520px;
+      padding: 48px 40px 36px;
+      background: #0a0e14;
+      border: 1px solid rgba(51, 255, 102, 0.3);
+      border-radius: 6px;
+      text-align: center;
+      font-family: 'Share Tech Mono', monospace;
+      overflow: hidden;
+    }
+    .cs-scanlines {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: repeating-linear-gradient(
+        transparent 0px, transparent 2px,
+        rgba(0,0,0,0.08) 2px, rgba(0,0,0,0.08) 3px
+      );
+    }
+    .cs-header {
+      font-size: 11px;
+      color: #33ff66;
+      letter-spacing: 4px;
+      margin-bottom: 24px;
+      opacity: 0.6;
+    }
+    .cs-subheader {
+      font-family: 'Black Ops One', cursive;
+      font-size: 24px;
+      color: #e0e0e0;
+      margin-bottom: 32px;
+    }
+    .cs-input-wrap {
+      display: flex;
+      align-items: baseline;
+      justify-content: center;
+      gap: 0;
+      margin-bottom: 12px;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 28px;
+      color: #33ff66;
+    }
+    .cs-prompt {
+      color: #33ff66;
+      font-size: 28px;
+    }
+    #callsign-input {
+      border: none;
+      background: transparent;
+      color: #33ff66;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 28px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      width: 0;
+      min-width: 1px;
+      padding: 0;
+      outline: none;
+      caret-color: transparent;
+    }
+    #callsign-input::placeholder {
+      color: transparent;
+    }
+    .cs-cursor {
+      color: #33ff66;
+      font-size: 28px;
+      animation: cs-blink 0.6s step-end infinite;
+    }
+    @keyframes cs-blink {
+      50% { opacity: 0; }
+    }
+    .cs-hint {
+      font-size: 11px;
+      color: #555;
+      margin-bottom: 28px;
+    }
+    #callsign-submit {
+      background: rgba(51, 255, 102, 0.1);
+      border: 1px solid rgba(51, 255, 102, 0.3);
+      color: #33ff66;
+      font-family: 'Black Ops One', cursive;
+      font-size: 16px;
+      padding: 12px 36px;
+      border-radius: 4px;
+      cursor: pointer;
+      letter-spacing: 2px;
+      transition: all 0.15s;
+    }
+    #callsign-submit:hover:not(:disabled) {
+      background: rgba(51, 255, 102, 0.2);
+      border-color: #33ff66;
+    }
+    #callsign-submit:disabled {
+      opacity: 0.3;
+      cursor: default;
+    }
+    .cs-footer {
+      margin-top: 24px;
+      font-size: 9px;
+      color: #ef5350;
+      letter-spacing: 3px;
+      opacity: 0.4;
     }
   </style>
 </head>
 <body>
+  <div id="app">
+    <div id="upgrade-panel">
+      <div class="panel-inner"></div>
+    </div>
+    <div id="game-wrapper"></div>
+  </div>
+  <!-- Callsign prompt modal -->
+  <div id="callsign-modal" style="display:none;">
+    <div class="cs-overlay"></div>
+    <div class="cs-box">
+      <div class="cs-scanlines"></div>
+      <div class="cs-header">CENTCOM PERSONNEL IDENTIFICATION</div>
+      <div class="cs-subheader">ENTER YOUR CALLSIGN, ADMIRAL</div>
+      <div class="cs-input-wrap"><span class="cs-prompt">&gt;</span><input id="callsign-input" type="text" maxlength="12" autocomplete="off" spellcheck="false"><span class="cs-cursor">_</span></div>
+      <div class="cs-hint"></div>
+      <button id="callsign-submit" disabled>CONFIRM IDENTITY</button>
+      <div class="cs-footer">TOP SECRET // SCI // NOFORN</div>
+    </div>
+  </div>
   <script type="module" src="/src/main.js"></script>
 </body>
 </html>

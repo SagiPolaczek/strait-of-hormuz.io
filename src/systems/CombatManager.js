@@ -5,50 +5,46 @@ export class CombatManager {
 
   update() {
     try {
-      this.updateGroup(this.scene.irgcTowers);
-      this.updateGroup(this.scene.projectiles);
-      this.updateGroup(this.scene.coalitionShips);
-      this.purgeDeadEntities();
+      this.updateAndPurge(this.scene.irgcTowers);
+      this.updateAndPurge(this.scene.projectiles);
+      this.updateAndPurge(this.scene.coalitionShips);
+      this.updateAndPurge(this.scene.mines);
+      this.updateAndPurge(this.scene.irgcAir);
+      this.updateAndPurge(this.scene.coalitionDefenses);
+      this.updateAndPurge(this.scene.irgcBoats);
+      this.updateAndPurge(this.scene.coalitionAir);
+      this.purgeRigs(this.scene.coalitionRigs, 'coalition');
+      this.purgeRigs(this.scene.irgcRigs, 'irgc');
     } catch (err) {
       console.error('[CombatManager.update] CRASH:', err);
     }
   }
 
-  /** Call update() on every active member of a Phaser group. */
-  updateGroup(group) {
-    if (!group) return;
-    const children = group.getChildren();
-    for (let i = children.length - 1; i >= 0; i--) {
-      const child = children[i];
-      if (child.active && child.update) child.update();
-    }
-  }
-
-  /**
-   * Remove destroyed / inactive entities from their groups.
-   * Phaser Containers call destroy() which sets active = false,
-   * but they may linger in the group's child list until manually removed.
-   */
-  purgeDeadEntities() {
-    this.purgeGroup(this.scene.coalitionShips);
-    this.purgeGroup(this.scene.irgcTowers);
-    this.purgeGroup(this.scene.coalitionRigs, 'coalition');
-    this.purgeGroup(this.scene.irgcRigs, 'irgc');
-    this.purgeGroup(this.scene.projectiles);
-  }
-
-  purgeGroup(group, rigSide) {
+  updateAndPurge(group) {
     if (!group) return;
     const children = group.getChildren();
     for (let i = children.length - 1; i >= 0; i--) {
       const child = children[i];
       const isDead = !child.active || (child.hp !== undefined && child.hp <= 0);
       if (isDead) {
-        // Unregister oil rigs from economy when destroyed
-        if (rigSide && child.stats && child.stats.type === 'building') {
-          this.scene.economy.unregisterRig(rigSide, child);
+        group.remove(child, true, child.active);
+      } else if (child.update) {
+        child.update();
+      }
+    }
+  }
+
+  purgeRigs(group, side) {
+    if (!group) return;
+    const children = group.getChildren();
+    for (let i = children.length - 1; i >= 0; i--) {
+      const child = children[i];
+      const isDead = !child.active || (child.hp !== undefined && child.hp <= 0);
+      if (isDead) {
+        if (child.stats?.type === 'building') {
+          this.scene.economy.unregisterRig(side, child);
         }
-        group.remove(child, true, true);
+        group.remove(child, true, child.active);
       }
     }
   }

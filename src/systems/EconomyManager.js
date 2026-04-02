@@ -18,10 +18,14 @@ export class EconomyManager {
 
   tick() {
     try {
+      // Trump shock oil multiplier (affects coalition income)
+      const trumpMult = this.scene.trumpShock?.getMultiplier() || 1;
+
       // Coalition rigs: accumulate oil INTERNALLY (player must click to collect)
       for (const rig of this.coalitionRigs) {
         if (rig.active && rig.addStoredOil) {
-          rig.addStoredOil(ECONOMY.OIL_RIG_RATE);
+          const drillMult = 1 + 0.3 * (rig.upgrades?.DRILL_RATE || 0);
+          rig.addStoredOil(ECONOMY.OIL_RIG_RATE * drillMult * trumpMult);
         }
       }
 

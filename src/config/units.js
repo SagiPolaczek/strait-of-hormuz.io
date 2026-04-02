@@ -46,7 +46,7 @@ export const COALITION_UNITS = {
     fireRate: 3000,
     zone: 'COALITION_LAND',
     type: 'building',
-    unlockTime: 180000,
+    unlockTime: 60000,
   },
   AIRFIELD: {
     key: 'AIRFIELD',

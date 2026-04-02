@@ -109,16 +109,25 @@ export class GameScene extends Phaser.Scene {
         this._cheatBuffer = '';
         this._activateOilCheat();
       }
+      if (this._cheatBuffer.endsWith('unlockall')) {
+        this._cheatBuffer = '';
+        this._activateUnlockCheat();
+      }
     });
 
     // Zone outline graphics for unit selection guidance
     this._zoneOutlines = [];
+
+    // Range circle for selected unit
+    this._rangeCircle = null;
+    this._rangeUnit = null;
 
     // Cleanup on scene shutdown
     this.events.on('shutdown', () => {
       this.tweens.killAll();
       this.time.removeAllEvents();
       this._clearZoneOutlines();
+      this._clearRangeCircle();
     });
 
     // Click handler — place units on the map
@@ -151,6 +160,7 @@ export class GameScene extends Phaser.Scene {
       this.deployBar.update();
       this.balanceMeterUI.update();
       this.upgradePanel.update();
+      this._updateRangeCircle();
       this.checkGameOver();
     } catch (err) {
       console.error('[GameScene.update] CRASH:', err);
@@ -175,16 +185,19 @@ export class GameScene extends Phaser.Scene {
         if (collected > 0) { clickedUnit.showCollectionEffect(Math.floor(collected)); this.audio.collectOil(); }
       }
       this.upgradePanel.show(clickedUnit);
+      this._showRangeCircle(clickedUnit);
       if (!unit) return; // No deploy unit selected, just show upgrades
     } else {
       // Check if clicking an enemy unit — show intel
       const enemyUnit = this.findEnemyUnitAt(x, y);
       if (enemyUnit) {
         this.upgradePanel.showEnemyIntel(enemyUnit);
+        this._clearRangeCircle();
         if (!unit) return;
       } else {
         // Clicked empty space — deselect
         this.upgradePanel.deselect();
+        this._clearRangeCircle();
       }
     }
 
@@ -513,6 +526,59 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
+  _showRangeCircle(unit) {
+    this._clearRangeCircle();
+    const range = unit.getEffectiveRange?.() || unit.stats?.range;
+    if (!range) return;
+
+    this._rangeUnit = unit;
+    this._rangeCircle = this.add.graphics().setDepth(3);
+    this._drawRangeCircle(unit.x, unit.y, range);
+  }
+
+  _drawRangeCircle(x, y, range) {
+    const gfx = this._rangeCircle;
+    if (!gfx?.active) return;
+    gfx.clear();
+
+    // Filled area
+    gfx.fillStyle(0x42a5f5, 0.06);
+    gfx.fillCircle(x, y, range);
+
+    // Dashed border
+    const segments = 40;
+    const segAngle = (2 * Math.PI) / segments;
+    gfx.lineStyle(1.5, 0x42a5f5, 0.35);
+    for (let i = 0; i < segments; i += 2) {
+      const a1 = i * segAngle;
+      const a2 = (i + 1) * segAngle;
+      gfx.beginPath();
+      gfx.arc(x, y, range, a1, a2, false);
+      gfx.strokePath();
+    }
+
+    // Sonar range (submarine secondary ring)
+    const sonarRange = this._rangeUnit?.getEffectiveSonarRange?.();
+    if (sonarRange && sonarRange !== range) {
+      gfx.lineStyle(1, 0x00bcd4, 0.2);
+      gfx.strokeCircle(x, y, sonarRange);
+    }
+  }
+
+  _updateRangeCircle() {
+    if (!this._rangeUnit || !this._rangeCircle?.active) return;
+    if (!this._rangeUnit.active) { this._clearRangeCircle(); return; }
+    const range = this._rangeUnit.getEffectiveRange?.() || this._rangeUnit.stats?.range;
+    if (!range) return;
+    this._drawRangeCircle(this._rangeUnit.x, this._rangeUnit.y, range);
+  }
+
+  _clearRangeCircle() {
+    if (this._rangeCircle?.active) this._rangeCircle.destroy();
+    this._rangeCircle = null;
+    this._rangeUnit = null;
+  }
+
   toggleSettings() {
     this.settingsModal.toggle();
   }
@@ -601,6 +667,42 @@ export class GameScene extends Phaser.Scene {
     const sub = this.add.text(960, 450, 'EXECUTIVE ORDER APPROVED', {
       fontSize: '14px', fontFamily: '"Share Tech Mono", monospace',
       color: '#ffb300', stroke: '#000000', strokeThickness: 2,
+    }).setOrigin(0.5).setDepth(251).setAlpha(0);
+
+    this.tweens.add({
+      targets: banner,
+      alpha: { from: 0, to: 1 },
+      scaleX: { from: 0.5, to: 1 },
+      scaleY: { from: 0.5, to: 1 },
+      duration: 400, ease: 'Back.easeOut',
+    });
+    this.tweens.add({ targets: sub, alpha: 1, duration: 300, delay: 300 });
+    this.tweens.add({
+      targets: [banner, sub], alpha: 0, duration: 500, delay: 3000,
+      onComplete: () => { banner.destroy(); sub.destroy(); },
+    });
+  }
+
+  _activateUnlockCheat() {
+    this.advancedUnlocked = true;
+
+    // Screen flash
+    const flash = this.add.rectangle(960, 770, 1920, 1539, 0x00e5ff, 0).setDepth(250);
+    this.tweens.add({
+      targets: flash, fillAlpha: { from: 0, to: 0.2 },
+      duration: 150, yoyo: true,
+      onComplete: () => flash.destroy(),
+    });
+
+    // Banner
+    const banner = this.add.text(960, 400, '🔓 ALL SYSTEMS UNLOCKED 🔓', {
+      fontSize: '36px', fontFamily: '"Black Ops One", cursive',
+      color: '#00e5ff', stroke: '#000000', strokeThickness: 5,
+    }).setOrigin(0.5).setDepth(251).setAlpha(0);
+
+    const sub = this.add.text(960, 450, 'PENTAGON AUTHORIZATION OVERRIDE', {
+      fontSize: '14px', fontFamily: '"Share Tech Mono", monospace',
+      color: '#42a5f5', stroke: '#000000', strokeThickness: 2,
     }).setOrigin(0.5).setDepth(251).setAlpha(0);
 
     this.tweens.add({

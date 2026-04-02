@@ -62,7 +62,7 @@ export class AirDefense extends Phaser.GameObjects.Container {
     // Continuous aiming — rotate gun even when not firing
     if (target && this.gunSprite) {
       const angle = Phaser.Math.Angle.Between(this.x, this.y, target.x, target.y);
-      this.gunSprite.rotation = angle + Math.PI / 2;
+      this.gunSprite.rotation = (angle + Math.PI / 2) - this.rotation;
     }
 
     // Fire rate gated (use scene clock, not Date.now())

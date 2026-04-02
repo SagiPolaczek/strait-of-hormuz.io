@@ -141,6 +141,52 @@ function drawOilRig(ctx, w, h) {
   ctx.stroke();
 }
 
+// ── OIL RIG — IRGC (Red Variant) ─────────────────────────────
+function drawOilRigIRGC(ctx, w, h) {
+  const cx = w / 2, cy = h * 0.6;
+  // Platform
+  ctx.fillStyle = '#8b4040';
+  ctx.fillRect(cx - 20, cy, 40, 6);
+  ctx.strokeStyle = '#ef5350';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(cx - 20, cy, 40, 1);
+  // Support legs
+  ctx.strokeStyle = '#905050';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(cx - 16, cy + 6); ctx.lineTo(cx - 20, cy + 20);
+  ctx.moveTo(cx - 6, cy + 6); ctx.lineTo(cx - 8, cy + 20);
+  ctx.moveTo(cx + 6, cy + 6); ctx.lineTo(cx + 8, cy + 20);
+  ctx.moveTo(cx + 16, cy + 6); ctx.lineTo(cx + 20, cy + 20);
+  ctx.stroke();
+  // Derrick tower
+  ctx.strokeStyle = '#b07070';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(cx - 8, cy); ctx.lineTo(cx, cy - 26);
+  ctx.moveTo(cx + 8, cy); ctx.lineTo(cx, cy - 26);
+  ctx.stroke();
+  // Cross braces
+  for (let i = 1; i <= 3; i++) {
+    const bY = cy - i * 6;
+    const bW = 8 - i * 1.5;
+    ctx.beginPath(); ctx.moveTo(cx - bW, bY); ctx.lineTo(cx + bW, bY); ctx.stroke();
+  }
+  // Top beacon
+  ctx.fillStyle = '#ef5350';
+  ctx.fillRect(cx - 2, cy - 28, 4, 3);
+  // Pump arm
+  ctx.strokeStyle = '#ff6644';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(cx + 10, cy - 2);
+  ctx.lineTo(cx + 22, cy - 8);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(cx + 22, cy - 8, 2.5, 0, Math.PI * 2);
+  ctx.stroke();
+}
+
 // ── AIR DEFENSE (CIWS Turret) ────────────────────────────────
 function drawAirDefenseBase(ctx, w, h) {
   const cx = w / 2, cy = h / 2;
@@ -340,6 +386,7 @@ export function generateAll(scene) {
   createTexture(scene, 'spr_destroyer_turret', 30, 14, drawDestroyerTurret);
   createTexture(scene, 'spr_tanker', 80, 40, drawTanker);
   createTexture(scene, 'spr_oil_rig', 72, 80, drawOilRig);
+  createTexture(scene, 'spr_oil_rig_irgc', 72, 80, drawOilRigIRGC);
   createTexture(scene, 'spr_air_defense_base', 56, 56, drawAirDefenseBase);
   createTexture(scene, 'spr_air_defense_gun', 28, 36, drawAirDefenseGun);
   createTexture(scene, 'spr_missile_launcher_body', 60, 30, drawMissileLauncherBody);

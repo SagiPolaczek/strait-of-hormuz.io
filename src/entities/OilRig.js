@@ -22,7 +22,8 @@ export class OilRig extends Phaser.GameObjects.Container {
     const primaryColor = isCoalition ? 0x2196f3 : 0xf44336;
 
     // --- Sprite-based rig ---
-    this.rigSprite = scene.add.image(0, 0, 'spr_oil_rig').setOrigin(0.5);
+    const rigTexture = isCoalition ? 'spr_oil_rig' : 'spr_oil_rig_irgc';
+    this.rigSprite = scene.add.image(0, 0, rigTexture).setOrigin(0.5).setScale(1.3);
 
     // Subtle breathing alpha tween
     scene.tweens.add({
@@ -37,7 +38,7 @@ export class OilRig extends Phaser.GameObjects.Container {
     // Pulsing glow ring (oil generation indicator)
     this.glowRing = scene.add.graphics();
     this.glowRing.lineStyle(2, primaryColor, 1.0);
-    this.glowRing.strokeCircle(0, 0, 28);
+    this.glowRing.strokeCircle(0, 0, 36);
     this.glowRing.setAlpha(0.1);
     scene.tweens.add({
       targets: this.glowRing,
@@ -51,27 +52,27 @@ export class OilRig extends Phaser.GameObjects.Container {
     this.add([this.glowRing, this.rigSprite]);
 
     // HP bar with border
-    this.hpBarBg = scene.add.rectangle(0, -30, 40, 5, 0x000000, 0.5).setOrigin(0.5);
-    this.hpBar = scene.add.rectangle(-18, -30, 36, 3, 0x4caf50).setOrigin(0, 0.5);
+    this.hpBarBg = scene.add.rectangle(0, -39, 52, 5, 0x000000, 0.5).setOrigin(0.5);
+    this.hpBar = scene.add.rectangle(-24, -39, 47, 3, 0x4caf50).setOrigin(0, 0.5);
     this.hpBarBorder = scene.add.graphics();
     this.hpBarBorder.lineStyle(1, 0xffffff, 0.4);
-    this.hpBarBorder.strokeRect(-20, -32.5, 40, 5);
+    this.hpBarBorder.strokeRect(-26, -41.5, 52, 5);
     this.add([this.hpBarBg, this.hpBar, this.hpBarBorder]);
 
     // Oil storage fill indicator (coalition only — shows stored oil level)
     if (isCoalition) {
-      this.storageBg = scene.add.rectangle(0, 18, 30, 4, 0x1a1a1a, 0.8).setOrigin(0.5);
+      this.storageBg = scene.add.rectangle(0, 24, 39, 5, 0x1a1a1a, 0.8).setOrigin(0.5);
       this.storageBg.setStrokeStyle(1, 0xffb300, 0.4);
-      this.storageFill = scene.add.rectangle(-14, 18, 0, 2, 0xffb300, 0.9).setOrigin(0, 0.5);
-      this.storageLabel = scene.add.text(0, 26, '', {
-        fontSize: '9px', fontFamily: '"Share Tech Mono", monospace',
+      this.storageFill = scene.add.rectangle(-18, 24, 0, 3, 0xffb300, 0.9).setOrigin(0, 0.5);
+      this.storageLabel = scene.add.text(0, 34, '', {
+        fontSize: '10px', fontFamily: '"Share Tech Mono", monospace',
         color: '#ffb300', fontStyle: 'bold',
       }).setOrigin(0.5).setAlpha(0);
       this.add([this.storageBg, this.storageFill, this.storageLabel]);
 
       // Pulsing "COLLECT" prompt when storage is above 50%
-      this.collectPrompt = scene.add.text(0, -40, '⬇ TAP', {
-        fontSize: '10px', fontFamily: '"Share Tech Mono", monospace',
+      this.collectPrompt = scene.add.text(0, -52, '⬇ TAP', {
+        fontSize: '11px', fontFamily: '"Share Tech Mono", monospace',
         color: '#ffb300', fontStyle: 'bold',
       }).setOrigin(0.5).setAlpha(0).setDepth(15);
       this.add(this.collectPrompt);
@@ -104,7 +105,7 @@ export class OilRig extends Phaser.GameObjects.Container {
   _updateStorageVisual() {
     if (!this.storageFill || !this.storageFill.active) return;
     const pct = this.storedOil / this.getMaxStorage();
-    this.storageFill.width = 28 * pct;
+    this.storageFill.width = 36 * pct;
 
     // Color shifts: amber → gold → pulsing when full
     this.storageFill.fillColor = pct >= 1 ? 0xff6600 : pct > 0.5 ? 0xffc107 : 0xffb300;
@@ -124,7 +125,7 @@ export class OilRig extends Phaser.GameObjects.Container {
           this._collectPulseTween = this.scene.tweens.add({
             targets: this.collectPrompt,
             alpha: { from: 0.8, to: 0.3 },
-            y: -42,
+            y: -55,
             duration: 600,
             yoyo: true,
             repeat: -1,
@@ -207,7 +208,7 @@ export class OilRig extends Phaser.GameObjects.Container {
   takeDamage(amount) {
     this.hp -= amount;
     const pct = Math.max(0, this.hp / this.stats.hp);
-    this.hpBar.width = 36 * pct;
+    this.hpBar.width = 47 * pct;
     this.hpBar.fillColor = pct > 0.5 ? 0x4caf50 : pct > 0.25 ? 0xffeb3b : 0xf44336;
 
     // Flash on damage

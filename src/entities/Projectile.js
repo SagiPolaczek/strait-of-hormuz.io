@@ -13,8 +13,6 @@ export class Projectile extends Phaser.GameObjects.Container {
     ensureTextures(scene);
 
     const isIRGC = side === 'irgc';
-    const bodyColor = isIRGC ? 0xff4444 : 0x42a5f5;
-    const glowColor = isIRGC ? 0xff6600 : 0x82b1ff;
     const trailColor = isIRGC ? 0xff4400 : 0x64b5f6;
 
     // --- Missile body as sprite ---
@@ -120,7 +118,6 @@ export class Projectile extends Phaser.GameObjects.Container {
     ring.x = wx;
     ring.y = wy;
 
-    let ringRadius = 5;
     this.scene.tweens.add({
       targets: ring,
       alpha: 0,

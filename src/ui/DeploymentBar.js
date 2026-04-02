@@ -12,7 +12,7 @@ export class DeploymentBar {
     const DEPTH_CONTENT = 102;
     const DEPTH_OVERLAY = 103;
 
-    const barH = 96;
+    const barH = 110;
     const barY = 1539 - barH / 2;
     const barTop = 1539 - barH;
 
@@ -32,7 +32,7 @@ export class DeploymentBar {
 
     // ── Section label ──
     scene.add.text(40, barTop + 8, 'TACTICAL DEPLOYMENT', {
-      fontSize: '13px',
+      fontSize: '16px',
       fontFamily: '"Share Tech Mono", monospace',
       color: '#33ff66',
       letterSpacing: 2,
@@ -48,7 +48,7 @@ export class DeploymentBar {
 
     unitList.forEach((unit, i) => {
       const cx = startX + i * (cardW + gap);
-      const cy = barY + 4;
+      const cy = barY;
       const keyNum = i + 1;
 
       // Card background graphics
@@ -62,17 +62,17 @@ export class DeploymentBar {
 
       // Keyboard shortcut badge (top-left of card)
       const keyBadge = scene.add.text(cx - cardW / 2 + 6, cy - cardH / 2 + 4, String(keyNum), {
-        fontSize: '13px',
+        fontSize: '16px',
         fontFamily: '"Orbitron", sans-serif',
         fontStyle: 'bold',
         color: '#33ff66',
         backgroundColor: 'rgba(0,0,0,0.6)',
         padding: { x: 5, y: 2 },
-      }).setDepth(DEPTH_CONTENT).setScrollFactor(0).setAlpha(0.5);
+      }).setDepth(DEPTH_CONTENT).setScrollFactor(0).setAlpha(0.8);
 
       // Icon
       const icon = scene.add.text(cx - cardW / 2 + 32, cy - 2, unit.icon, {
-        fontSize: '32px',
+        fontSize: '36px',
       }).setOrigin(0.5).setDepth(DEPTH_CONTENT).setScrollFactor(0);
 
       // Icon glow ring (visible when selected)
@@ -81,7 +81,7 @@ export class DeploymentBar {
 
       // Unit name
       const name = scene.add.text(cx - cardW / 2 + 58, cy - 18, unit.name.toUpperCase(), {
-        fontSize: '15px',
+        fontSize: '18px',
         fontFamily: '"Black Ops One", cursive',
         color: '#e0e0e0',
       }).setDepth(DEPTH_CONTENT).setScrollFactor(0);
@@ -100,14 +100,14 @@ export class DeploymentBar {
       const costBarFill = scene.add.graphics().setDepth(DEPTH_CARD + 0.6).setScrollFactor(0);
 
       const costText = scene.add.text(costBarX + costBarW + 8, costBarY - 1, `${unit.cost}`, {
-        fontSize: '13px',
+        fontSize: '16px',
         fontFamily: '"Orbitron", sans-serif',
         color: '#ffb300',
       }).setDepth(DEPTH_CONTENT).setScrollFactor(0);
 
       // "DEPLOYING" label (only shown when selected)
       const deployLabel = scene.add.text(cx + cardW / 2 - 6, cy - cardH / 2 + 4, 'DEPLOYING', {
-        fontSize: '11px',
+        fontSize: '14px',
         fontFamily: '"Share Tech Mono", monospace',
         color: '#00e676',
         fontStyle: 'bold',
@@ -118,10 +118,11 @@ export class DeploymentBar {
       lockedOverlay.setAlpha(0);
 
       const lockedText = scene.add.text(cx, cy, 'INSUFFICIENT FUEL', {
-        fontSize: '11px',
-        fontFamily: '"Share Tech Mono", monospace',
+        fontSize: '18px',
+        fontFamily: '"Black Ops One", cursive',
         color: '#ef5350',
-        fontStyle: 'bold',
+        stroke: '#000000',
+        strokeThickness: 3,
       }).setOrigin(0.5).setDepth(DEPTH_OVERLAY + 0.5).setScrollFactor(0).setAlpha(0);
 
       // ── Interactions ──
@@ -158,8 +159,8 @@ export class DeploymentBar {
     });
 
     // ── Status text (right side) ──
-    this.statusText = scene.add.text(1880, barY + 4, 'SELECT UNIT TO DEPLOY', {
-      fontSize: '13px',
+    this.statusText = scene.add.text(1880, barY, 'SELECT UNIT TO DEPLOY', {
+      fontSize: '16px',
       fontFamily: '"Share Tech Mono", monospace',
       color: '#666666',
     }).setOrigin(1, 0.5).setDepth(DEPTH_CONTENT).setScrollFactor(0);
@@ -205,7 +206,12 @@ export class DeploymentBar {
     if (this.selectedUnit === unit) {
       this.selectedUnit = null;
       this.statusText.setText('SELECT UNIT TO DEPLOY').setColor('#666666');
+      if (this.scene.upgradePanel) this.scene.upgradePanel.deselect();
       return;
+    }
+
+    if (unit.unlockTime && !this.scene.advancedUnlocked) {
+      return; // Still locked
     }
 
     if (!this.economy.canAfford('coalition', unit.cost)) {
@@ -229,10 +235,11 @@ export class DeploymentBar {
     // Icon glow ring
     btn.iconGlow.clear();
     btn.iconGlow.fillStyle(0x00e676, 0.15);
-    btn.iconGlow.fillCircle(btn.cx - btn.cardW / 2 + 28, btn.cy - 2, 20);
+    btn.iconGlow.fillCircle(btn.cx - btn.cardW / 2 + 32, btn.cy - 2, 20);
     btn.iconGlow.setAlpha(1);
 
-    // Pulse the icon glow
+    // Pulse the icon glow (kill any existing tween first)
+    this.scene.tweens.killTweensOf(btn.iconGlow);
     this.scene.tweens.add({
       targets: btn.iconGlow,
       alpha: { from: 0.8, to: 0.3 },
@@ -242,6 +249,9 @@ export class DeploymentBar {
     });
 
     this.statusText.setText(`DEPLOYING: ${unit.name.toUpperCase()}`).setColor('#00e676');
+
+    // Show upgrade preview for this unit type
+    if (this.scene.upgradePanel) this.scene.upgradePanel.showPreview(unit);
   }
 
   getSelectedUnit() {
@@ -257,32 +267,52 @@ export class DeploymentBar {
       this.scene.tweens.killTweensOf(b.iconGlow);
     });
     this.statusText.setText('SELECT UNIT TO DEPLOY').setColor('#666666');
+    if (this.scene.upgradePanel) this.scene.upgradePanel.deselect();
   }
 
   update() {
     const oil = Math.floor(this.economy.coalitionOil);
 
     this.buttons.forEach((b) => {
-      const canAfford = this.economy.canAfford('coalition', b.unit.cost);
+      const isLocked = b.unit.unlockTime && !this.scene.advancedUnlocked;
+      const canAfford = !isLocked && this.economy.canAfford('coalition', b.unit.cost);
       const isSelected = this.selectedUnit === b.unit;
 
       // Only redraw card/overlay when state changes (not every frame)
-      const stateKey = `${canAfford}|${isSelected}`;
+      const stateKey = `${canAfford}|${isSelected}|${isLocked}`;
       if (stateKey !== b._prevState) {
         b._prevState = stateKey;
 
-        if (!canAfford && !isSelected) {
+        if (isLocked) {
+          this._drawCard(b.cardBg, b.cx, b.cy, b.cardW, b.cardH, false, true);
+          b.icon.setAlpha(0.2);
+          b.name.setAlpha(0.2);
+          b.costText.setColor('#666666');
+          b.keyBadge.setAlpha(0.1);
+          b.lockedOverlay.clear();
+          b.lockedOverlay.fillStyle(0x000000, 0.5);
+          b.lockedOverlay.fillRoundedRect(
+            b.cx - b.cardW / 2, b.cy - b.cardH / 2, b.cardW, b.cardH, 4
+          );
+          b.lockedOverlay.setAlpha(1);
+          const unlockSec = Math.floor((b.unit.unlockTime || 180000) / 1000);
+          const unlockMin = Math.floor(unlockSec / 60);
+          const unlockS = String(unlockSec % 60).padStart(2, '0');
+          b.lockedText.setText(`🔒 UNLOCKS ${unlockMin}:${unlockS}`);
+          b.lockedText.setAlpha(1);
+        } else if (!canAfford && !isSelected) {
           this._drawCard(b.cardBg, b.cx, b.cy, b.cardW, b.cardH, false, true);
           b.icon.setAlpha(0.3);
           b.name.setAlpha(0.3);
           b.costText.setColor('#ef5350');
-          b.keyBadge.setAlpha(0.2);
+          b.keyBadge.setAlpha(0.4);
           b.lockedOverlay.clear();
           b.lockedOverlay.fillStyle(0x000000, 0.4);
           b.lockedOverlay.fillRoundedRect(
             b.cx - b.cardW / 2, b.cy - b.cardH / 2, b.cardW, b.cardH, 4
           );
           b.lockedOverlay.setAlpha(1);
+          b.lockedText.setText('INSUFFICIENT FUEL');
           b.lockedText.setAlpha(1);
         } else {
           if (!isSelected) {
@@ -291,7 +321,7 @@ export class DeploymentBar {
           b.icon.setAlpha(1);
           b.name.setAlpha(1);
           b.costText.setColor('#ffb300');
-          b.keyBadge.setAlpha(0.5);
+          b.keyBadge.setAlpha(0.8);
           b.lockedOverlay.clear();
           b.lockedOverlay.setAlpha(0);
           b.lockedText.setAlpha(0);

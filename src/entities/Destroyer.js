@@ -125,11 +125,18 @@ export class Destroyer extends Ship {
     let nearest = null;
     let nearestDist = this.stats.range;
 
-    // Target IRGC towers
+    // Target IRGC towers (weapons platforms — high priority)
     for (const t of this.scene.irgcTowers?.getChildren() || []) {
       if (!t.active) continue;
       const dist = Phaser.Math.Distance.Between(this.x, this.y, t.x, t.y);
       if (dist < nearestDist) { nearestDist = dist; nearest = t; }
+    }
+
+    // Target IRGC oil rigs (enemy economy)
+    for (const r of this.scene.irgcRigs?.getChildren() || []) {
+      if (!r.active) continue;
+      const dist = Phaser.Math.Distance.Between(this.x, this.y, r.x, r.y);
+      if (dist < nearestDist) { nearestDist = dist; nearest = r; }
     }
 
     // Target detected mines (priority — they're an immediate threat)
