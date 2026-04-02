@@ -479,7 +479,10 @@ export class GameScene extends Phaser.Scene {
 
   showZoneOutlines(unitKey) {
     this._clearZoneOutlines();
-    const zoneName = unitKey === 'OIL_RIG' ? 'COALITION_OIL' : 'COALITION_DEPLOY';
+    let zoneName;
+    if (unitKey === 'OIL_RIG') zoneName = 'COALITION_OIL';
+    else if (unitKey === 'AIR_DEFENSE' || unitKey === 'AIRFIELD') zoneName = 'COALITION_LAND';
+    else zoneName = 'COALITION_DEPLOY';
     const outlines = this.zoneManager.createZoneOutlines(zoneName);
     this._zoneOutlines = outlines;
   }

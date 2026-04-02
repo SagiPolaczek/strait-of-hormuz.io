@@ -107,6 +107,8 @@ export class ZoneManager {
   flashCoalitionZones(unitKey) {
     if (unitKey === 'OIL_RIG') {
       this.flashZone('COALITION_OIL');
+    } else if (unitKey === 'AIR_DEFENSE' || unitKey === 'AIRFIELD') {
+      this.flashZone('COALITION_LAND');
     } else {
       this.flashZone('COALITION_DEPLOY');
     }
@@ -133,5 +135,41 @@ export class ZoneManager {
       }
     }
     return null;
+  }
+
+  /** Create persistent semi-transparent zone outlines. Returns array of graphics objects. */
+  createZoneOutlines(zoneName) {
+    const entry = this.zoneGraphics[zoneName];
+    if (!entry) return [];
+
+    const { geoms, zone } = entry;
+    const outlines = [];
+
+    geoms.forEach((polygon) => {
+      const gfx = this.scene.add.graphics();
+      gfx.setDepth(3);
+
+      // Semi-transparent fill
+      gfx.fillStyle(zone.color, 0.08);
+      gfx.fillPoints(polygon.points, true);
+
+      // Border
+      gfx.lineStyle(2, zone.color, 0.35);
+      gfx.strokePoints(polygon.points, true);
+
+      // Pulse animation
+      this.scene.tweens.add({
+        targets: gfx,
+        alpha: { from: 0.5, to: 1 },
+        duration: 800,
+        yoyo: true,
+        repeat: -1,
+        ease: 'Sine.easeInOut',
+      });
+
+      outlines.push(gfx);
+    });
+
+    return outlines;
   }
 }
