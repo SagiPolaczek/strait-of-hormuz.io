@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>Strait of Hormuz Defense</title>
   <meta name="description" content="Command coalition forces in this browser-based tower defense game set in the Strait of Hormuz. Build oil rigs, deploy destroyers, and push tankers through the world's most dangerous waterway.">
 
@@ -204,6 +204,183 @@
       .upgrade-name { font-size: 14px; }
       .upgrade-pips { font-size: 16px; }
     }
+    /* ── Mobile / Touch Optimizations ── */
+    html {
+      overscroll-behavior: none;
+    }
+    body.mobile {
+      position: fixed;
+      width: 100%;
+      height: 100vh;
+      height: 100dvh;
+      touch-action: none;
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+    body.mobile canvas {
+      touch-action: none;
+    }
+
+    /* Rotate device overlay (portrait warning) */
+    #rotate-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 99999;
+      background: #0a0e14;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      font-family: 'Share Tech Mono', monospace;
+      color: #33ff66;
+      text-align: center;
+      padding: 40px;
+    }
+    .rotate-phone {
+      width: 44px;
+      height: 72px;
+      border: 3px solid #33ff66;
+      border-radius: 8px;
+      position: relative;
+      animation: phone-rotate 2.5s ease-in-out infinite;
+    }
+    .rotate-phone::after {
+      content: '';
+      position: absolute;
+      bottom: 6px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 12px;
+      height: 3px;
+      background: #33ff66;
+      border-radius: 2px;
+    }
+    @keyframes phone-rotate {
+      0%, 15% { transform: rotate(0deg); }
+      40%, 60% { transform: rotate(90deg); }
+      85%, 100% { transform: rotate(0deg); }
+    }
+    .rotate-text {
+      font-size: 14px;
+      letter-spacing: 3px;
+    }
+    .rotate-subtext {
+      font-size: 11px;
+      color: #555;
+      letter-spacing: 1px;
+    }
+
+    /* Fullscreen button */
+    #fullscreen-btn {
+      display: none;
+      position: fixed;
+      bottom: 8px;
+      right: 8px;
+      bottom: calc(8px + env(safe-area-inset-bottom));
+      right: calc(8px + env(safe-area-inset-right));
+      z-index: 10000;
+      background: rgba(10, 14, 20, 0.92);
+      border: 1px solid rgba(51, 255, 102, 0.3);
+      color: #33ff66;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 11px;
+      padding: 10px 14px;
+      border-radius: 4px;
+      cursor: pointer;
+      letter-spacing: 1px;
+      -webkit-tap-highlight-color: transparent;
+    }
+    #fullscreen-btn:active {
+      background: rgba(51, 255, 102, 0.15);
+      border-color: #33ff66;
+    }
+    body.mobile #fullscreen-btn {
+      display: block;
+    }
+
+    /* Panel backdrop for mobile drawer */
+    #panel-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.6);
+      z-index: 10000;
+      -webkit-tap-highlight-color: transparent;
+    }
+    #panel-backdrop.visible { display: block; }
+
+    /* Drawer close button */
+    .drawer-close-btn {
+      display: none;
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: rgba(239, 83, 80, 0.1);
+      border: 1px solid rgba(239, 83, 80, 0.3);
+      color: #ef5350;
+      font-size: 16px;
+      width: 36px;
+      height: 36px;
+      line-height: 34px;
+      text-align: center;
+      border-radius: 4px;
+      cursor: pointer;
+      z-index: 10002;
+      font-family: 'Share Tech Mono', monospace;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .drawer-close-btn:active {
+      background: rgba(239, 83, 80, 0.25);
+    }
+
+    /* Mobile: upgrade panel as slide-out drawer */
+    body.mobile #app {
+      flex-direction: row;
+    }
+    body.mobile #upgrade-panel {
+      position: fixed;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 280px;
+      max-height: none;
+      height: 100%;
+      transform: translateX(-100%);
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      z-index: 10001;
+      border-right: 1px solid rgba(51, 255, 102, 0.3);
+      border-top: none;
+    }
+    body.mobile #upgrade-panel.drawer-open {
+      transform: translateX(0);
+    }
+    body.mobile #upgrade-panel .panel-inner {
+      width: 280px;
+      height: 100%;
+      max-height: none;
+      display: block;
+      overflow-y: auto;
+      padding: 18px 16px;
+    }
+    body.mobile .drawer-close-btn { display: block; }
+    body.mobile .upgrade-row { flex: unset; margin-bottom: 10px; }
+    body.mobile #game-wrapper { width: 100vw; }
+
+    /* Mobile callsign modal */
+    body.mobile .cs-box {
+      width: 90vw;
+      max-width: 520px;
+      padding: 32px 20px 28px;
+    }
+    body.mobile .cs-subheader { font-size: 18px; }
+    body.mobile .cs-input-wrap,
+    body.mobile .cs-prompt,
+    body.mobile #callsign-input,
+    body.mobile .cs-cursor { font-size: 22px; }
+    body.mobile #callsign-submit { padding: 14px 32px; font-size: 14px; }
+
     /* ── Callsign prompt modal ── */
     #callsign-modal {
       position: fixed;
@@ -337,6 +514,19 @@
     </div>
     <div id="game-wrapper"></div>
   </div>
+  <!-- Mobile: rotate device overlay -->
+  <div id="rotate-overlay">
+    <div class="rotate-phone"></div>
+    <div class="rotate-text">ROTATE DEVICE</div>
+    <div class="rotate-subtext">Landscape mode required for tactical operations</div>
+  </div>
+
+  <!-- Mobile: fullscreen toggle -->
+  <button id="fullscreen-btn">⤢ FULLSCREEN</button>
+
+  <!-- Mobile: drawer backdrop -->
+  <div id="panel-backdrop"></div>
+
   <!-- Callsign prompt modal -->
   <div id="callsign-modal" style="display:none;">
     <div class="cs-overlay"></div>

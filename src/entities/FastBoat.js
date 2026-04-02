@@ -130,6 +130,16 @@ export class FastBoat extends Phaser.GameObjects.Container {
       this._updateGun(dx, dy, dist);
     }
 
+    // Clamp to water — stop if next position would be on land
+    if (this.body && this.scene.zoneManager) {
+      const nextX = this.x + this.body.velocity.x / 60;
+      const nextY = this.y + this.body.velocity.y / 60;
+      if (!this.scene.zoneManager.isInWater(nextX, nextY)) {
+        this.body.setVelocity(0, 0);
+        this.target = null; // re-acquire a reachable target
+      }
+    }
+
     // Update wake emitter
     if (this.wakeEmitter?.active) {
       const rad = this.rotation;
@@ -208,6 +218,8 @@ export class FastBoat extends Phaser.GameObjects.Container {
     }
     for (const d of this.scene.coalitionDefenses?.getChildren() || []) {
       if (!d.active) continue;
+      // Only target defenses in water (skip land buildings like Air Defense, Airfield)
+      if (this.scene.zoneManager && !this.scene.zoneManager.isInWater(d.x, d.y)) continue;
       const dist = Phaser.Math.Distance.Between(this.x, this.y, d.x, d.y);
       if (dist < nearDist) { nearDist = dist; nearest = d; }
     }

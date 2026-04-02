@@ -66,3 +66,12 @@ Every feature file follows the template in `_template.md`.
 | 0025 | [IRGC toll blockade / checkpoint](0025-irgc-toll-blockade.md) | P2 | draft |
 | 0026 | [Tunnel / cave spawners](0026-tunnel-spawners.md) | P2 | draft |
 | 0027 | [Trump oil shock events](0027-trump-oil-shock.md) | P2 | shipped |
+| | **Stickiness & Retention** | | |
+| 0031 | [Military rank progression](0031-military-rank-progression.md) | P1 | draft |
+| 0032 | [Persistent unlock tree](0032-persistent-unlock-tree.md) | P1 | draft |
+| 0033 | [Mini-objectives / bounties](0033-mini-objectives-bounties.md) | P1 | draft |
+| 0034 | [Global leaderboard](0034-global-leaderboard.md) | P1 | draft |
+| 0035 | [Fog of war / intelligence radius](0035-fog-of-war.md) | P2 | draft |
+| 0036 | [Difficulty skulls (modifiers)](0036-difficulty-skulls.md) | P2 | draft |
+| 0037 | [Idle oil generation](0037-idle-oil-generation.md) | P2 | draft |
+| 0038 | [Difficulty levels](0038-difficulty-levels.md) | P1 | draft |

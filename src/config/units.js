@@ -56,7 +56,7 @@ export const COALITION_UNITS = {
     hp: 300,
     zone: 'COALITION_LAND',
     type: 'building',
-    unlockTime: 180000,
+    unlockTime: 120000,
   },
   COALITION_SUB: {
     key: 'COALITION_SUB',

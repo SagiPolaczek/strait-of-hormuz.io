@@ -41,27 +41,40 @@ export class AIController {
       });
     });
 
-    // Advanced weapons — warning at 3:00, air units spawn at 3:10 (10s grace period)
-    this.scene.time.delayedCall(ADVANCED.UNLOCK_TIME_MS + 10000, () => {
-      this.scene.time.addEvent({
-        delay: ADVANCED.CRUISE_MISSILE_INTERVAL_MS,
-        callback: () => this._launchCruiseMissile(),
-        loop: true,
-      });
-      this.scene.time.addEvent({
-        delay: ADVANCED.UAV_SWARM_INTERVAL_MS,
-        callback: () => this._launchUAVSwarm(),
-        loop: true,
+    // Staggered advanced threats — cruise missiles at 3:00, UAVs at 3:30, fast boats at 4:00
+    this.scene.time.delayedCall(ADVANCED.CRUISE_MISSILE_START_MS, () => {
+      this._showWaveWarning('CRUISE MISSILES DETECTED', '#ef5350');
+      this.scene.time.delayedCall(10000, () => {
+        this._launchCruiseMissile();
+        this.scene.time.addEvent({
+          delay: ADVANCED.CRUISE_MISSILE_INTERVAL_MS,
+          callback: () => this._launchCruiseMissile(),
+          loop: true,
+        });
       });
     });
 
-    // Fast boat swarms (start at 2 minutes)
+    this.scene.time.delayedCall(ADVANCED.UAV_START_MS, () => {
+      this._showWaveWarning('DRONE SWARMS INCOMING', '#ff5722');
+      this.scene.time.delayedCall(10000, () => {
+        this._launchUAVSwarm();
+        this.scene.time.addEvent({
+          delay: ADVANCED.UAV_SWARM_INTERVAL_MS,
+          callback: () => this._launchUAVSwarm(),
+          loop: true,
+        });
+      });
+    });
+
     this.scene.time.delayedCall(ADVANCED.FAST_BOAT_START_MS, () => {
-      this._launchFastBoatSwarm(); // first swarm immediately
-      this.scene.time.addEvent({
-        delay: ADVANCED.FAST_BOAT_INTERVAL_MS,
-        callback: () => this._launchFastBoatSwarm(),
-        loop: true,
+      this._showWaveWarning('FAST BOAT SWARMS LAUNCHED', '#ff4444');
+      this.scene.time.delayedCall(10000, () => {
+        this._launchFastBoatSwarm();
+        this.scene.time.addEvent({
+          delay: ADVANCED.FAST_BOAT_INTERVAL_MS,
+          callback: () => this._launchFastBoatSwarm(),
+          loop: true,
+        });
       });
     });
 
@@ -147,6 +160,30 @@ export class AIController {
       const boat = new FastBoat(this.scene, x, y, variant);
       if (this.scene.irgcBoats) this.scene.irgcBoats.add(boat);
     }
+  }
+
+  _showWaveWarning(text, color) {
+    const banner = this.scene.add.text(960, 400, `⚠ ${text} ⚠`, {
+      fontSize: '26px', fontFamily: '"Black Ops One", cursive',
+      color: color || '#ff4444', stroke: '#000000', strokeThickness: 5,
+    }).setOrigin(0.5).setDepth(200).setAlpha(0);
+
+    const sub = this.scene.add.text(960, 435, '10 SECONDS TO PREPARE', {
+      fontSize: '12px', fontFamily: '"Share Tech Mono", monospace',
+      color: '#ff9800', stroke: '#000000', strokeThickness: 2,
+    }).setOrigin(0.5).setDepth(200).setAlpha(0);
+
+    this.scene.tweens.add({
+      targets: banner,
+      alpha: { from: 0, to: 1 },
+      scaleX: { from: 0.5, to: 1 }, scaleY: { from: 0.5, to: 1 },
+      duration: 400, ease: 'Back.easeOut',
+    });
+    this.scene.tweens.add({ targets: sub, alpha: 0.8, duration: 300, delay: 300 });
+    this.scene.tweens.add({
+      targets: [banner, sub], alpha: 0, duration: 400, delay: 3000,
+      onComplete: () => { banner.destroy(); sub.destroy(); },
+    });
   }
 
   _showSwarmWarning() {

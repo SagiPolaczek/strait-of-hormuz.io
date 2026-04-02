@@ -2,9 +2,9 @@ export const UPGRADES = {
   OIL_RIG: [
     {
       key: 'STORAGE',
-      name: 'Storage',
+      name: 'Reserves',
       icon: '📦',
-      desc: '+50% cap',
+      desc: '+20% income',
       maxLevel: 3,
       costs: [150, 250, 400],
     },

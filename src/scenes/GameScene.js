@@ -24,6 +24,7 @@ import { CoalitionSubmarine } from '../entities/CoalitionSubmarine.js';
 import { ADVANCED } from '../config/constants.js';
 import { AudioManager } from '../systems/AudioManager.js';
 import { SettingsModal } from '../ui/SettingsModal.js';
+import { isMobile } from '../utils/mobile.js';
 
 export class GameScene extends Phaser.Scene {
   constructor() {
@@ -217,15 +218,16 @@ export class GameScene extends Phaser.Scene {
       return;
     }
 
-    // Check if player can afford it
-    if (!this.economy.canAfford('coalition', unit.cost)) {
+    // Check if player can afford it (Trump oil shock affects costs)
+    const effectiveCost = this.economy.getEffectiveCost(unit.cost);
+    if (!this.economy.canAfford('coalition', effectiveCost)) {
       this.showMessage(x, y, '❌ Not enough oil!', '#ef5350');
       this.audio.error();
       return;
     }
 
     // Spend oil and place/deploy unit
-    this.economy.spend('coalition', unit.cost);
+    this.economy.spend('coalition', effectiveCost);
 
     switch (unit.key) {
       case 'OIL_RIG':
@@ -257,7 +259,8 @@ export class GameScene extends Phaser.Scene {
     for (const rig of rigs) {
       if (!rig.active || rig.side !== 'coalition') continue;
       const dist = Phaser.Math.Distance.Between(x, y, rig.x, rig.y);
-      if (dist < OIL_COLLECTION.CLICK_RADIUS && rig.storedOil > 0) {
+      const tapRadius = isMobile ? 80 : OIL_COLLECTION.CLICK_RADIUS;
+      if (dist < tapRadius && rig.storedOil > 0) {
         const collected = this.economy.collectFromRig(rig);
         if (collected > 0) {
           rig.showCollectionEffect(Math.floor(collected));
@@ -417,7 +420,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   findCoalitionUnitAt(x, y) {
-    const radius = 45;
+    const radius = isMobile ? 80 : 45;
     for (const rig of this.coalitionRigs.getChildren()) {
       if (!rig.active || rig.side !== 'coalition') continue;
       if (Phaser.Math.Distance.Between(x, y, rig.x, rig.y) < radius) return rig;
@@ -434,7 +437,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   findEnemyUnitAt(x, y) {
-    const radius = 50;
+    const radius = isMobile ? 90 : 50;
     for (const t of this.irgcTowers.getChildren()) {
       if (!t.active) continue;
       if (Phaser.Math.Distance.Between(x, y, t.x, t.y) < radius) return t;

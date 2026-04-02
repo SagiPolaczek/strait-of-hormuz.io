@@ -1,6 +1,7 @@
 import { UPGRADES } from '../config/upgrades.js';
 import { COALITION_UNITS } from '../config/units.js';
 import { ENEMY_INTEL, getIntelKey } from '../config/enemyIntel.js';
+import { isMobile } from '../utils/mobile.js';
 
 /** Escape HTML special characters to prevent DOM injection via innerHTML. */
 function esc(str) {
@@ -20,6 +21,20 @@ export class UpgradePanel {
     this.panelEl = document.getElementById('upgrade-panel');
     this.innerEl = this.panelEl.querySelector('.panel-inner');
 
+    // Mobile drawer: close button + backdrop
+    if (isMobile) {
+      const closeBtn = document.createElement('button');
+      closeBtn.className = 'drawer-close-btn';
+      closeBtn.textContent = '✕';
+      closeBtn.addEventListener('click', () => this.deselect());
+      this.panelEl.appendChild(closeBtn);
+
+      this.backdrop = document.getElementById('panel-backdrop');
+      if (this.backdrop) {
+        this.backdrop.addEventListener('click', () => this.deselect());
+      }
+    }
+
     this._showEmpty();
   }
 
@@ -33,6 +48,7 @@ export class UpgradePanel {
     this.selectedUnitType = unit.stats?.key || null;
     this.visible = true;
     this._build();
+    this._openDrawer();
   }
 
   /** Show upgrade panel from deployment bar (unit type, no specific instance) */
@@ -41,6 +57,7 @@ export class UpgradePanel {
     this.selectedUnitType = unitConfig.key;
     this.visible = true;
     this._buildForType(unitConfig);
+    this._openDrawer();
   }
 
   /** Deployment bar preview — now functional */
@@ -53,11 +70,24 @@ export class UpgradePanel {
     this.selectedUnitType = null;
     this.visible = false;
     this._showEmpty();
+    this._closeDrawer();
   }
 
   hide() { this.deselect(); }
 
   isClickInPanel() { return false; }
+
+  _openDrawer() {
+    if (!isMobile) return;
+    this.panelEl.classList.add('drawer-open');
+    if (this.backdrop) this.backdrop.classList.add('visible');
+  }
+
+  _closeDrawer() {
+    if (!isMobile) return;
+    this.panelEl.classList.remove('drawer-open');
+    if (this.backdrop) this.backdrop.classList.remove('visible');
+  }
 
   showEnemyIntel(unit) {
     this.selectedUnit = null;
@@ -81,6 +111,7 @@ export class UpgradePanel {
       </div>`
     ).join('');
 
+    this._openDrawer();
     this.innerEl.innerHTML = `
       <div class="panel-header" style="color: #ef5350;">ENEMY INTEL</div>
       <div class="panel-unit-name" style="color: ${esc(intel.color)};">${esc(intel.icon)} ${esc(intel.name)}</div>

@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { BootScene } from './scenes/BootScene.js';
 import { GameScene } from './scenes/GameScene.js';
 import { GameOverScene } from './scenes/GameOverScene.js';
+import { isMobile, toggleFullscreen, isFullscreen } from './utils/mobile.js';
 
 const MAP_WIDTH = 1920;
 const MAP_HEIGHT = 1539;
@@ -75,6 +76,38 @@ function showCallsignPrompt(onComplete) {
 
   // Auto-focus after a brief delay (allows fonts to load)
   setTimeout(() => input.focus(), 100);
+}
+
+// ── Mobile setup ──
+if (isMobile) {
+  document.body.classList.add('mobile');
+
+  // Prevent long-press context menu
+  document.addEventListener('contextmenu', (e) => e.preventDefault());
+
+  // Fullscreen button
+  const fsBtn = document.getElementById('fullscreen-btn');
+  if (fsBtn) {
+    fsBtn.addEventListener('click', () => {
+      toggleFullscreen();
+    });
+    const updateFsLabel = () => {
+      fsBtn.textContent = isFullscreen() ? '⤡ EXIT FS' : '⤢ FULLSCREEN';
+    };
+    document.addEventListener('fullscreenchange', updateFsLabel);
+    document.addEventListener('webkitfullscreenchange', updateFsLabel);
+  }
+
+  // Rotate overlay — show in portrait
+  const rotateOverlay = document.getElementById('rotate-overlay');
+  function checkOrientation() {
+    if (!rotateOverlay) return;
+    const portrait = window.innerHeight > window.innerWidth * 1.1;
+    rotateOverlay.style.display = portrait ? 'flex' : 'none';
+  }
+  window.addEventListener('resize', checkOrientation);
+  window.addEventListener('orientationchange', () => setTimeout(checkOrientation, 150));
+  checkOrientation();
 }
 
 // Check for existing callsign

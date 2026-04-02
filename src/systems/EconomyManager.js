@@ -21,12 +21,15 @@ export class EconomyManager {
       // Trump shock oil multiplier (affects coalition income)
       const trumpMult = this.scene.trumpShock?.getMultiplier() || 1;
 
-      // Coalition rigs: accumulate oil INTERNALLY (player must click to collect)
+      // Coalition rigs: auto-collect directly into oil reserves
       for (const rig of this.coalitionRigs) {
-        if (rig.active && rig.addStoredOil) {
-          const drillMult = 1 + 0.3 * (rig.upgrades?.DRILL_RATE || 0);
-          rig.addStoredOil(ECONOMY.OIL_RIG_RATE * drillMult * trumpMult);
-        }
+        if (!rig.active) continue;
+        const drillMult = 1 + 0.3 * (rig.upgrades?.DRILL_RATE || 0);
+        const reservesMult = 1 + 0.2 * (rig.upgrades?.STORAGE || 0);
+        const income = ECONOMY.OIL_RIG_RATE * drillMult * reservesMult * trumpMult;
+        this.coalitionOil += income;
+        // Trigger stream animation on the rig
+        if (rig.emitOilStream) rig.emitOilStream(income);
       }
 
       // IRGC rigs: auto-collect (AI doesn't need to click)
@@ -44,6 +47,13 @@ export class EconomyManager {
     rig.storedOil = 0;
     this.coalitionOil += collected;
     return collected;
+  }
+
+  // Get the effective cost of a unit, scaled by Trump oil shock
+  // High oil prices = everything costs more, low prices = cheaper
+  getEffectiveCost(baseCost) {
+    const mult = this.scene.trumpShock?.getMultiplier() || 1;
+    return Math.floor(baseCost * mult);
   }
 
   canAfford(side, cost) {

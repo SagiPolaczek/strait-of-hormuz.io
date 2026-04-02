@@ -200,6 +200,10 @@ export class HUD {
 
     // Only update text when values change (avoid per-frame setText calls)
     if (oil !== this._prevOil) {
+      // Arrival dots near counter when oil increases (from rig auto-collect)
+      if (this._prevOil !== undefined && oil > this._prevOil && rigs > 0) {
+        this._spawnArrivalDot();
+      }
       this._prevOil = oil;
       this.oilText.setText(String(oil).padStart(4, ' '));
 
@@ -270,6 +274,28 @@ export class HUD {
     const threat = this._prevThreat || 'LOW';
     const pulse = 0.5 + 0.5 * Math.sin(Date.now() / (threat === 'EXTREME' ? 150 : threat === 'HIGH' ? 300 : 600));
     this.threatDotGlow.setAlpha(pulse);
+  }
+
+  _spawnArrivalDot() {
+    if (!this.scene || Math.random() > 0.4) return; // throttle: ~60% of ticks
+    const dot = this.scene.add.circle(
+      374 + Math.random() * 30,
+      42 + Math.random() * 10,
+      2.5,
+      0xFFD54F,
+      0
+    ).setDepth(104).setScrollFactor(0);
+
+    // Fade in from below, drift up into the counter, fade out
+    this.scene.tweens.add({
+      targets: dot,
+      alpha: { from: 0, to: 0.8 },
+      y: dot.y - 12 - Math.random() * 8,
+      scale: { from: 1.2, to: 0.3 },
+      duration: 400 + Math.random() * 200,
+      ease: 'Quad.easeIn',
+      onComplete: () => dot.destroy(),
+    });
   }
 
   getTimeString() {

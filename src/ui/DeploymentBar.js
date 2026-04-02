@@ -211,10 +211,11 @@ export class DeploymentBar {
     }
 
     if (unit.unlockTime && !this.scene.advancedUnlocked) {
-      return; // Still locked
+      const elapsedMs = this.scene.time.now - (this.scene.createTime || 0);
+      if (elapsedMs < unit.unlockTime) return; // Still locked
     }
 
-    if (!this.economy.canAfford('coalition', unit.cost)) {
+    if (!this.economy.canAfford('coalition', this.economy.getEffectiveCost(unit.cost))) {
       return;
     }
 
@@ -272,13 +273,23 @@ export class DeploymentBar {
 
   update() {
     const oil = Math.floor(this.economy.coalitionOil);
+    const elapsedMs = this.scene.time.now - (this.scene.createTime || 0);
 
     this.buttons.forEach((b) => {
-      const isLocked = b.unit.unlockTime && !this.scene.advancedUnlocked;
-      const canAfford = !isLocked && this.economy.canAfford('coalition', b.unit.cost);
+      const isLocked = b.unit.unlockTime
+        && !this.scene.advancedUnlocked
+        && elapsedMs < b.unit.unlockTime;
+      const effectiveCost = this.economy.getEffectiveCost(b.unit.cost);
+      const canAfford = !isLocked && this.economy.canAfford('coalition', effectiveCost);
       const isSelected = this.selectedUnit === b.unit;
 
-      // Only redraw card/overlay when state changes (not every frame)
+      // Update cost text when multiplier changes
+      if (effectiveCost !== b._prevEffCost) {
+        b._prevEffCost = effectiveCost;
+        b.costText.setText(`${effectiveCost}`);
+      }
+
+      // Redraw card/overlay only when state changes (not every frame)
       const stateKey = `${canAfford}|${isSelected}|${isLocked}`;
       if (stateKey !== b._prevState) {
         b._prevState = stateKey;
@@ -295,10 +306,6 @@ export class DeploymentBar {
             b.cx - b.cardW / 2, b.cy - b.cardH / 2, b.cardW, b.cardH, 4
           );
           b.lockedOverlay.setAlpha(1);
-          const unlockSec = Math.floor((b.unit.unlockTime || 180000) / 1000);
-          const unlockMin = Math.floor(unlockSec / 60);
-          const unlockS = String(unlockSec % 60).padStart(2, '0');
-          b.lockedText.setText(`🔒 UNLOCKS ${unlockMin}:${unlockS}`);
           b.lockedText.setAlpha(1);
         } else if (!canAfford && !isSelected) {
           this._drawCard(b.cardBg, b.cx, b.cy, b.cardW, b.cardH, false, true);
@@ -328,11 +335,22 @@ export class DeploymentBar {
         }
       }
 
+      // Live countdown for locked units (lightweight text update each second)
+      if (isLocked && b.unit.unlockTime) {
+        const remainSec = Math.max(0, Math.ceil((b.unit.unlockTime - elapsedMs) / 1000));
+        if (remainSec !== b._prevRemainSec) {
+          b._prevRemainSec = remainSec;
+          const m = Math.floor(remainSec / 60);
+          const s = String(remainSec % 60).padStart(2, '0');
+          b.lockedText.setText(`🔒 ${m}:${s}`);
+        }
+      }
+
       // Cost bar fill — only update when oil changes
       if (oil !== b._prevOil) {
         b._prevOil = oil;
         b.costBarFill.clear();
-        const fillPct = Math.min(oil / b.unit.cost, 1);
+        const fillPct = Math.min(oil / effectiveCost, 1);
         if (fillPct > 0) {
           const fw = (b.costBarW - 4) * fillPct;
           const fillColor = canAfford ? 0xffb300 : 0xef5350;

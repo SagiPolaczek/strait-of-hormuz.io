@@ -59,23 +59,16 @@ export class OilRig extends Phaser.GameObjects.Container {
     this.hpBarBorder.strokeRect(-26, -41.5, 52, 5);
     this.add([this.hpBarBg, this.hpBar, this.hpBarBorder]);
 
-    // Oil storage fill indicator (coalition only — shows stored oil level)
+    // Income upgrade indicator (coalition only — shows reserves level)
     if (isCoalition) {
-      this.storageBg = scene.add.rectangle(0, 24, 39, 5, 0x1a1a1a, 0.8).setOrigin(0.5);
-      this.storageBg.setStrokeStyle(1, 0xffb300, 0.4);
-      this.storageFill = scene.add.rectangle(-18, 24, 0, 3, 0xffb300, 0.9).setOrigin(0, 0.5);
-      this.storageLabel = scene.add.text(0, 34, '', {
-        fontSize: '10px', fontFamily: '"Share Tech Mono", monospace',
-        color: '#ffb300', fontStyle: 'bold',
-      }).setOrigin(0.5).setAlpha(0);
-      this.add([this.storageBg, this.storageFill, this.storageLabel]);
-
-      // Pulsing "COLLECT" prompt when storage is above 50%
-      this.collectPrompt = scene.add.text(0, -52, '⬇ TAP', {
-        fontSize: '11px', fontFamily: '"Share Tech Mono", monospace',
-        color: '#ffb300', fontStyle: 'bold',
-      }).setOrigin(0.5).setAlpha(0).setDepth(15);
-      this.add(this.collectPrompt);
+      const reserveLvl = this.upgrades?.STORAGE || 0;
+      if (reserveLvl > 0) {
+        this.reserveLabel = scene.add.text(0, 28, `+${reserveLvl * 20}%`, {
+          fontSize: '10px', fontFamily: '"Share Tech Mono", monospace',
+          color: '#ffb300', fontStyle: 'bold',
+        }).setOrigin(0.5).setAlpha(0.6);
+        this.add(this.reserveLabel);
+      }
     }
 
     scene.add.existing(this);
@@ -92,7 +85,74 @@ export class OilRig extends Phaser.GameObjects.Container {
   applyUpgrade(key) {
     if (!this.upgrades) this.upgrades = {};
     this.upgrades[key] = (this.upgrades[key] || 0) + 1;
-    if (key === 'STORAGE') this._updateStorageVisual();
+    if (key === 'STORAGE') this._updateReserveLabel();
+  }
+
+  _updateReserveLabel() {
+    const lvl = this.upgrades?.STORAGE || 0;
+    if (lvl > 0 && !this.reserveLabel && this.scene) {
+      this.reserveLabel = this.scene.add.text(0, 28, '', {
+        fontSize: '10px', fontFamily: '"Share Tech Mono", monospace',
+        color: '#ffb300', fontStyle: 'bold',
+      }).setOrigin(0.5).setAlpha(0.6);
+      this.add(this.reserveLabel);
+    }
+    if (this.reserveLabel) this.reserveLabel.setText(`+${lvl * 20}%`);
+  }
+
+  // Stream animation: golden dots float up + income text
+  emitOilStream(amount) {
+    if (this.side !== 'coalition' || !this.scene) return;
+
+    // 3-4 golden dots per tick, larger and more visible
+    const count = 3 + Math.floor(Math.random() * 2);
+    for (let i = 0; i < count; i++) {
+      const dot = this.scene.add.circle(
+        this.x + (Math.random() - 0.5) * 20,
+        this.y - 34 - Math.random() * 6,
+        3.5 + Math.random() * 2.5,
+        0xFFD54F,
+        0.9
+      ).setDepth(6);
+      this.scene.tweens.add({
+        targets: dot,
+        y: dot.y - 30 - Math.random() * 20,
+        x: dot.x + (Math.random() - 0.5) * 14,
+        alpha: 0,
+        scale: 0.2,
+        duration: 600 + Math.random() * 400,
+        delay: i * 60,
+        ease: 'Quad.easeOut',
+        onComplete: () => dot.destroy(),
+      });
+    }
+
+    // Floating "+K" income text (throttled to every 3rd tick to avoid spam)
+    if (!this._incomeTextCooldown || this.scene.time.now > this._incomeTextCooldown) {
+      this._incomeTextCooldown = this.scene.time.now + 3000;
+      const txt = this.scene.add.text(this.x, this.y - 48, `+${Math.floor(amount)}`, {
+        fontSize: '13px', fontFamily: '"Orbitron", sans-serif',
+        fontStyle: 'bold', color: '#FFD54F',
+        stroke: '#000000', strokeThickness: 2,
+      }).setOrigin(0.5).setDepth(15).setAlpha(0);
+
+      this.scene.tweens.add({
+        targets: txt,
+        alpha: { from: 0, to: 0.9 },
+        y: txt.y - 25,
+        duration: 600,
+        ease: 'Quad.easeOut',
+      });
+      this.scene.tweens.add({
+        targets: txt,
+        alpha: 0,
+        y: txt.y - 50,
+        duration: 500,
+        delay: 600,
+        ease: 'Quad.easeIn',
+        onComplete: () => txt.destroy(),
+      });
+    }
   }
 
   // Called by EconomyManager each tick — accumulate oil internally
@@ -100,45 +160,6 @@ export class OilRig extends Phaser.GameObjects.Container {
     if (this.side !== 'coalition') return;
     this.storedOil = Math.min(this.storedOil + amount, this.getMaxStorage());
     this._updateStorageVisual();
-  }
-
-  _updateStorageVisual() {
-    if (!this.storageFill || !this.storageFill.active) return;
-    const pct = this.storedOil / this.getMaxStorage();
-    this.storageFill.width = 36 * pct;
-
-    // Color shifts: amber → gold → pulsing when full
-    this.storageFill.fillColor = pct >= 1 ? 0xff6600 : pct > 0.5 ? 0xffc107 : 0xffb300;
-
-    // Show amount label when there's stored oil
-    if (this.storedOil > 0) {
-      this.storageLabel.setText(`${Math.floor(this.storedOil)}`).setAlpha(0.7);
-    } else {
-      this.storageLabel.setAlpha(0);
-    }
-
-    // Show/pulse "TAP" prompt when storage is above 50%
-    if (this.collectPrompt) {
-      if (pct >= 0.5) {
-        this.collectPrompt.setAlpha(0.8);
-        if (!this._collectPulseTween) {
-          this._collectPulseTween = this.scene.tweens.add({
-            targets: this.collectPrompt,
-            alpha: { from: 0.8, to: 0.3 },
-            y: -55,
-            duration: 600,
-            yoyo: true,
-            repeat: -1,
-          });
-        }
-      } else {
-        this.collectPrompt.setAlpha(0);
-        if (this._collectPulseTween) {
-          this._collectPulseTween.destroy();
-          this._collectPulseTween = null;
-        }
-      }
-    }
   }
 
   // Called when player clicks to collect — triggers the juicy effect
@@ -283,10 +304,6 @@ export class OilRig extends Phaser.GameObjects.Container {
   }
 
   destroy(fromScene) {
-    if (this._collectPulseTween) {
-      this._collectPulseTween.destroy();
-      this._collectPulseTween = null;
-    }
     if (this.oilTextTimer) {
       this.oilTextTimer.remove(false);
       this.oilTextTimer = null;
