@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { F22 } from './F22.js';
+import { getMaxHP as calcMaxHP } from '../utils/calculations.js';
 
 export class Airfield extends Phaser.GameObjects.Container {
   constructor(scene, x, y, stats) {
@@ -59,57 +60,57 @@ export class Airfield extends Phaser.GameObjects.Container {
 
     // Runway (long rectangle)
     gfx.fillStyle(0x37474f, 0.9);
-    gfx.fillRect(-40, -18, 80, 36);
+    gfx.fillRect(-55, -18, 110, 36);
     gfx.lineStyle(1.5, 0x546e7a, 0.7);
-    gfx.strokeRect(-40, -18, 80, 36);
+    gfx.strokeRect(-55, -18, 110, 36);
 
     // Runway center line (dashed)
     gfx.lineStyle(2, 0xffffff, 0.4);
-    for (let i = -34; i < 34; i += 10) {
+    for (let i = -49; i < 49; i += 10) {
       gfx.lineBetween(i, 0, i + 5, 0);
     }
 
     // Runway threshold markings
     gfx.lineStyle(1.5, 0xffffff, 0.3);
-    gfx.lineBetween(-36, -12, -36, 12);
-    gfx.lineBetween(36, -12, 36, 12);
+    gfx.lineBetween(-51, -12, -51, 12);
+    gfx.lineBetween(51, -12, 51, 12);
 
     // Taxiway edge lights (small yellow dots)
     gfx.fillStyle(0xffeb3b, 0.5);
-    for (let i = -34; i <= 34; i += 8) {
+    for (let i = -49; i <= 49; i += 8) {
       gfx.fillCircle(i, -18, 1.5);
       gfx.fillCircle(i, 18, 1.5);
     }
 
     // Control tower
     gfx.fillStyle(0x455a64, 0.9);
-    gfx.fillRect(-30, -30, 10, 14);
+    gfx.fillRect(-45, -30, 10, 14);
     gfx.lineStyle(1, 0x78909c, 0.6);
-    gfx.strokeRect(-30, -30, 10, 14);
+    gfx.strokeRect(-45, -30, 10, 14);
 
     // Tower windows
     gfx.fillStyle(0xb3e5fc, 0.7);
-    gfx.fillRect(-28, -28, 3, 3);
-    gfx.fillRect(-24, -28, 3, 3);
+    gfx.fillRect(-43, -28, 3, 3);
+    gfx.fillRect(-39, -28, 3, 3);
 
     // Blue coalition accent stripe
     gfx.fillStyle(0x2196f3, 0.4);
-    gfx.fillRect(-40, -18, 80, 3);
-    gfx.fillRect(-40, 15, 80, 3);
+    gfx.fillRect(-55, -18, 110, 3);
+    gfx.fillRect(-55, 15, 110, 3);
 
     // Hangar area
     gfx.fillStyle(0x263238, 0.8);
-    gfx.fillRect(18, -30, 16, 14);
+    gfx.fillRect(33, -30, 16, 14);
     gfx.lineStyle(1, 0x37474f, 0.6);
-    gfx.strokeRect(18, -30, 16, 14);
+    gfx.strokeRect(33, -30, 16, 14);
 
     // Hangar door lines
     gfx.lineStyle(0.8, 0x455a64, 0.5);
-    gfx.lineBetween(26, -30, 26, -16);
+    gfx.lineBetween(41, -30, 41, -16);
   }
 
   getMaxHP() {
-    return Math.floor(this.stats.hp * (1 + 0.35 * (this.upgrades.ARMOR || 0)));
+    return calcMaxHP(this.stats.hp, 0, this.upgrades.ARMOR || 0);
   }
 
   applyUpgrade(key) {

@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { PROJECTILES } from '../config/units.js';
+import { getEffectiveRange as calcRange, getEffectiveFireRate as calcFireRate } from '../utils/calculations.js';
 
 export class AirDefense extends Phaser.GameObjects.Container {
   constructor(scene, x, y, stats) {
@@ -47,11 +48,11 @@ export class AirDefense extends Phaser.GameObjects.Container {
   }
 
   getEffectiveRange() {
-    return this.stats.range * (1 + 0.2 * (this.upgrades.RANGE || 0));
+    return calcRange(this.stats.range, this.upgrades.RANGE || 0);
   }
 
   getEffectiveFireRate() {
-    return this.stats.fireRate * (1 - 0.2 * (this.upgrades.FIRE_RATE || 0));
+    return calcFireRate(this.stats.fireRate, this.upgrades.FIRE_RATE || 0);
   }
 
   update() {

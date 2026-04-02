@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { Ship } from './Ship.js';
 import { PROJECTILES } from '../config/units.js';
+import { getEffectiveDamage as calcDamage, getEffectiveFireRate as calcFireRate } from '../utils/calculations.js';
 
 export class Destroyer extends Ship {
   constructor(scene, x, y, stats) {
@@ -12,7 +13,7 @@ export class Destroyer extends Ship {
     this.commandPoint = null;  // {x, y} — move-to target
     this.patrolCenter = null;  // {x, y} — patrol around this point once reached
     this.patrolAngle = 0;
-    this.patrolRadius = 80;
+    this.patrolRadius = 160;
     this.isCommanded = false;
 
     // Radar dish (lightweight graphics — not worth a texture)
@@ -33,11 +34,11 @@ export class Destroyer extends Ship {
   }
 
   getEffectiveDamage() {
-    return Math.floor(this.stats.damage * (1 + 0.3 * (this.upgrades.DAMAGE || 0)));
+    return calcDamage(this.stats.damage, this.upgrades.DAMAGE || 0);
   }
 
   getEffectiveFireRate() {
-    return Math.floor(this.stats.fireRate * (1 - 0.2 * (this.upgrades.FIRE_RATE || 0)));
+    return calcFireRate(this.stats.fireRate, this.upgrades.FIRE_RATE || 0);
   }
 
   // Set a move command — destroyer will navigate there, then patrol

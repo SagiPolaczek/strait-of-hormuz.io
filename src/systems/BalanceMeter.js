@@ -1,4 +1,5 @@
 import { BALANCE } from '../config/constants.js';
+import { getDriftRate as calcDriftRate } from '../utils/calculations.js';
 
 export class BalanceMeter {
   constructor(scene) {
@@ -39,11 +40,7 @@ export class BalanceMeter {
     const minuteFloor = Math.floor(minutes);
     if (minuteFloor !== this._cachedMinute) {
       this._cachedMinute = minuteFloor;
-      let rate = BALANCE.DRIFT_RATES[0].rate;
-      for (const t of BALANCE.DRIFT_RATES) {
-        if (minutes >= t.time) rate = t.rate;
-      }
-      this._cachedRate = rate;
+      this._cachedRate = calcDriftRate(minutes, BALANCE.DRIFT_RATES);
     }
     return this._cachedRate;
   }

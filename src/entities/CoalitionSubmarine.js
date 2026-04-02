@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { Ship } from './Ship.js';
 import { PROJECTILES } from '../config/units.js';
 import { WATER_POLYGON } from '../config/zones.js';
+import { getEffectiveSonarRange as calcSonar, getEffectiveDamage as calcDamage } from '../utils/calculations.js';
 
 export class CoalitionSubmarine extends Ship {
   constructor(scene, x, y, stats) {
@@ -70,11 +71,11 @@ export class CoalitionSubmarine extends Ship {
   }
 
   getEffectiveSonarRange() {
-    return this.sonarRange * (1 + 0.25 * (this.upgrades.SONAR || 0));
+    return calcSonar(this.sonarRange, this.upgrades.SONAR || 0);
   }
 
   getEffectiveDamage() {
-    return Math.floor(this.stats.damage * (1 + 0.3 * (this.upgrades.TORPEDO || 0)));
+    return calcDamage(this.stats.damage, this.upgrades.TORPEDO || 0);
   }
 
   getEffectiveFireRate() {

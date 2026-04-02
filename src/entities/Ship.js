@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { SHIP_ROUTES } from '../config/zones.js';
 import { ensureTextures } from '../utils/textures.js';
+import { getMaxHP as calcMaxHP, getEffectiveSpeed as calcSpeed } from '../utils/calculations.js';
 
 export class Ship extends Phaser.GameObjects.Container {
   constructor(scene, x, y, stats) {
@@ -52,13 +53,11 @@ export class Ship extends Phaser.GameObjects.Container {
   }
 
   getMaxHP() {
-    const hull = this.upgrades.HULL || 0;
-    const armor = this.upgrades.ARMOR || 0;
-    return Math.floor(this.stats.hp * (1 + 0.4 * hull + 0.35 * armor));
+    return calcMaxHP(this.stats.hp, this.upgrades.HULL || 0, this.upgrades.ARMOR || 0);
   }
 
   getEffectiveSpeed() {
-    return this.stats.speed * (1 + 0.25 * (this.upgrades.ENGINE || 0));
+    return calcSpeed(this.stats.speed, this.upgrades.ENGINE || 0);
   }
 
   applyUpgrade(key) {

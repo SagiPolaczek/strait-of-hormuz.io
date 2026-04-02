@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { IRGC_UNITS } from '../config/units.js';
 import { IRGC_BUILD_SPOTS, DEFAULT_SHIP_ROUTE, SHIP_ROUTES } from '../config/zones.js';
 import { TIMING, ESCALATION, ECONOMY, ADVANCED } from '../config/constants.js';
+import { getEscalationMultiplier as calcEscalation } from '../utils/calculations.js';
 import { Mine } from '../entities/Mine.js';
 import { CruiseMissile } from '../entities/CruiseMissile.js';
 import { ExplodingUAV } from '../entities/ExplodingUAV.js';
@@ -226,11 +227,7 @@ export class AIController {
 
   getEscalationMultiplier() {
     const minutes = this.getElapsedMinutes();
-    let mult = 1.0;
-    for (const t of ESCALATION.THRESHOLDS) {
-      if (minutes >= t.time) mult = t.multiplier;
-    }
-    return mult;
+    return calcEscalation(minutes, ESCALATION.THRESHOLDS);
   }
 
   /** Rank IRGC_BUILD_SPOTS by minimum distance to any ship route waypoint. */

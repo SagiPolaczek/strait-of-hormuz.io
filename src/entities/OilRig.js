@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { ECONOMY } from '../config/constants.js';
 import { ensureTextures } from '../utils/textures.js';
+import { getMaxStorage as calcStorage } from '../utils/calculations.js';
 
 export class OilRig extends Phaser.GameObjects.Container {
   constructor(scene, x, y, side, stats) {
@@ -75,7 +76,7 @@ export class OilRig extends Phaser.GameObjects.Container {
   }
 
   getMaxStorage() {
-    return this.maxStorage * (1 + 0.5 * (this.upgrades?.STORAGE || 0));
+    return calcStorage(this.maxStorage, this.upgrades?.STORAGE || 0);
   }
 
   getMaxHP() {
