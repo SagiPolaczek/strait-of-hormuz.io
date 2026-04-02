@@ -161,17 +161,6 @@ export function getEscalationMultiplier(minutes, thresholds) {
   return mult;
 }
 
-/**
- * Apply a multiplicative change to an oil multiplier, clamped to [floor, ceiling].
- * @param {number} current - current multiplier
- * @param {number} change - multiplicative factor (e.g. 1.05 for +5%)
- * @param {number} floor - minimum multiplier
- * @param {number} ceiling - maximum multiplier
- * @returns {number} clamped new multiplier
- */
-export function clampMultiplier(current, change, floor, ceiling) {
-  return Math.max(floor, Math.min(ceiling, current * change));
-}
 ```
 
 - [ ] **Step 2: Commit**
@@ -380,7 +369,6 @@ import {
   getMaxStorage,
   getDriftRate,
   getEscalationMultiplier,
-  clampMultiplier,
 } from '../../src/utils/calculations.js';
 
 describe('getMaxHP', () => {
@@ -528,24 +516,6 @@ describe('getEscalationMultiplier', () => {
   });
 });
 
-describe('clampMultiplier', () => {
-  it('applies change within bounds', () => {
-    expect(clampMultiplier(1.0, 1.05, 0.5, 2.0)).toBeCloseTo(1.05);
-  });
-
-  it('clamps to floor', () => {
-    expect(clampMultiplier(0.6, 0.7, 0.5, 2.0)).toBe(0.5);
-  });
-
-  it('clamps to ceiling', () => {
-    expect(clampMultiplier(1.8, 1.2, 0.5, 2.0)).toBe(2.0);
-  });
-
-  it('handles exact boundary values', () => {
-    expect(clampMultiplier(1.0, 0.5, 0.5, 2.0)).toBe(0.5);
-    expect(clampMultiplier(1.0, 2.0, 0.5, 2.0)).toBe(2.0);
-  });
-});
 ```
 
 - [ ] **Step 2: Run tests**
@@ -971,7 +941,12 @@ test('game boots without crashes', async ({ page }) => {
     }
   });
 
+  // Set callsign in localStorage BEFORE navigating so the modal is skipped
   await page.goto('http://localhost:4173');
+  await page.evaluate(() => {
+    localStorage.setItem('hormuz_callsign', 'TESTPILOT');
+  });
+  await page.reload();
 
   // Wait for boot sequence + early gameplay (12 seconds)
   await page.waitForTimeout(12000);
@@ -993,7 +968,16 @@ test('game boots without crashes', async ({ page }) => {
 });
 ```
 
-- [ ] **Step 4: Add scripts to package.json**
+- [ ] **Step 4: Add Playwright output dirs to .gitignore**
+
+Append to `.gitignore`:
+
+```
+test-results/
+playwright-report/
+```
+
+- [ ] **Step 5: Add scripts to package.json**
 
 Add to the `"scripts"` object:
 
@@ -1002,7 +986,7 @@ Add to the `"scripts"` object:
 "test:all": "vitest run && npx playwright test"
 ```
 
-- [ ] **Step 5: Run the E2E smoke test**
+- [ ] **Step 6: Run the E2E smoke test**
 
 ```bash
 npm run test:e2e
@@ -1010,16 +994,16 @@ npm run test:e2e
 
 Expected: test passes — game boots, canvas exists, no crashes.
 
-- [ ] **Step 6: Delete the old debug-test.mjs**
+- [ ] **Step 7: Delete the old debug-test.mjs**
 
 ```bash
 rm debug-test.mjs
 ```
 
-- [ ] **Step 7: Commit**
+- [ ] **Step 8: Commit**
 
 ```bash
-git add playwright.config.js tests/e2e/smoke.test.js package.json package-lock.json
+git add playwright.config.js tests/e2e/smoke.test.js package.json package-lock.json .gitignore
 git rm debug-test.mjs
 git commit -m "test: add Playwright E2E smoke test, remove debug-test.mjs"
 ```
