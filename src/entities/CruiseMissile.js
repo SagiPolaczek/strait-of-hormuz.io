@@ -99,6 +99,7 @@ export class CruiseMissile extends Phaser.GameObjects.Container {
   }
 
   takeDamage(amount) {
+    if (!this.active) return false;
     this.hp -= amount;
     this.hpBar.width = 30 * Math.max(0, this.hp / 60);
     if (this.hp <= 0) {
@@ -118,7 +119,8 @@ export class CruiseMissile extends Phaser.GameObjects.Container {
         lifespan: { min: 300, max: 800 }, quantity: 15, emitting: false,
       });
       fire.setDepth(20); fire.explode(15);
-      this.scene.time.delayedCall(1000, () => { if (fire?.active) fire.destroy(); });
+      const sceneRef = this.scene;
+      sceneRef.time.delayedCall(1000, () => { if (fire?.active) fire.destroy(); });
     }
     const flash = this.scene.add.circle(wx, wy, 6, 0xffffff, 1).setDepth(21);
     this.scene.tweens.add({ targets: flash, scaleX: 5, scaleY: 5, alpha: 0, duration: 350, onComplete: () => flash.destroy() });
@@ -133,7 +135,8 @@ export class CruiseMissile extends Phaser.GameObjects.Container {
         lifespan: 500, quantity: 8, emitting: false,
       });
       p.setDepth(20); p.explode(8);
-      this.scene.time.delayedCall(700, () => { if (p?.active) p.destroy(); });
+      const sceneRef = this.scene;
+      sceneRef.time.delayedCall(700, () => { if (p?.active) p.destroy(); });
     }
     const txt = this.scene.add.text(wx, wy - 15, '✓ INTERCEPTED', {
       fontSize: '13px', fontFamily: '"Share Tech Mono", monospace',

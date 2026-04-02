@@ -240,8 +240,11 @@ export class GameScene extends Phaser.Scene {
       return;
     }
 
-    // Check if placement is in correct zone
-    const inZone = this.zoneManager.isInZone(unit.zone, x, y);
+    // Check if placement is in correct zone (oil rigs allowed in water + land)
+    const allowedZones = unit.key === 'OIL_RIG'
+      ? ['COALITION_OIL', 'COALITION_LAND']
+      : [unit.zone];
+    const inZone = allowedZones.some(z => this.zoneManager.isInZone(z, x, y));
 
     if (!inZone) {
       this.showMessage(x, y, '⚠ WRONG ZONE', '#ef5350');
@@ -579,12 +582,11 @@ export class GameScene extends Phaser.Scene {
 
   showZoneOutlines(unitKey) {
     this._clearZoneOutlines();
-    let zoneName;
-    if (unitKey === 'OIL_RIG') zoneName = 'COALITION_OIL';
-    else if (unitKey === 'AIR_DEFENSE' || unitKey === 'AIRFIELD') zoneName = 'COALITION_LAND';
-    else zoneName = 'COALITION_DEPLOY';
-    const outlines = this.zoneManager.createZoneOutlines(zoneName);
-    this._zoneOutlines = outlines;
+    let zoneNames;
+    if (unitKey === 'OIL_RIG') zoneNames = ['COALITION_OIL', 'COALITION_LAND'];
+    else if (unitKey === 'AIR_DEFENSE' || unitKey === 'AIRFIELD') zoneNames = ['COALITION_LAND'];
+    else zoneNames = ['COALITION_DEPLOY'];
+    this._zoneOutlines = zoneNames.flatMap(z => this.zoneManager.createZoneOutlines(z));
   }
 
   _clearZoneOutlines() {
@@ -774,6 +776,9 @@ export class GameScene extends Phaser.Scene {
     if (this._gameEnded) return;
     this._gameEnded = true;
     this.balanceMeter.ended = true;
+
+    // Flush any in-progress pause so timer is accurate
+    if (this._settingsOpen) this.hud.onResume();
 
     const data = {
       score: this.score,

@@ -110,6 +110,7 @@ export class Ship extends Phaser.GameObjects.Container {
   }
 
   takeDamage(amount) {
+    if (!this.active) return false;
     this.hp -= amount;
     const pct = Math.max(0, this.hp / this.getMaxHP());
     this.hpBar.width = 30 * pct;
@@ -214,8 +215,9 @@ export class Ship extends Phaser.GameObjects.Container {
     });
 
     // Cleanup particles
-    this.scene.time.delayedCall(1800, () => {
-      if (!this.scene || !this.scene.sys?.isActive()) return;
+    const sceneRef = this.scene;
+    sceneRef.time.delayedCall(1800, () => {
+      if (!sceneRef.sys?.isActive()) return;
       if (fire && fire.active) fire.destroy();
       if (smoke && smoke.active) smoke.destroy();
       if (debris && debris.active) debris.destroy();

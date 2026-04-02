@@ -184,7 +184,7 @@ export class CoalitionSubmarine extends Ship {
     for (const boat of this.scene.irgcBoats?.getChildren() || []) {
       if (!boat.active || !boat.isSub) continue;
       const dist = Phaser.Math.Distance.Between(this.x, this.y, boat.x, boat.y);
-      boat.detected = dist < range;
+      boat.detected = boat.detected || dist < range;
     }
   }
 

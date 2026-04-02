@@ -114,6 +114,7 @@ export class Mine extends Phaser.GameObjects.Container {
   }
 
   takeDamage(amount) {
+    if (!this.active) return false;
     this.hp -= amount;
     if (this.hp <= 0) {
       this.detonated = true;

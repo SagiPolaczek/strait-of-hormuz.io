@@ -36,10 +36,11 @@ export class OilRig extends Phaser.GameObjects.Container {
       ease: 'Sine.easeInOut',
     });
 
-    // Pulsing glow ring (oil generation indicator)
+    // Pulsing glow ring (oil generation indicator — IRGC rig sprite is larger)
+    const glowRadius = isCoalition ? 36 : 46;
     this.glowRing = scene.add.graphics();
     this.glowRing.lineStyle(2, primaryColor, 1.0);
-    this.glowRing.strokeCircle(0, 0, 36);
+    this.glowRing.strokeCircle(0, 0, glowRadius);
     this.glowRing.setAlpha(0.1);
     scene.tweens.add({
       targets: this.glowRing,
@@ -228,6 +229,7 @@ export class OilRig extends Phaser.GameObjects.Container {
   }
 
   takeDamage(amount) {
+    if (!this.active) return false;
     this.hp -= amount;
     const pct = Math.max(0, this.hp / this.stats.hp);
     this.hpBar.width = 47 * pct;
@@ -297,8 +299,9 @@ export class OilRig extends Phaser.GameObjects.Container {
     });
 
     // Cleanup particles after delay
-    this.scene.time.delayedCall(1500, () => {
-      if (!this.scene || !this.scene.sys?.isActive()) return;
+    const sceneRef = this.scene;
+    sceneRef.time.delayedCall(1500, () => {
+      if (!sceneRef.sys?.isActive()) return;
       if (fire && fire.active) fire.destroy();
       if (smoke && smoke.active) smoke.destroy();
     });

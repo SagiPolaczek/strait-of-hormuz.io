@@ -213,6 +213,7 @@ export class MissileLauncher extends Phaser.GameObjects.Container {
   }
 
   takeDamage(amount) {
+    if (!this.active) return false;
     this.hp -= amount;
     const pct = Math.max(0, this.hp / this.stats.hp);
     this.hpBar.width = 36 * pct;
@@ -325,8 +326,9 @@ export class MissileLauncher extends Phaser.GameObjects.Container {
     });
 
     // Cleanup
-    this.scene.time.delayedCall(2200, () => {
-      if (!this.scene || !this.scene.sys?.isActive()) return;
+    const sceneRef = this.scene;
+    sceneRef.time.delayedCall(2200, () => {
+      if (!sceneRef.sys?.isActive()) return;
       if (fire && fire.active) fire.destroy();
       if (smoke && smoke.active) smoke.destroy();
       if (debris && debris.active) debris.destroy();

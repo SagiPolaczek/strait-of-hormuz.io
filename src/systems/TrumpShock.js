@@ -74,7 +74,7 @@ export class TrumpShock {
 
   _scheduleNext() {
     if (this._nextTimer) this._nextTimer.remove(false);
-    const delay = Math.max(this.minInterval, -this.meanInterval * Math.log(Math.random()));
+    const delay = Math.max(this.minInterval, -this.meanInterval * Math.log(Math.random() || 1e-10));
     this._nextTimer = this.scene.time.delayedCall(delay, () => this._trigger());
   }
 

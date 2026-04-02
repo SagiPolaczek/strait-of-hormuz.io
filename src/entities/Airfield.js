@@ -139,6 +139,7 @@ export class Airfield extends Phaser.GameObjects.Container {
   }
 
   takeDamage(amount) {
+    if (!this.active) return false;
     this.hp -= amount;
     const pct = Math.max(0, this.hp / this.getMaxHP());
     this.hpBar.width = 56 * pct;
@@ -175,8 +176,9 @@ export class Airfield extends Phaser.GameObjects.Container {
         lifespan: { min: 400, max: 1000 }, quantity: 18, emitting: false,
       });
       fire.setDepth(20); fire.explode(18);
-      this.scene.time.delayedCall(1200, () => {
-        if (!this.scene || !this.scene.sys?.isActive()) return;
+      const sceneRef = this.scene;
+      sceneRef.time.delayedCall(1200, () => {
+        if (!sceneRef.sys?.isActive()) return;
         if (fire?.active) fire.destroy();
       });
     }

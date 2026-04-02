@@ -165,8 +165,13 @@ export class MiniSubmarine extends Phaser.GameObjects.Container {
         this._surface();
       }
     } else {
-      // Patrol: drift slowly
-      if (this.body) this.body.setVelocity(this.speed * 0.3, 0);
+      // Patrol: drift slowly, but stay in water
+      const nextX = this.x + this.speed * 0.3 / 60;
+      if (this.scene.zoneManager && !this.scene.zoneManager.isInWater(nextX, this.y)) {
+        if (this.body) this.body.setVelocity(-this.speed * 0.3, 0);
+      } else {
+        if (this.body) this.body.setVelocity(this.speed * 0.3, 0);
+      }
     }
 
     // Surface timer — dive back down after surfaceDuration
@@ -261,6 +266,7 @@ export class MiniSubmarine extends Phaser.GameObjects.Container {
   }
 
   takeDamage(amount) {
+    if (!this.active) return false;
     // Can only take damage when surfaced or detected
     if (this.submerged && !this.detected) return false;
 
@@ -291,8 +297,9 @@ export class MiniSubmarine extends Phaser.GameObjects.Container {
         lifespan: 600, quantity: 10, emitting: false,
       });
       p.setDepth(20); p.explode(10);
-      this.scene.time.delayedCall(800, () => {
-        if (!this.scene || !this.scene.sys?.isActive()) return;
+      const sceneRef = this.scene;
+      sceneRef.time.delayedCall(800, () => {
+        if (!sceneRef.sys?.isActive()) return;
         if (p?.active) p.destroy();
       });
     }

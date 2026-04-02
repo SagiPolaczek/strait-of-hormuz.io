@@ -94,6 +94,7 @@ export class ExplodingUAV extends Phaser.GameObjects.Container {
   }
 
   takeDamage(amount) {
+    if (!this.active) return false;
     this.hp -= amount;
     if (this.hp <= 0) {
       this.alive = false;
@@ -112,7 +113,8 @@ export class ExplodingUAV extends Phaser.GameObjects.Container {
         lifespan: 500, quantity: 10, emitting: false,
       });
       p.setDepth(20); p.explode(10);
-      this.scene.time.delayedCall(700, () => { if (p?.active) p.destroy(); });
+      const sceneRef = this.scene;
+      sceneRef.time.delayedCall(700, () => { if (p?.active) p.destroy(); });
     }
     this._cleanup(); this.destroy();
   }
@@ -125,7 +127,8 @@ export class ExplodingUAV extends Phaser.GameObjects.Container {
         lifespan: 400, quantity: 5, emitting: false,
       });
       p.setDepth(20); p.explode(5);
-      this.scene.time.delayedCall(500, () => { if (p?.active) p.destroy(); });
+      const sceneRef = this.scene;
+      sceneRef.time.delayedCall(500, () => { if (p?.active) p.destroy(); });
     }
     this._cleanup(); this.destroy();
   }

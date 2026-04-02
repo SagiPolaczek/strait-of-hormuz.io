@@ -5,6 +5,10 @@ export class CombatManager {
 
   update() {
     try {
+      // Reset IRGC sub detection flags before coalition subs re-detect
+      for (const boat of this.scene.irgcBoats?.getChildren() || []) {
+        if (boat.isSub) boat.detected = false;
+      }
       this.updateAndPurge(this.scene.irgcTowers);
       this.updateAndPurge(this.scene.projectiles);
       this.updateAndPurge(this.scene.coalitionShips);

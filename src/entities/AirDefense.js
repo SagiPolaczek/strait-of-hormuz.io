@@ -97,6 +97,7 @@ export class AirDefense extends Phaser.GameObjects.Container {
   }
 
   takeDamage(amount) {
+    if (!this.active) return false;
     this.hp -= amount;
     const pct = Math.max(0, this.hp / this.stats.hp);
     this.hpBar.width = 40 * pct;
@@ -126,7 +127,8 @@ export class AirDefense extends Phaser.GameObjects.Container {
         lifespan: 700, quantity: 12, emitting: false,
       });
       fire.setDepth(20); fire.explode(12);
-      this.scene.time.delayedCall(900, () => { if (fire?.active) fire.destroy(); });
+      const sceneRef = this.scene;
+      sceneRef.time.delayedCall(900, () => { if (fire?.active) fire.destroy(); });
     }
     const flash = this.scene.add.circle(wx, wy, 6, 0xffffff, 1).setDepth(21);
     this.scene.tweens.add({

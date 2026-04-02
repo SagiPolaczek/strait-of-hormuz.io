@@ -136,6 +136,7 @@ export class DeploymentBar {
 
       // Keyboard shortcut
       scene.input.keyboard.on(`keydown-${keyNum}`, () => {
+        if (scene._settingsOpen || scene._tutorialOpen) return;
         this.selectUnit(unit, i);
       });
 
