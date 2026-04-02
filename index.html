@@ -476,7 +476,34 @@
     .cs-hint {
       font-size: 11px;
       color: #555;
-      margin-bottom: 28px;
+      margin-bottom: 16px;
+      letter-spacing: 1px;
+    }
+    .cs-input-wrap {
+      cursor: text;
+      min-width: 200px;
+      padding: 6px 0;
+    }
+    #callsign-random {
+      background: rgba(51, 255, 102, 0.05);
+      border: 1px solid rgba(51, 255, 102, 0.2);
+      color: #33ff66;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 12px;
+      padding: 8px 24px;
+      border-radius: 4px;
+      cursor: pointer;
+      letter-spacing: 2px;
+      margin-bottom: 16px;
+      transition: all 0.15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    #callsign-random:hover {
+      background: rgba(51, 255, 102, 0.12);
+      border-color: rgba(51, 255, 102, 0.4);
+    }
+    #callsign-random:active {
+      background: rgba(51, 255, 102, 0.2);
     }
     #callsign-submit {
       background: rgba(51, 255, 102, 0.1);
@@ -535,7 +562,8 @@
       <div class="cs-header">CENTCOM PERSONNEL IDENTIFICATION</div>
       <div class="cs-subheader">ENTER YOUR CALLSIGN, ADMIRAL</div>
       <div class="cs-input-wrap"><span class="cs-prompt">&gt;</span><input id="callsign-input" type="text" maxlength="12" autocomplete="off" spellcheck="false"><span class="cs-cursor">_</span></div>
-      <div class="cs-hint"></div>
+      <div class="cs-hint">3–12 CHARS • LETTERS &amp; NUMBERS ONLY</div>
+      <button id="callsign-random" type="button">🎲 RANDOM CALLSIGN</button>
       <button id="callsign-submit" disabled>CONFIRM IDENTITY</button>
       <div class="cs-footer">TOP SECRET // SCI // NOFORN</div>
     </div>
