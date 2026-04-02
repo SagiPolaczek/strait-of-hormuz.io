@@ -39,6 +39,14 @@ export class TrumpShock {
     this.minInterval = 30000;   // min 30s between events
     this.meanInterval = 120000; // mean 2 minutes (exponential dist)
     this._nextTimer = null;
+    this._currentSound = null;
+
+    // Trump voice clips (loaded in BootScene)
+    this.TRUMP_CLIPS = [
+      'trump_fake_news', 'trump_dont_be_rude', 'trump_dont_give_a_damn',
+      'trump_died_like_a_dog', 'trump_approves_this', 'trump_best_words',
+      'trump_win_too_much', 'trump_im_going_2_come',
+    ];
 
     // HUD multiplier badge
     this.badge = scene.add.text(480, 10, '', {
@@ -99,6 +107,9 @@ export class TrumpShock {
     const W = 1920;
     const H = 1539;
 
+    // ── Play random Trump voice clip ──
+    this._playRandomClip();
+
     // ── Trump image slides in from bottom-right ──
     const trump = this.scene.add.image(W - 100, H + 200, 'trump')
       .setOrigin(0.5, 1)
@@ -114,30 +125,30 @@ export class TrumpShock {
 
     // ── Speech bubble ──
     const bubbleX = W - 500;
-    const bubbleY = 400;
-    const bubbleW = 620;
-    const bubbleH = 180;
+    const bubbleY = 420;
+    const bubbleW = 720;
+    const bubbleH = 240;
 
     const bubble = this.scene.add.graphics().setDepth(181);
-    bubble.fillStyle(0xffffff, 0.95);
-    bubble.fillRoundedRect(bubbleX - bubbleW / 2, bubbleY - bubbleH / 2, bubbleW, bubbleH, 12);
+    bubble.fillStyle(0xffffff, 0.97);
+    bubble.fillRoundedRect(bubbleX - bubbleW / 2, bubbleY - bubbleH / 2, bubbleW, bubbleH, 14);
     // Speech tail pointing toward trump
     bubble.fillTriangle(
-      bubbleX + 120, bubbleY + bubbleH / 2,
-      bubbleX + 160, bubbleY + bubbleH / 2 + 30,
-      bubbleX + 180, bubbleY + bubbleH / 2
+      bubbleX + 140, bubbleY + bubbleH / 2,
+      bubbleX + 180, bubbleY + bubbleH / 2 + 35,
+      bubbleX + 200, bubbleY + bubbleH / 2
     );
-    bubble.lineStyle(3, 0xcc0000, 0.8);
-    bubble.strokeRoundedRect(bubbleX - bubbleW / 2, bubbleY - bubbleH / 2, bubbleW, bubbleH, 12);
+    bubble.lineStyle(4, 0xcc0000, 0.9);
+    bubble.strokeRoundedRect(bubbleX - bubbleW / 2, bubbleY - bubbleH / 2, bubbleW, bubbleH, 14);
     bubble.setAlpha(0);
 
     const quoteText = this.scene.add.text(bubbleX, bubbleY, `"${quote}"`, {
-      fontSize: '22px',
+      fontSize: '28px',
       fontFamily: '"Black Ops One", cursive',
       color: '#1a1a1a',
-      wordWrap: { width: bubbleW - 50 },
+      wordWrap: { width: bubbleW - 60 },
       align: 'center',
-      lineSpacing: 6,
+      lineSpacing: 8,
     }).setOrigin(0.5).setDepth(182).setAlpha(0);
 
     // Fade in bubble
@@ -152,11 +163,11 @@ export class TrumpShock {
     const sign = positive ? '+' : '-';
     const color = positive ? '#4CAF50' : '#ef5350';
     const changeText = this.scene.add.text(W / 2, H / 2 - 100, `OIL ${sign}${k}%`, {
-      fontSize: '72px',
+      fontSize: '96px',
       fontFamily: '"Black Ops One", cursive',
       color,
       stroke: '#000000',
-      strokeThickness: 6,
+      strokeThickness: 8,
     }).setOrigin(0.5).setDepth(185).setAlpha(0);
 
     this.scene.tweens.add({
@@ -177,12 +188,12 @@ export class TrumpShock {
     });
 
     // Multiplier sub-text
-    const multText = this.scene.add.text(W / 2, H / 2 - 40, `Oil Value: ${this.multiplier.toFixed(2)}x`, {
-      fontSize: '24px',
+    const multText = this.scene.add.text(W / 2, H / 2 - 20, `Oil Value: ${this.multiplier.toFixed(2)}x`, {
+      fontSize: '32px',
       fontFamily: '"Share Tech Mono", monospace',
       color: '#ffffff',
       stroke: '#000000',
-      strokeThickness: 3,
+      strokeThickness: 4,
     }).setOrigin(0.5).setDepth(185).setAlpha(0);
 
     this.scene.tweens.add({
@@ -231,6 +242,17 @@ export class TrumpShock {
   }
 
   // Called by EconomyManager to scale oil income
+  _playRandomClip() {
+    // Stop any currently playing trump clip
+    if (this._currentSound?.isPlaying) this._currentSound.stop();
+
+    const clipKey = this.TRUMP_CLIPS[Math.floor(Math.random() * this.TRUMP_CLIPS.length)];
+    if (this.scene.cache.audio.exists(clipKey)) {
+      this._currentSound = this.scene.sound.add(clipKey, { volume: 0.6 });
+      this._currentSound.play();
+    }
+  }
+
   getMultiplier() {
     return this.multiplier;
   }

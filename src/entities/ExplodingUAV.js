@@ -63,7 +63,8 @@ export class ExplodingUAV extends Phaser.GameObjects.Container {
       return;
     }
 
-    if (this.body) this.body.setVelocity((dx / dist) * this.speed, (dy / dist) * this.speed);
+    const d = dist || 1;
+    if (this.body) this.body.setVelocity((dx / d) * this.speed, (dy / d) * this.speed);
     this.angle = Math.atan2(dy, dx) * (180 / Math.PI);
 
     if (this.trail?.active) {

@@ -81,7 +81,7 @@ export class Ship extends Phaser.GameObjects.Container {
         this.onReachedEnd();
         return;
       }
-    } else {
+    } else if (dist > 0.1) {
       const speed = this.getEffectiveSpeed();
       const vx = (dx / dist) * speed;
       const vy = (dy / dist) * speed;

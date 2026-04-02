@@ -309,6 +309,8 @@ export class OilRig extends Phaser.GameObjects.Container {
       this.oilTextTimer.remove(false);
       this.oilTextTimer = null;
     }
+    if (this.reserveLabel?.active) this.reserveLabel.destroy();
+    this.reserveLabel = null;
     this._timers.forEach(t => { if (t) t.remove(false); });
     this._timers = [];
     super.destroy(fromScene);

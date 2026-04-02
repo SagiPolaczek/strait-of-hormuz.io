@@ -66,8 +66,8 @@ export class CruiseMissile extends Phaser.GameObjects.Container {
       return;
     }
 
-    const vx = (dx / dist) * this.speed;
-    const vy = (dy / dist) * this.speed;
+    const vx = (dx / (dist || 1)) * this.speed;
+    const vy = (dy / (dist || 1)) * this.speed;
     if (this.body) this.body.setVelocity(vx, vy);
     this.angle = Math.atan2(dy, dx) * (180 / Math.PI);
 

@@ -7,7 +7,8 @@ export class Tanker extends Ship {
   }
 
   onReachedEnd() {
-    const earned = this.scene.onTankerScored(this);
+    if (!this.scene) return;
+    const earned = this.scene.onTankerScored?.(this) || 0;
     this.alive = false;
     if (this.body) this.body.setVelocity(0, 0);
 

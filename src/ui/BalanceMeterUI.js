@@ -26,22 +26,7 @@ export class BalanceMeterUI {
       this.bg.fillRect(this.barX - 20, y, 64, 1);
     }
 
-    // Labels
-    scene.add.text(this.barX + this.barW / 2, this.barTop - 20, 'COALITION', {
-      fontSize: '11px', fontFamily: '"Share Tech Mono", monospace',
-      color: '#42a5f5', letterSpacing: 1,
-    }).setOrigin(0.5).setDepth(D + 1).setScrollFactor(0);
-
-    scene.add.text(this.barX + this.barW / 2, this.barBot + 16, 'IRGC', {
-      fontSize: '11px', fontFamily: '"Share Tech Mono", monospace',
-      color: '#ef5350', letterSpacing: 1,
-    }).setOrigin(0.5).setDepth(D + 1).setScrollFactor(0);
-
-    // "BALANCE" header
-    scene.add.text(this.barX + this.barW / 2, this.barTop - 30, 'BALANCE', {
-      fontSize: '10px', fontFamily: '"Share Tech Mono", monospace',
-      color: '#33ff66', letterSpacing: 2,
-    }).setOrigin(0.5).setDepth(D + 1).setScrollFactor(0).setAlpha(0.5);
+    // (labels removed for cleaner look)
 
     // Track background
     const track = scene.add.graphics().setDepth(D + 1).setScrollFactor(0);
@@ -70,10 +55,7 @@ export class BalanceMeterUI {
       fontStyle: 'bold', color: '#ffffff',
     }).setOrigin(0.5).setDepth(D + 4).setScrollFactor(0);
 
-    this.statusText = scene.add.text(this.barX + this.barW / 2, this.barBot + 28, '', {
-      fontSize: '10px', fontFamily: '"Share Tech Mono", monospace',
-      color: '#ffffff', letterSpacing: 1,
-    }).setOrigin(0.5).setDepth(D + 2).setScrollFactor(0);
+    this.statusText = null;
 
     // Screen edge vignette for urgency
     this.vignette = scene.add.graphics().setDepth(90).setScrollFactor(0);
@@ -122,18 +104,7 @@ export class BalanceMeterUI {
     this.valueText.setText(String(val)).setColor(textColor);
     this.valueText.y = Math.max(this.barTop + 15, Math.min(this.barBot - 15, pipY - 20));
 
-    // Status text
-    if (n > 0.5) {
-      this.statusText.setText('SECURING').setColor('#42a5f5');
-    } else if (n > 0.1) {
-      this.statusText.setText('ADVANCING').setColor('#90CAF9');
-    } else if (n > -0.1) {
-      this.statusText.setText('CONTESTED').setColor('#ffb300');
-    } else if (n > -0.5) {
-      this.statusText.setText('THREATENED').setColor('#ff9800');
-    } else {
-      this.statusText.setText('LOSING').setColor('#ef5350');
-    }
+    // (status text removed for cleaner look)
 
     // Vignette urgency effects
     this.vignette.clear();

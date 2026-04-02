@@ -28,8 +28,8 @@ export class EconomyManager {
         const reservesMult = 1 + 0.2 * (rig.upgrades?.STORAGE || 0);
         const income = ECONOMY.OIL_RIG_RATE * drillMult * reservesMult * trumpMult;
         this.coalitionOil += income;
-        // Trigger stream animation on the rig
-        if (rig.emitOilStream) rig.emitOilStream(income);
+        // Trigger stream animation on the rig (non-fatal if animation fails)
+        try { if (rig.emitOilStream) rig.emitOilStream(income); } catch (_) {}
       }
 
       // IRGC rigs: auto-collect (AI doesn't need to click)
@@ -49,11 +49,11 @@ export class EconomyManager {
     return collected;
   }
 
-  // Get the effective cost of a unit, scaled by Trump oil shock
-  // High oil prices = everything costs more, low prices = cheaper
+  // Get the effective cost of a unit, inversely scaled by Trump oil shock
+  // High oil prices = your oil is worth more = things cost less
   getEffectiveCost(baseCost) {
     const mult = this.scene.trumpShock?.getMultiplier() || 1;
-    return Math.floor(baseCost * mult);
+    return Math.floor(baseCost / mult);
   }
 
   canAfford(side, cost) {
@@ -65,9 +65,9 @@ export class EconomyManager {
   spend(side, cost) {
     if (!this.canAfford(side, cost)) return false;
     if (side === 'coalition') {
-      this.coalitionOil -= cost;
+      this.coalitionOil = Math.max(0, this.coalitionOil - cost);
     } else {
-      this.irgcOil -= cost;
+      this.irgcOil = Math.max(0, this.irgcOil - cost);
     }
     return true;
   }

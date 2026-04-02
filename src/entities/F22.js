@@ -7,7 +7,7 @@ export class F22 extends Phaser.GameObjects.Container {
     super(scene, x, y);
     this.scene = scene;
     this.airfield = airfield;
-    this.state = 'GROUNDED'; // GROUNDED → FLYING_TO_TARGET → BOMBING → RETURNING → REFUELING
+    this.state = 'GROUNDED'; // GROUNDED → FLYING_TO_TARGET → RETURNING → REFUELING
     this.target = null;
     this.targetPos = null;
     this.alive = true;
@@ -21,12 +21,13 @@ export class F22 extends Phaser.GameObjects.Container {
     // --- F-22 body (delta-wing silhouette) ---
     this.bodyGfx = scene.add.graphics();
     this._drawJet(this.bodyGfx);
+    this.bodyGfx.setScale(1.5);
     this.add(this.bodyGfx);
 
     // --- Shadow (below jet on water surface) ---
     this.shadowGfx = scene.add.graphics();
     this.shadowGfx.fillStyle(0x000000, 0.15);
-    this.shadowGfx.fillEllipse(0, 0, 20, 8);
+    this.shadowGfx.fillEllipse(0, 0, 30, 12);
     this.shadowGfx.setDepth(3);
     scene.add.existing(this.shadowGfx);
 
@@ -133,6 +134,19 @@ export class F22 extends Phaser.GameObjects.Container {
     this.setAlpha(1);
     if (this.trail) this.trail.start();
 
+    // Compute Bezier curve that overshoots 150px past target (jet flies THROUGH, never stops)
+    this._flightStart = { x: this.x, y: this.y };
+    this._flightT = 0;
+    this._bombed = false;
+    const dx = this.targetPos.x - this.x;
+    const dy = this.targetPos.y - this.y;
+    const d = Math.sqrt(dx * dx + dy * dy) || 1;
+    this._flightEnd = {
+      x: this.targetPos.x + (dx / d) * 150,
+      y: this.targetPos.y + (dy / d) * 150,
+    };
+    this._flightCP = this._randomControlPoint(this._flightStart, this._flightEnd, 0.15);
+
     // Takeoff text
     const txt = this.scene.add.text(this.airfield.x, this.airfield.y - 30, '✈ SORTIE LAUNCHED', {
       fontSize: '12px', fontFamily: '"Share Tech Mono", monospace',
@@ -167,9 +181,6 @@ export class F22 extends Phaser.GameObjects.Container {
       case 'FLYING_TO_TARGET':
         this._updateFlying();
         break;
-      case 'BOMBING':
-        // Handled by delayed call
-        break;
       case 'RETURNING':
         this._updateReturning();
         break;
@@ -189,35 +200,81 @@ export class F22 extends Phaser.GameObjects.Container {
     }
   }
 
+  _randomControlPoint(from, to, strengthScale) {
+    const mx = (from.x + to.x) / 2;
+    const my = (from.y + to.y) / 2;
+    const dx = to.x - from.x;
+    const dy = to.y - from.y;
+    const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+    // Perpendicular offset: strengthScale controls curve tightness (default 0.3-0.7)
+    const base = strengthScale ?? 0.35;
+    const strength = (base + Math.random() * base) * dist;
+    const side = Math.random() < 0.5 ? 1 : -1;
+    const px = -dy / dist;
+    const py = dx / dist;
+    return { x: mx + px * strength * side, y: my + py * strength * side };
+  }
+
+  _bezierPoint(t, p0, cp, p1) {
+    const u = 1 - t;
+    return {
+      x: u * u * p0.x + 2 * u * t * cp.x + t * t * p1.x,
+      y: u * u * p0.y + 2 * u * t * cp.y + t * t * p1.y,
+    };
+  }
+
   _updateFlying() {
-    // Re-acquire target position (target may have moved or been destroyed)
-    if (this.target && this.target.active) {
-      this.targetPos = { x: this.target.x, y: this.target.y };
+    // Advance along Bezier curve (start → overshoot past target)
+    const from = this._flightStart;
+    const to = this._flightEnd;
+    const dx = to.x - from.x;
+    const dy = to.y - from.y;
+    const totalDist = Math.sqrt(dx * dx + dy * dy) || 1;
+    const step = this.speed / (60 * totalDist);
+    this._flightT = Math.min(this._flightT + step, 1);
+
+    const pos = this._bezierPoint(this._flightT, from, this._flightCP, to);
+
+    // Facing direction from tangent
+    const nextT = Math.min(this._flightT + 0.02, 1);
+    const nextPos = this._bezierPoint(nextT, from, this._flightCP, to);
+    const tdx = nextPos.x - pos.x;
+    const tdy = nextPos.y - pos.y;
+    this.angle = Math.atan2(tdy, tdx) * (180 / Math.PI);
+
+    if (this.body) this.body.setVelocity(0, 0);
+    this.x = pos.x;
+    this.y = pos.y;
+
+    // Drop bomb when passing close to target (smooth flyby, no stopping)
+    if (!this._bombed) {
+      const distToTarget = Phaser.Math.Distance.Between(this.x, this.y, this.targetPos.x, this.targetPos.y);
+      if (distToTarget < 50) {
+        this._bombed = true;
+        this._dropBomb();
+      }
     }
 
-    const dx = this.targetPos.x - this.x;
-    const dy = this.targetPos.y - this.y;
-    const dist = Math.sqrt(dx * dx + dy * dy);
-
-    if (dist < 1) {
-      this._doBombingRun();
-      return;
-    }
-
-    this.angle = Math.atan2(dy, dx) * (180 / Math.PI);
-
-    if (dist < 30) {
-      this._doBombingRun();
-      return;
-    }
-
-    if (this.body) {
-      this.body.setVelocity((dx / dist) * this.speed, (dy / dist) * this.speed);
+    // After overshoot, smoothly transition to return path
+    if (this._flightT >= 1.0) {
+      // Fallback: if curve didn't pass close enough, bomb now
+      if (!this._bombed) {
+        this._bombed = true;
+        this._dropBomb();
+      }
+      if (!this.airfield || !this.airfield.active) {
+        this.onAirfieldDestroyed();
+        return;
+      }
+      this.state = 'RETURNING';
+      this._returnStart = { x: this.x, y: this.y };
+      this._returnT = 0;
+      this._returnCP = this._randomControlPoint(this._returnStart, { x: this.airfield.x, y: this.airfield.y });
     }
   }
 
-  _doBombingRun() {
-    this.state = 'BOMBING';
+  _dropBomb() {
+    if (!this.scene) return;
     const wx = this.targetPos.x;
     const wy = this.targetPos.y;
 
@@ -255,41 +312,44 @@ export class F22 extends Phaser.GameObjects.Container {
       targets: txt, y: wy - 55, alpha: 0, duration: 1200,
       onComplete: () => txt.destroy(),
     });
-
-    // Continue flying past, then loop back
-    const t = this.scene.time.delayedCall(500, () => {
-      this.state = 'RETURNING';
-    });
-    this._timers.push(t);
   }
 
   _updateReturning() {
+    if (!this.scene) return;
     if (!this.airfield || !this.airfield.active) {
       this.onAirfieldDestroyed();
       return;
     }
 
-    const dx = this.airfield.x - this.x;
-    const dy = this.airfield.y - this.y;
-    const dist = Math.sqrt(dx * dx + dy * dy);
+    const home = { x: this.airfield.x, y: this.airfield.y };
+    const from = this._returnStart;
+    const dx = home.x - from.x;
+    const dy = home.y - from.y;
+    const totalDist = Math.sqrt(dx * dx + dy * dy) || 1;
+    const step = this.speed / (60 * totalDist);
+    this._returnT = Math.min(this._returnT + step, 1);
 
-    this.angle = Math.atan2(dy, dx) * (180 / Math.PI);
+    const pos = this._bezierPoint(this._returnT, from, this._returnCP, home);
 
-    if (dist < 25) {
+    // Facing direction from tangent
+    const nextT = Math.min(this._returnT + 0.02, 1);
+    const nextPos = this._bezierPoint(nextT, from, this._returnCP, home);
+    const tdx = nextPos.x - pos.x;
+    const tdy = nextPos.y - pos.y;
+    this.angle = Math.atan2(tdy, tdx) * (180 / Math.PI);
+
+    if (this.body) this.body.setVelocity(0, 0);
+    this.x = pos.x;
+    this.y = pos.y;
+
+    if (this._returnT >= 0.95) {
       // Landed — begin refueling
       this.x = this.airfield.x;
       this.y = this.airfield.y;
-      if (this.body) this.body.setVelocity(0, 0);
       this.state = 'REFUELING';
       this.refuelStart = this.scene.time.now;
-      this.setAlpha(0); // hide while on ground
+      this.setAlpha(0);
       if (this.trail) this.trail.stop();
-      return;
-    }
-
-    if (dist < 1) return; // avoid div-by-zero
-    if (this.body) {
-      this.body.setVelocity((dx / dist) * this.speed, (dy / dist) * this.speed);
     }
   }
 
@@ -305,6 +365,9 @@ export class F22 extends Phaser.GameObjects.Container {
     this.alive = false;
     if (this.trail?.active) { this.trail.stop(); this.trail.destroy(); this.trail = null; }
     if (this.shadowGfx?.active) this.shadowGfx.destroy();
+    this.shadowGfx = null;
+
+    if (!this.scene) { this.destroy(); return; }
 
     // Crash explosion if in flight
     if (this.state === 'FLYING_TO_TARGET' || this.state === 'RETURNING') {
@@ -330,6 +393,8 @@ export class F22 extends Phaser.GameObjects.Container {
     this.trail = null;
     if (this.shadowGfx?.active) this.shadowGfx.destroy();
     this.shadowGfx = null;
+    if (this.bodyGfx?.active) this.bodyGfx.destroy();
+    this.bodyGfx = null;
     super.destroy(fromScene);
   }
 }

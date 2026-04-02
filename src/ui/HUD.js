@@ -46,22 +46,16 @@ export class HUD {
     });
     dividers.strokePath();
 
-    // ── CLASSIFICATION LABEL ──
-    this.classLabel = scene.add.text(16, panelY, 'CENTCOM // LIVE', {
-      fontSize: '16px',
-      fontFamily: '"Share Tech Mono", monospace',
-      color: '#33ff66',
-      letterSpacing: 2,
-    }).setOrigin(0, 0.5).setDepth(DEPTH_TEXT).setScrollFactor(0).setAlpha(0.5);
+    // (classification label removed)
 
-    // ── CALLSIGN ──
+    // ── CALLSIGN (bottom-right, above deployment bar) ──
     const callsign = localStorage.getItem('hormuz_callsign') || 'UNKNOWN';
-    this.callsignText = scene.add.text(16, panelY + 22, `ADM. ${callsign}`, {
-      fontSize: '11px',
-      fontFamily: '"Share Tech Mono", monospace',
+    this.callsignText = scene.add.text(1840, 1539 - 120, `ADM. ${callsign}`, {
+      fontSize: '18px',
+      fontFamily: '"Black Ops One", cursive',
       color: '#ffb300',
-      letterSpacing: 1,
-    }).setOrigin(0, 0.5).setDepth(DEPTH_TEXT).setScrollFactor(0).setAlpha(0.7);
+      letterSpacing: 2,
+    }).setOrigin(1, 1).setDepth(DEPTH_TEXT).setScrollFactor(0).setAlpha(0.8);
 
     // ── OIL SECTION (x: 180–420) ──
     this.oilLabel = scene.add.text(185, 10, 'FUEL RESERVES', {
@@ -71,22 +65,22 @@ export class HUD {
       letterSpacing: 1,
     }).setDepth(DEPTH_TEXT).setScrollFactor(0).setAlpha(1);
 
-    // Oil bar background
+    // Oil bar background (tall enough to contain the number)
     this.oilBarBg = scene.add.graphics().setDepth(DEPTH_PANEL).setScrollFactor(0);
     this.oilBarBg.fillStyle(0x1a1a1a, 0.9);
-    this.oilBarBg.fillRoundedRect(185, 30, 180, 14, 2);
+    this.oilBarBg.fillRoundedRect(185, 28, 200, 44, 4);
     this.oilBarBg.lineStyle(1, 0xffb300, 0.3);
-    this.oilBarBg.strokeRoundedRect(185, 30, 180, 14, 2);
+    this.oilBarBg.strokeRoundedRect(185, 28, 200, 44, 4);
 
     // Oil bar fill (will be updated)
     this.oilBarFill = scene.add.graphics().setDepth(DEPTH_PANEL + 0.5).setScrollFactor(0);
 
-    this.oilText = scene.add.text(374, 8, '0', {
+    this.oilText = scene.add.text(285, 50, '0', {
       fontSize: '36px',
       fontFamily: '"Orbitron", sans-serif',
       fontStyle: 'bold',
       color: '#ffb300',
-    }).setDepth(DEPTH_TEXT).setScrollFactor(0);
+    }).setOrigin(0.5).setDepth(DEPTH_TEXT).setScrollFactor(0);
 
 
     // ── MISSION CLOCK (x: 820–1160) ──
@@ -212,12 +206,12 @@ export class HUD {
       const fillPct = Math.min(oil / maxOil, 1);
       this.oilBarFill.clear();
       if (fillPct > 0) {
-        const barW = 176 * fillPct;
+        const barW = 196 * fillPct;
         const fillColor = fillPct > 0.3 ? 0xffb300 : fillPct > 0.15 ? 0xff8f00 : 0xef5350;
-        this.oilBarFill.fillStyle(fillColor, 0.85);
-        this.oilBarFill.fillRoundedRect(187, 32, barW, 10, 1);
-        this.oilBarFill.fillStyle(0xffffff, 0.15);
-        this.oilBarFill.fillRect(187, 32, barW, 2);
+        this.oilBarFill.fillStyle(fillColor, 0.25);
+        this.oilBarFill.fillRoundedRect(187, 30, barW, 40, 3);
+        this.oilBarFill.fillStyle(0xffffff, 0.08);
+        this.oilBarFill.fillRect(187, 30, barW, 2);
       }
     }
 

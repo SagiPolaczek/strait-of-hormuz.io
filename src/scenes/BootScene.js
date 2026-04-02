@@ -179,6 +179,16 @@ export class BootScene extends Phaser.Scene {
     // ── Load assets ──
     this.load.image('map', 'assets/strait.jpg');
     this.load.image('trump', 'assets/trump.png');
+
+    // ── Trump sound clips ──
+    this.load.audio('trump_fake_news', 'assets/audio/trump/fake-news.mp3');
+    this.load.audio('trump_dont_be_rude', 'assets/audio/trump/dont-be-rude.mp3');
+    this.load.audio('trump_dont_give_a_damn', 'assets/audio/trump/dont-give-a-damn.mp3');
+    this.load.audio('trump_died_like_a_dog', 'assets/audio/trump/died-like-a-dog.mp3');
+    this.load.audio('trump_approves_this', 'assets/audio/trump/approves-this.mp3');
+    this.load.audio('trump_best_words', 'assets/audio/trump/best-words.mp3');
+    this.load.audio('trump_win_too_much', 'assets/audio/trump/win-too-much.mp3');
+    this.load.audio('trump_im_going_2_come', 'assets/audio/trump/im-going-2-come.mp3');
   }
 
   create() {

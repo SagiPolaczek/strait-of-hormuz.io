@@ -30,13 +30,7 @@ export class DeploymentBar {
     }
     this.bg = bg;
 
-    // ── Section label ──
-    scene.add.text(40, barTop + 8, 'TACTICAL DEPLOYMENT', {
-      fontSize: '16px',
-      fontFamily: '"Share Tech Mono", monospace',
-      color: '#33ff66',
-      letterSpacing: 2,
-    }).setDepth(DEPTH_CONTENT).setScrollFactor(0).setAlpha(0.5);
+    // (section label removed)
 
     // ── Unit cards ──
     const unitList = Object.values(COALITION_UNITS);
@@ -60,15 +54,10 @@ export class DeploymentBar {
         .setDepth(DEPTH_OVERLAY + 1).setScrollFactor(0)
         .setInteractive({ useHandCursor: true });
 
-      // Keyboard shortcut badge (top-left of card)
-      const keyBadge = scene.add.text(cx - cardW / 2 + 6, cy - cardH / 2 + 4, String(keyNum), {
+      // Keyboard shortcut badge (hidden — kept for internal reference)
+      const keyBadge = scene.add.text(cx - cardW / 2 + 6, cy - cardH / 2 + 4, '', {
         fontSize: '16px',
-        fontFamily: '"Orbitron", sans-serif',
-        fontStyle: 'bold',
-        color: '#33ff66',
-        backgroundColor: 'rgba(0,0,0,0.6)',
-        padding: { x: 5, y: 2 },
-      }).setDepth(DEPTH_CONTENT).setScrollFactor(0).setAlpha(0.8);
+      }).setDepth(DEPTH_CONTENT).setScrollFactor(0).setAlpha(0);
 
       // Icon
       const icon = scene.add.text(cx - cardW / 2 + 32, cy - 2, unit.icon, {
@@ -158,12 +147,12 @@ export class DeploymentBar {
       });
     });
 
-    // ── Status text (right side) ──
-    this.statusText = scene.add.text(1880, barY, 'SELECT UNIT TO DEPLOY', {
+    // ── Status text (left side) ──
+    this.statusText = scene.add.text(40, barY, 'SELECT UNIT TO DEPLOY', {
       fontSize: '16px',
       fontFamily: '"Share Tech Mono", monospace',
       color: '#666666',
-    }).setOrigin(1, 0.5).setDepth(DEPTH_CONTENT).setScrollFactor(0);
+    }).setOrigin(0, 0.5).setDepth(DEPTH_CONTENT).setScrollFactor(0).setAlpha(1);
   }
 
   _drawCard(gfx, cx, cy, w, h, selected, locked) {

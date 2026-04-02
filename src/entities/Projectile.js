@@ -79,8 +79,8 @@ export class Projectile extends Phaser.GameObjects.Container {
       return;
     }
 
-    const vx = (dx / dist) * this.config.speed;
-    const vy = (dy / dist) * this.config.speed;
+    const vx = (dx / (dist || 1)) * this.config.speed;
+    const vy = (dy / (dist || 1)) * this.config.speed;
     if (this.body) this.body.setVelocity(vx, vy);
 
     // Rotate to face direction

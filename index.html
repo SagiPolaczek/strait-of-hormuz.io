@@ -532,6 +532,215 @@
       letter-spacing: 3px;
       opacity: 0.4;
     }
+    /* ── Tutorial overlay ── */
+    #tutorial-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 99998;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .tut-dim {
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      animation: tut-dim-in 0.6s ease-out forwards;
+    }
+    @keyframes tut-dim-in { from { opacity: 0; } to { opacity: 1; } }
+    .tut-scanlines {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: repeating-linear-gradient(transparent 0px, transparent 2px, rgba(0,0,0,0.04) 2px, rgba(0,0,0,0.04) 3px);
+    }
+    .tut-header {
+      position: absolute;
+      top: 8%;
+      left: 50%;
+      transform: translateX(-50%);
+      text-align: center;
+      opacity: 0;
+      animation: tut-header-in 0.5s ease-out 0.3s forwards;
+      z-index: 2;
+    }
+    @keyframes tut-header-in {
+      from { opacity: 0; transform: translateX(-50%) translateY(8px); }
+      to { opacity: 1; transform: translateX(-50%) translateY(0); }
+    }
+    .tut-header-sub {
+      font-size: 9px;
+      color: #33ff66;
+      letter-spacing: 4px;
+      opacity: 0.5;
+      margin-bottom: 4px;
+    }
+    .tut-header-title {
+      font-family: 'Black Ops One', cursive;
+      font-size: 28px;
+      color: #e0e0e0;
+      text-shadow: 0 0 20px rgba(51, 255, 102, 0.2);
+    }
+    /* Content container — JS positions this to match the Phaser canvas */
+    #tut-content {
+      position: fixed;
+      z-index: 99999;
+      pointer-events: none;
+    }
+    .tut-route-svg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      pointer-events: none;
+    }
+    .tut-route-dots {
+      fill: none;
+      stroke: rgba(51, 255, 102, 0.12);
+      stroke-width: 2;
+      stroke-dasharray: 8 12;
+    }
+    .tut-route-line {
+      fill: none;
+      stroke: url(#tutRouteGrad);
+      stroke-width: 3.5;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-dasharray: 3200;
+      stroke-dashoffset: 3200;
+      filter: drop-shadow(0 0 6px rgba(51, 255, 102, 0.5));
+      animation: tut-draw-route 2.5s ease-out 1.2s forwards;
+    }
+    @keyframes tut-draw-route { to { stroke-dashoffset: 0; } }
+    .tut-route-tanker {
+      font-size: 36px;
+      filter: drop-shadow(0 0 10px rgba(255, 179, 0, 0.7));
+    }
+    .tut-ann-fo { overflow: visible; }
+    .tut-ann {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      width: 100%;
+      height: 100%;
+      justify-content: center;
+      font-family: 'Share Tech Mono', monospace;
+    }
+    .tut-ann-ring-outer {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      border: 2px solid;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -80%);
+      animation: tut-pulse 2s ease-out infinite;
+    }
+    @keyframes tut-pulse {
+      0% { transform: translate(-50%, -80%) scale(1); opacity: 0.6; }
+      100% { transform: translate(-50%, -80%) scale(1.8); opacity: 0; }
+    }
+    .tut-ann-ring {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      margin-bottom: 6px;
+    }
+    .tut-ann-label {
+      font-family: 'Black Ops One', cursive;
+      font-size: 13px;
+      letter-spacing: 1px;
+      text-shadow: 0 0 8px rgba(0,0,0,0.9), 0 2px 4px rgba(0,0,0,0.8);
+    }
+    .tut-ann-desc {
+      font-size: 11px;
+      color: #bbb;
+      margin-top: 2px;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+      line-height: 1.3;
+    }
+    .tut-ann-deploy .tut-ann-ring { background: rgba(66,165,245,0.15); border: 1px solid rgba(66,165,245,0.4); }
+    .tut-ann-deploy .tut-ann-ring-outer { border-color: rgba(66,165,245,0.5); }
+    .tut-ann-deploy .tut-ann-label { color: #64b5f6; }
+    .tut-ann-oil .tut-ann-ring { background: rgba(255,179,0,0.12); border: 1px solid rgba(255,179,0,0.35); }
+    .tut-ann-oil .tut-ann-ring-outer { border-color: rgba(255,179,0,0.4); }
+    .tut-ann-oil .tut-ann-label { color: #ffb300; }
+    .tut-ann-exit .tut-ann-ring { background: rgba(76,175,80,0.15); border: 1px solid rgba(76,175,80,0.4); }
+    .tut-ann-exit .tut-ann-ring-outer { border-color: rgba(76,175,80,0.5); }
+    .tut-ann-exit .tut-ann-label { color: #66bb6a; }
+    .tut-ann-enemy .tut-ann-ring { background: rgba(239,83,80,0.12); border: 1px solid rgba(239,83,80,0.35); }
+    .tut-ann-enemy .tut-ann-ring-outer { border-color: rgba(239,83,80,0.4); }
+    .tut-ann-enemy .tut-ann-label { color: #ef5350; }
+    .tut-fo-deploy .tut-ann { opacity: 0; animation: tut-ann-in 0.5s ease-out 0.8s forwards; }
+    .tut-fo-oil .tut-ann    { opacity: 0; animation: tut-ann-in 0.5s ease-out 1.5s forwards; }
+    .tut-fo-exit .tut-ann   { opacity: 0; animation: tut-ann-in 0.5s ease-out 2.2s forwards; }
+    .tut-fo-enemy .tut-ann  { opacity: 0; animation: tut-ann-in 0.5s ease-out 2.9s forwards; }
+    @keyframes tut-ann-in {
+      0% { opacity: 0; transform: scale(0.7); }
+      70% { transform: scale(1.05); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+    .tut-bottom {
+      position: absolute;
+      bottom: 60px;
+      left: 50%;
+      transform: translateX(-50%);
+      text-align: center;
+      z-index: 2;
+      opacity: 0;
+      animation: tut-btn-in 0.5s ease-out 3.5s forwards;
+      pointer-events: auto;
+    }
+    @keyframes tut-btn-in {
+      from { opacity: 0; transform: translateX(-50%) translateY(10px); }
+      to { opacity: 1; transform: translateX(-50%) translateY(0); }
+    }
+    #tut-begin {
+      background: rgba(10, 14, 20, 0.92);
+      border: 1px solid rgba(51, 255, 102, 0.4);
+      color: #33ff66;
+      font-family: 'Black Ops One', cursive;
+      font-size: 16px;
+      padding: 14px 44px;
+      border-radius: 4px;
+      cursor: pointer;
+      letter-spacing: 2px;
+      transition: all 0.15s;
+      box-shadow: 0 0 20px rgba(51, 255, 102, 0.1);
+      -webkit-tap-highlight-color: transparent;
+    }
+    #tut-begin:hover {
+      background: rgba(51, 255, 102, 0.15);
+      border-color: #33ff66;
+    }
+    #tut-skip {
+      position: absolute;
+      top: 6%;
+      right: 20px;
+      z-index: 2;
+      font-size: 11px;
+      color: #444;
+      cursor: pointer;
+      letter-spacing: 2px;
+      opacity: 0;
+      animation: tut-skip-in 0.3s ease-out 0.5s forwards;
+      -webkit-tap-highlight-color: transparent;
+    }
+    #tut-skip:hover { color: #888; }
+    @keyframes tut-skip-in { to { opacity: 1; } }
+    .tut-bottom-sub {
+      margin-top: 10px;
+      font-size: 10px;
+      color: #444;
+      letter-spacing: 1px;
+    }
   </style>
 </head>
 <body>
@@ -553,6 +762,85 @@
 
   <!-- Mobile: drawer backdrop -->
   <div id="panel-backdrop"></div>
+
+  <!-- Tutorial overlay -->
+  <div id="tutorial-overlay" style="display:none;">
+    <div class="tut-dim"></div>
+    <div class="tut-scanlines"></div>
+
+    <!-- This container is positioned by JS to match the Phaser canvas -->
+    <div id="tut-content">
+      <div class="tut-header">
+        <div class="tut-header-sub">CLASSIFIED // CENTCOM BRIEFING</div>
+        <div class="tut-header-title">MISSION BRIEFING</div>
+      </div>
+
+      <div id="tut-skip">SKIP ▸</div>
+
+      <svg class="tut-route-svg" viewBox="0 0 1920 1539" preserveAspectRatio="xMidYMid meet">
+      <defs>
+        <linearGradient id="tutRouteGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stop-color="#42a5f5"/>
+          <stop offset="40%" stop-color="#33ff66"/>
+          <stop offset="100%" stop-color="#4CAF50"/>
+        </linearGradient>
+        <!-- Ship route through the strait, staying in water, ending at EXIT zone -->
+        <path id="tutRouteB" d="M100,850 L270,640 L500,550 L720,540 L920,420 L1120,370 L1280,450 L1420,700 L1580,770 L1750,795 L1890,1100"/>
+      </defs>
+      <use href="#tutRouteB" class="tut-route-dots"/>
+      <use href="#tutRouteB" class="tut-route-line"/>
+      <text class="tut-route-tanker" opacity="0">
+        <animateMotion dur="2.5s" begin="1.2s" fill="freeze" rotate="auto">
+          <mpath href="#tutRouteB"/>
+        </animateMotion>
+        <animate attributeName="opacity" from="0" to="1" dur="0.2s" begin="1.2s" fill="freeze"/>
+        ⛽
+      </text>
+
+      <!-- Annotations in map coordinates — positions adjustable -->
+      <foreignObject x="-40" y="810" width="200" height="180" class="tut-ann-fo tut-fo-deploy">
+        <div xmlns="http://www.w3.org/1999/xhtml" class="tut-ann tut-ann-deploy">
+          <div class="tut-ann-ring-outer"></div>
+          <div class="tut-ann-ring">⚓</div>
+          <div class="tut-ann-label">DEPLOY ZONE</div>
+          <div class="tut-ann-desc">Launch ships here</div>
+        </div>
+      </foreignObject>
+
+      <foreignObject x="140" y="920" width="240" height="180" class="tut-ann-fo tut-fo-oil">
+        <div xmlns="http://www.w3.org/1999/xhtml" class="tut-ann tut-ann-oil">
+          <div class="tut-ann-ring-outer"></div>
+          <div class="tut-ann-ring">🛢️</div>
+          <div class="tut-ann-label">OIL FIELDS</div>
+          <div class="tut-ann-desc">Build rigs for income</div>
+        </div>
+      </foreignObject>
+
+      <foreignObject x="1760" y="1060" width="200" height="180" class="tut-ann-fo tut-fo-exit">
+        <div xmlns="http://www.w3.org/1999/xhtml" class="tut-ann tut-ann-exit">
+          <div class="tut-ann-ring-outer"></div>
+          <div class="tut-ann-ring">🏁</div>
+          <div class="tut-ann-label">EXIT ZONE</div>
+          <div class="tut-ann-desc">Tankers score here</div>
+        </div>
+      </foreignObject>
+
+      <foreignObject x="720" y="170" width="260" height="180" class="tut-ann-fo tut-fo-enemy">
+        <div xmlns="http://www.w3.org/1999/xhtml" class="tut-ann tut-ann-enemy">
+          <div class="tut-ann-ring-outer"></div>
+          <div class="tut-ann-ring">⚠️</div>
+          <div class="tut-ann-label">IRGC TERRITORY</div>
+          <div class="tut-ann-desc">Threats escalate over time</div>
+        </div>
+      </foreignObject>
+    </svg>
+
+      <div class="tut-bottom">
+        <button id="tut-begin">COMMENCE OPERATIONS</button>
+        <div class="tut-bottom-sub">or press ESC to skip</div>
+      </div>
+    </div><!-- /tut-content -->
+  </div>
 
   <!-- Callsign prompt modal -->
   <div id="callsign-modal" style="display:none;">
