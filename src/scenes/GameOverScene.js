@@ -55,33 +55,6 @@ export class GameOverScene extends Phaser.Scene {
     }
     this.tweens.add({ targets: scanLines, alpha: 1, duration: 800, delay: 400 });
 
-    // ── BREAKING NEWS ticker ──
-    const tickerY = 340;
-    const tickerBg = this.add.graphics().setDepth(210).setAlpha(0);
-    tickerBg.fillStyle(isVictory ? 0x1b5e20 : 0xd32f2f, 1);
-    tickerBg.fillRect(0, tickerY, W, 44);
-    tickerBg.fillStyle(0xffffff, 0.1);
-    tickerBg.fillRect(0, tickerY, W, 1);
-    tickerBg.fillRect(0, tickerY + 43, W, 1);
-
-    const breakingLabel = this.add.text(40, tickerY + 22, isVictory ? 'BREAKING NEWS' : 'BREAKING NEWS', {
-      fontSize: '18px', fontFamily: '"Black Ops One", cursive', color: '#ffffff',
-    }).setOrigin(0, 0.5).setDepth(211).setAlpha(0);
-
-    const tickerDiv = this.add.rectangle(210, tickerY + 22, 2, 28, 0xffffff, 0.5).setDepth(211).setAlpha(0);
-
-    const headlines = isVictory ? VICTORY_HEADLINES : DEFEAT_HEADLINES;
-    const headline = headlines[Phaser.Math.Between(0, headlines.length - 1)](score);
-    const headlineText = this.add.text(230, tickerY + 22, headline.toUpperCase(), {
-      fontSize: '14px', fontFamily: '"Share Tech Mono", monospace',
-      color: '#ffffff', wordWrap: { width: W - 280 },
-    }).setOrigin(0, 0.5).setDepth(211).setAlpha(0);
-
-    this.tweens.add({
-      targets: [tickerBg, breakingLabel, tickerDiv, headlineText],
-      alpha: 1, duration: 400, delay: 800,
-    });
-
     // ── Main debrief card ──
     const cardW = 700;
     const cardH = 640;

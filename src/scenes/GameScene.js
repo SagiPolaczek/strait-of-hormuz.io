@@ -104,6 +104,12 @@ export class GameScene extends Phaser.Scene {
     this.hud._onSettingsClick = () => this.toggleSettings();
     this._settingsOpen = false;
 
+    // Ambient background music — shuffle through 4 tracks
+    this._ambientTracks = ['ambient_drums_01', 'ambient_drums_02', 'ambient_drums_03', 'ambient_drums_04'];
+    this._ambientIndex = Math.floor(Math.random() * this._ambientTracks.length);
+    this._ambientCurrent = null;
+    this._startAmbientMusic();
+
     // ESC key toggles settings
     this.input.keyboard.on('keydown-ESC', () => this.toggleSettings());
 
@@ -140,6 +146,7 @@ export class GameScene extends Phaser.Scene {
       this.time.removeAllEvents();
       this._clearZoneOutlines();
       this._clearRangeCircle();
+      this._stopAmbientMusic();
     });
 
     // Click handler — place units on the map
@@ -699,6 +706,7 @@ export class GameScene extends Phaser.Scene {
     this.hud.onPause();
     this.balanceMeter.onPause();
     this.ai.onPause();
+    if (this._ambientCurrent?.isPlaying) this._ambientCurrent.pause();
   }
 
   resumeGame() {
@@ -708,6 +716,32 @@ export class GameScene extends Phaser.Scene {
     this.hud.onResume();
     this.balanceMeter.onResume();
     this.ai.onResume();
+    if (this._ambientCurrent?.isPaused) this._ambientCurrent.resume();
+  }
+
+  _startAmbientMusic() {
+    const key = this._ambientTracks[this._ambientIndex];
+    if (!this.cache.audio.exists(key)) return;
+
+    this._ambientCurrent = this.sound.add(key, {
+      volume: 0.25,
+      loop: false,
+    });
+    this._ambientCurrent.play();
+
+    // When track ends, play the next one
+    this._ambientCurrent.on('complete', () => {
+      this._ambientIndex = (this._ambientIndex + 1) % this._ambientTracks.length;
+      this._startAmbientMusic();
+    });
+  }
+
+  _stopAmbientMusic() {
+    if (this._ambientCurrent) {
+      this._ambientCurrent.stop();
+      this._ambientCurrent.destroy();
+      this._ambientCurrent = null;
+    }
   }
 
   checkGameOver() {

@@ -189,6 +189,12 @@ export class BootScene extends Phaser.Scene {
     this.load.audio('trump_best_words', 'assets/audio/trump/best-words.mp3');
     this.load.audio('trump_win_too_much', 'assets/audio/trump/win-too-much.mp3');
     this.load.audio('trump_im_going_2_come', 'assets/audio/trump/im-going-2-come.mp3');
+
+    // ── Ambient background music (4 tracks, crossfade between them) ──
+    this.load.audio('ambient_drums_01', 'assets/audio/ambient/drums-01.mp3');
+    this.load.audio('ambient_drums_02', 'assets/audio/ambient/drums-02.mp3');
+    this.load.audio('ambient_drums_03', 'assets/audio/ambient/drums-03.mp3');
+    this.load.audio('ambient_drums_04', 'assets/audio/ambient/drums-04.mp3');
   }
 
   create() {
