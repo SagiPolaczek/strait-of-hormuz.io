@@ -90,6 +90,7 @@ export class CoalitionSubmarine extends Ship {
 
     // --- Patrol / Pursue behavior ---
     const enemy = this._findTarget();
+    let vx = 0, vy = 0;
 
     if (enemy) {
       this.patrolState = 'PURSUE';
@@ -99,10 +100,8 @@ export class CoalitionSubmarine extends Ship {
       const speed = this.getEffectiveSpeed();
 
       if (dist > 40) {
-        if (this.body) this.body.setVelocity((dx / dist) * speed, (dy / dist) * speed);
-        this.angle = Math.atan2(dy, dx) * (180 / Math.PI);
-      } else {
-        if (this.body) this.body.setVelocity(0, 0);
+        vx = (dx / dist) * speed;
+        vy = (dy / dist) * speed;
       }
 
       // Fire torpedoes
@@ -126,9 +125,34 @@ export class CoalitionSubmarine extends Ship {
       if (dist < 30) {
         this._pickPatrolPoint(); // reached patrol point, pick next
       } else {
-        if (this.body) this.body.setVelocity((dx / dist) * speed, (dy / dist) * speed);
-        this.angle = Math.atan2(dy, dx) * (180 / Math.PI);
+        vx = (dx / dist) * speed;
+        vy = (dy / dist) * speed;
       }
+    }
+
+    // --- Water boundary enforcement ---
+    if (vx !== 0 || vy !== 0) {
+      const moveAngle = Math.atan2(vy, vx);
+      const aheadX = this.x + Math.cos(moveAngle) * 30;
+      const aheadY = this.y + Math.sin(moveAngle) * 30;
+
+      if (Phaser.Geom.Polygon.Contains(this._waterGeom, aheadX, aheadY)) {
+        if (this.body) this.body.setVelocity(vx, vy);
+        this.angle = Math.atan2(vy, vx) * (180 / Math.PI);
+      } else {
+        // Would leave water — stop and reroute
+        if (this.body) this.body.setVelocity(0, 0);
+        this._pickPatrolPoint();
+        this.patrolState = 'PATROL';
+      }
+    } else {
+      if (this.body) this.body.setVelocity(0, 0);
+    }
+
+    // Safety: if already outside water somehow, steer back to center
+    if (!Phaser.Geom.Polygon.Contains(this._waterGeom, this.x, this.y)) {
+      this.patrolTarget = { x: 800, y: 700 };
+      this.patrolState = 'PATROL';
     }
 
     // --- Wake emitter position ---
