@@ -25,6 +25,13 @@ import { ADVANCED } from '../config/constants.js';
 import { AudioManager } from '../systems/AudioManager.js';
 import { SettingsModal } from '../ui/SettingsModal.js';
 import { isMobile } from '../utils/mobile.js';
+import { FastBoat } from '../entities/FastBoat.js';
+import { Mine } from '../entities/Mine.js';
+import { CruiseMissile } from '../entities/CruiseMissile.js';
+import { ExplodingUAV } from '../entities/ExplodingUAV.js';
+import { MiniSubmarine } from '../entities/MiniSubmarine.js';
+import { IRGC_UNITS } from '../config/units.js';
+import { IRGC_BUILD_SPOTS } from '../config/zones.js';
 
 export class GameScene extends Phaser.Scene {
   constructor() {
@@ -114,6 +121,10 @@ export class GameScene extends Phaser.Scene {
         this._cheatBuffer = '';
         this._activateUnlockCheat();
       }
+      if (this._cheatBuffer.endsWith('alloutwar')) {
+        this._cheatBuffer = '';
+        this._activateAllOutWar();
+      }
     });
 
     // Zone outline graphics for unit selection guidance
@@ -151,6 +162,11 @@ export class GameScene extends Phaser.Scene {
         }
       },
     });
+
+    // Show tutorial on first play (after a brief delay so the game renders)
+    if (!localStorage.getItem('hormuz_tutorial_seen')) {
+      this.time.delayedCall(400, () => this._showTutorial());
+    }
   }
 
   update() {
@@ -531,7 +547,7 @@ export class GameScene extends Phaser.Scene {
     marker.lineBetween(x, y - 10, x, y + 10);
     // Patrol radius circle (dashed)
     marker.lineStyle(1.5, 0x42a5f5, 0.3);
-    marker.strokeCircle(x, y, 80);
+    marker.strokeCircle(x, y, 160);
 
     // "MOVE" label
     const label = this.add.text(x, y - 18, 'MOVE', {
@@ -624,7 +640,55 @@ export class GameScene extends Phaser.Scene {
     this._rangeUnit = null;
   }
 
+  _showTutorial() {
+    const overlay = document.getElementById('tutorial-overlay');
+    if (!overlay) return;
+
+    this.pauseGame();
+    this._tutorialOpen = true;
+    overlay.style.display = 'flex';
+
+    // Align tut-content to the Phaser canvas (and re-align on resize)
+    const content = document.getElementById('tut-content');
+    const alignToCanvas = () => {
+      const canvas = this.sys.game.canvas;
+      if (!canvas || !content) return;
+      const rect = canvas.getBoundingClientRect();
+      content.style.left = rect.left + 'px';
+      content.style.top = rect.top + 'px';
+      content.style.width = rect.width + 'px';
+      content.style.height = rect.height + 'px';
+    };
+    alignToCanvas();
+    this._tutResizeHandler = alignToCanvas;
+    window.addEventListener('resize', this._tutResizeHandler);
+    // Also re-align when Phaser's scale manager fires
+    this.scale.on('resize', alignToCanvas);
+
+
+    const dismiss = () => {
+      localStorage.setItem('hormuz_tutorial_seen', '1');
+      overlay.style.display = 'none';
+      this._tutorialOpen = false;
+      this.resumeGame();
+      document.removeEventListener('keydown', onEsc);
+      window.removeEventListener('resize', this._tutResizeHandler);
+      this.scale.off('resize', this._tutResizeHandler);
+    };
+
+    const beginBtn = document.getElementById('tut-begin');
+    const skipBtn = document.getElementById('tut-skip');
+    if (beginBtn) beginBtn.addEventListener('click', dismiss, { once: true });
+    if (skipBtn) skipBtn.addEventListener('click', dismiss, { once: true });
+
+    const onEsc = (e) => {
+      if (e.key === 'Escape') dismiss();
+    };
+    document.addEventListener('keydown', onEsc);
+  }
+
   toggleSettings() {
+    if (this._tutorialOpen) return;
     this.settingsModal.toggle();
   }
 
@@ -761,6 +825,211 @@ export class GameScene extends Phaser.Scene {
     this.tweens.add({
       targets: [banner, sub], alpha: 0, duration: 500, delay: 3000,
       onComplete: () => { banner.destroy(); sub.destroy(); },
+    });
+  }
+
+  _activateAllOutWar() {
+    this.advancedUnlocked = true;
+    this.economy.coalitionOil = 999999;
+    this.economy.irgcOil = 999999;
+
+    // ── COALITION FORCES ──
+
+    // Oil rigs in coalition zones
+    const coalitionRigSpots = [
+      [300, 1000], [150, 1100], [450, 900],
+      [1300, 1100], [1500, 1200], [1700, 1300],
+    ];
+    for (const [x, y] of coalitionRigSpots) {
+      const rig = new OilRig(this, x, y, 'coalition', COALITION_UNITS.OIL_RIG);
+      this.coalitionRigs.add(rig);
+      this.economy.registerRig('coalition', rig);
+    }
+
+    // Destroyers on every route
+    for (const route of SHIP_ROUTES) {
+      const [sx, sy] = route[0];
+      const ship = new Destroyer(this, sx, sy, COALITION_UNITS.DESTROYER);
+      ship.waypoints = [...route];
+      this.coalitionShips.add(ship);
+    }
+
+    // Tankers on alternating routes
+    for (let i = 0; i < SHIP_ROUTES.length; i += 2) {
+      const route = SHIP_ROUTES[i];
+      const [sx, sy] = route[0];
+      const ship = new Tanker(this, sx, sy, COALITION_UNITS.TANKER);
+      ship.waypoints = [...route];
+      this.coalitionShips.add(ship);
+    }
+
+    // Air defenses along Oman coast
+    const adSpots = [
+      [400, 1100], [600, 950], [800, 800], [1000, 650], [1150, 500],
+    ];
+    for (const [x, y] of adSpots) {
+      const ad = new AirDefense(this, x, y, COALITION_UNITS.AIR_DEFENSE);
+      this.coalitionDefenses.add(ad);
+    }
+
+    // Airfields
+    const afSpots = [[300, 1350], [700, 1200], [1100, 1400], [1500, 1480]];
+    for (const [x, y] of afSpots) {
+      const af = new Airfield(this, x, y, COALITION_UNITS.AIRFIELD);
+      this.coalitionDefenses.add(af);
+    }
+
+    // Submarines
+    for (let i = 0; i < 4; i++) {
+      const route = SHIP_ROUTES[i];
+      const [sx, sy] = route[0];
+      const sub = new CoalitionSubmarine(this, sx, sy, COALITION_UNITS.COALITION_SUB);
+      this.coalitionShips.add(sub);
+    }
+
+    // ── IRGC FORCES ──
+
+    // IRGC oil rigs
+    const irgcRigSpots = [[300, 250], [500, 300], [150, 200], [650, 350]];
+    for (const [x, y] of irgcRigSpots) {
+      const rig = new OilRig(this, x, y, 'irgc', IRGC_UNITS.OIL_RIG);
+      this.irgcRigs.add(rig);
+      this.economy.registerRig('irgc', rig);
+    }
+
+    // Missile launchers on every build spot + extras
+    for (const spot of IRGC_BUILD_SPOTS) {
+      this.placeIRGCLauncher(spot.x, spot.y, IRGC_UNITS.MISSILE_LAUNCHER);
+    }
+    const extraLaunchers = [
+      [400, 350], [600, 300], [800, 280], [1000, 250], [1200, 200],
+      [1400, 300], [1600, 500], [1750, 650],
+    ];
+    for (const [x, y] of extraLaunchers) {
+      this.placeIRGCLauncher(x, y, IRGC_UNITS.MISSILE_LAUNCHER);
+    }
+
+    // Mines scattered across the strait
+    for (let i = 0; i < 15; i++) {
+      const route = SHIP_ROUTES[Math.floor(Math.random() * SHIP_ROUTES.length)];
+      const wp = route[Math.floor(Math.random() * (route.length - 2)) + 1];
+      const mine = new Mine(this, wp[0] + Phaser.Math.Between(-60, 60), wp[1] + Phaser.Math.Between(-40, 40));
+      this.mines.add(mine);
+    }
+
+    // Fast boat swarm
+    for (let i = 0; i < 20; i++) {
+      const x = Phaser.Math.Between(300, 1500);
+      const y = Phaser.Math.Between(100, 300);
+      const variant = Math.random() < 0.4 ? 'suicide' : 'gun';
+      const boat = new FastBoat(this, x, y, variant);
+      this.irgcBoats.add(boat);
+    }
+
+    // Cruise missiles
+    for (let i = 0; i < 5; i++) {
+      const missile = new CruiseMissile(this, Phaser.Math.Between(600, 1600), Phaser.Math.Between(50, 200));
+      this.irgcAir.add(missile);
+    }
+
+    // UAV swarm
+    for (let i = 0; i < 8; i++) {
+      const uav = new ExplodingUAV(this, Phaser.Math.Between(500, 1400), Phaser.Math.Between(80, 250));
+      this.irgcAir.add(uav);
+    }
+
+    // IRGC submarines
+    for (let i = 0; i < 3; i++) {
+      const sub = new MiniSubmarine(this, Phaser.Math.Between(400, 1200), Phaser.Math.Between(300, 600));
+      this.irgcBoats.add(sub);
+    }
+
+    // ── SCREEN SHAKE + FLASH ──
+    const flash = this.add.rectangle(960, 770, 1920, 1539, 0xff4400, 0).setDepth(250);
+    this.tweens.add({
+      targets: flash, fillAlpha: { from: 0, to: 0.35 },
+      duration: 200, yoyo: true, repeat: 2,
+      onComplete: () => flash.destroy(),
+    });
+
+    // Banner
+    const banner = this.add.text(960, 350, '⚔ ALL OUT WAR ⚔', {
+      fontSize: '48px', fontFamily: '"Black Ops One", cursive',
+      color: '#ff4400', stroke: '#000000', strokeThickness: 6,
+    }).setOrigin(0.5).setDepth(251).setAlpha(0);
+
+    const sub = this.add.text(960, 410, 'TOTAL MILITARY MOBILIZATION', {
+      fontSize: '16px', fontFamily: '"Share Tech Mono", monospace',
+      color: '#ff9800', stroke: '#000000', strokeThickness: 2,
+    }).setOrigin(0.5).setDepth(251).setAlpha(0);
+
+    this.tweens.add({
+      targets: banner,
+      alpha: { from: 0, to: 1 },
+      scaleX: { from: 0.3, to: 1.1 },
+      scaleY: { from: 0.3, to: 1.1 },
+      duration: 500, ease: 'Back.easeOut',
+    });
+    this.tweens.add({ targets: sub, alpha: 1, duration: 300, delay: 400 });
+    this.tweens.add({
+      targets: [banner, sub], alpha: 0, duration: 600, delay: 3500,
+      onComplete: () => { banner.destroy(); sub.destroy(); },
+    });
+
+    // ── TRUMP APPEARS WITH WAR QUOTE ──
+    const warQuotes = [
+      "I just sent EVERYTHING. The Army, the Navy, the Marines — EVERYONE. This is gonna be the GREATEST WAR ever fought. BELIEVE ME.",
+      "They said 'Sir, should we hold back reserves?' I said NO. SEND THEM ALL. Every ship, every plane. TOTAL DOMINATION.",
+      "This makes D-Day look like a POOL PARTY. We have MORE SHIPS than the ocean can HOLD. TREMENDOUS military action!",
+      "I called the Pentagon and said 'RELEASE EVERYTHING.' They said 'Sir, that's never been done before.' I said FIRST TIME FOR EVERYTHING.",
+      "Both sides are going ALL IN. This is like the world's BIGGEST poker game, except with AIRCRAFT CARRIERS. And I'm WINNING.",
+      "The FAKE NEWS said I couldn't start a war THIS BIG. Well LOOK AT IT. Have you EVER seen so many ships? I don't THINK so.",
+    ];
+    const quote = warQuotes[Math.floor(Math.random() * warQuotes.length)];
+
+    // Show Trump after a brief delay (after the war banner)
+    this.time.delayedCall(1500, () => {
+      if (!this.scene.isActive()) return;
+      const W = 1920, H = 1539;
+
+      const trump = this.add.image(W - 100, H + 200, 'trump')
+        .setOrigin(0.5, 1).setDepth(260).setScale(0.65);
+      this.tweens.add({ targets: trump, y: H - 100, duration: 500, ease: 'Back.easeOut' });
+
+      const bubbleX = W - 500, bubbleY = 450;
+      const bubbleW = 650, bubbleH = 200;
+
+      const bubble = this.add.graphics().setDepth(261);
+      bubble.fillStyle(0xffffff, 0.95);
+      bubble.fillRoundedRect(bubbleX - bubbleW / 2, bubbleY - bubbleH / 2, bubbleW, bubbleH, 12);
+      bubble.fillTriangle(
+        bubbleX + 120, bubbleY + bubbleH / 2,
+        bubbleX + 160, bubbleY + bubbleH / 2 + 30,
+        bubbleX + 180, bubbleY + bubbleH / 2
+      );
+      bubble.lineStyle(3, 0xff4400, 0.8);
+      bubble.strokeRoundedRect(bubbleX - bubbleW / 2, bubbleY - bubbleH / 2, bubbleW, bubbleH, 12);
+      bubble.setAlpha(0);
+
+      const quoteText = this.add.text(bubbleX, bubbleY, `"${quote}"`, {
+        fontSize: '20px', fontFamily: '"Black Ops One", cursive',
+        color: '#1a1a1a', wordWrap: { width: bubbleW - 50 },
+        align: 'center', lineSpacing: 6,
+      }).setOrigin(0.5).setDepth(262).setAlpha(0);
+
+      this.tweens.add({ targets: [bubble, quoteText], alpha: 1, duration: 300, delay: 400 });
+
+      this.time.delayedCall(5000, () => {
+        if (!this.scene.isActive()) return;
+        this.tweens.add({
+          targets: trump, y: H + 200, duration: 400, ease: 'Cubic.easeIn',
+          onComplete: () => trump.destroy(),
+        });
+        this.tweens.add({
+          targets: [bubble, quoteText], alpha: 0, duration: 300,
+          onComplete: () => { bubble.destroy(); quoteText.destroy(); },
+        });
+      });
     });
   }
 }
