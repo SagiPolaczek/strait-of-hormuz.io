@@ -51,15 +51,14 @@ export class TrumpShock {
     // Schedule first event
     this._scheduleNext();
 
-    // Easter egg: triple-tap T triggers Trump immediately
-    this._tPresses = [];
-    scene.input.keyboard.on('keydown-T', () => {
-      const now = Date.now();
-      this._tPresses.push(now);
-      // Keep only presses within the last 800ms
-      this._tPresses = this._tPresses.filter(t => now - t < 800);
-      if (this._tPresses.length >= 3) {
-        this._tPresses = [];
+    // Easter egg: type "TRUMP" to trigger Trump immediately
+    this._cheatBuffer = '';
+    scene.input.keyboard.on('keydown', (event) => {
+      if (event.key.length !== 1) return;
+      this._cheatBuffer += event.key.toUpperCase();
+      if (this._cheatBuffer.length > 10) this._cheatBuffer = this._cheatBuffer.slice(-10);
+      if (this._cheatBuffer.endsWith('TRUMP')) {
+        this._cheatBuffer = '';
         if (!this.active) this._trigger();
       }
     });
