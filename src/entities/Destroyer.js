@@ -8,6 +8,13 @@ export class Destroyer extends Ship {
     this.lastFired = 0;
     this.currentTarget = null;
 
+    // Manual command: player-directed movement
+    this.commandPoint = null;  // {x, y} — move-to target
+    this.patrolCenter = null;  // {x, y} — patrol around this point once reached
+    this.patrolAngle = 0;
+    this.patrolRadius = 80;
+    this.isCommanded = false;
+
     // Radar dish (lightweight graphics — not worth a texture)
     this.radarGfx = scene.add.graphics();
     this.radarGfx.lineStyle(1, 0x82b1ff, 0.6);
@@ -33,8 +40,19 @@ export class Destroyer extends Ship {
     return Math.floor(this.stats.fireRate * (1 - 0.2 * (this.upgrades.FIRE_RATE || 0)));
   }
 
+  // Set a move command — destroyer will navigate there, then patrol
+  setCommand(x, y) {
+    this.commandPoint = { x, y };
+    this.patrolCenter = null;
+    this.isCommanded = true;
+  }
+
   update() {
-    super.update();
+    if (this.isCommanded) {
+      this._updateCommanded();
+    } else {
+      super.update(); // default route-following
+    }
     if (!this.alive) return;
 
     const now = this.scene.time.now;
@@ -48,7 +66,6 @@ export class Destroyer extends Ship {
       const dx = target.x - this.x;
       const dy = target.y - this.y;
       const worldAngle = Math.atan2(dy, dx) * (180 / Math.PI);
-      // Turret angle is relative to the ship's rotation
       this.turretSprite.angle = worldAngle - this.angle;
     }
 
@@ -59,6 +76,52 @@ export class Destroyer extends Ship {
       this._muzzleFlash();
       const config = { ...PROJECTILES.DESTROYER_SHELL, damage: this.getEffectiveDamage() };
       this.scene.fireProjectile(this.x, this.y, target, config, 'coalition');
+    }
+  }
+
+  _updateCommanded() {
+    if (!this.alive) return;
+
+    // Phase 1: Move to command point
+    if (this.commandPoint && !this.patrolCenter) {
+      const dx = this.commandPoint.x - this.x;
+      const dy = this.commandPoint.y - this.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+
+      if (dist < 20) {
+        // Arrived — start patrolling
+        this.patrolCenter = { ...this.commandPoint };
+        this.commandPoint = null;
+        this.patrolAngle = Math.atan2(this.y - this.patrolCenter.y, this.x - this.patrolCenter.x);
+      } else {
+        const speed = this.getEffectiveSpeed();
+        if (this.body) this.body.setVelocity((dx / dist) * speed, (dy / dist) * speed);
+        this.angle = Math.atan2(dy, dx) * (180 / Math.PI);
+      }
+    }
+
+    // Phase 2: Patrol in a circle around the point
+    if (this.patrolCenter) {
+      this.patrolAngle += 0.008; // slow orbit
+      const tx = this.patrolCenter.x + Math.cos(this.patrolAngle) * this.patrolRadius;
+      const ty = this.patrolCenter.y + Math.sin(this.patrolAngle) * this.patrolRadius;
+      const dx = tx - this.x;
+      const dy = ty - this.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      const speed = this.getEffectiveSpeed() * 0.5;
+
+      if (dist > 5) {
+        if (this.body) this.body.setVelocity((dx / dist) * speed, (dy / dist) * speed);
+        this.angle = Math.atan2(dy, dx) * (180 / Math.PI);
+      } else {
+        if (this.body) this.body.setVelocity(0, 0);
+      }
+    }
+
+    // Wake emitter
+    if (this.wakeEmitter?.active) {
+      const rad = this.rotation;
+      this.wakeEmitter.setPosition(this.x - Math.cos(rad) * 16, this.y - Math.sin(rad) * 16);
     }
   }
 

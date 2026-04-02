@@ -196,6 +196,16 @@ export class GameScene extends Phaser.Scene {
         this._clearRangeCircle();
         if (!unit) return;
       } else {
+        // Check if a destroyer is selected — send move command instead of deselecting
+        const selectedUnit = this.upgradePanel.selectedUnit;
+        if (!unit && selectedUnit?.stats?.key === 'DESTROYER' && selectedUnit.active && selectedUnit.alive) {
+          if (this.zoneManager.isInWater(x, y)) {
+            selectedUnit.setCommand(x, y);
+            this._showMoveCommand(x, y);
+            this.audio.place();
+            return;
+          }
+        }
         // Clicked empty space — deselect
         this.upgradePanel.deselect();
         this._clearRangeCircle();
@@ -509,6 +519,38 @@ export class GameScene extends Phaser.Scene {
     this.tweens.add({
       targets: msg, y: msg.y - 30, alpha: 0, duration: 800,
       onComplete: () => msg.destroy(),
+    });
+  }
+
+  _showMoveCommand(x, y) {
+    // Crosshair marker at destination
+    const marker = this.add.graphics().setDepth(150);
+    marker.lineStyle(2, 0x42a5f5, 0.8);
+    // Crosshair lines
+    marker.lineBetween(x - 10, y, x + 10, y);
+    marker.lineBetween(x, y - 10, x, y + 10);
+    // Patrol radius circle (dashed)
+    marker.lineStyle(1.5, 0x42a5f5, 0.3);
+    marker.strokeCircle(x, y, 80);
+
+    // "MOVE" label
+    const label = this.add.text(x, y - 18, 'MOVE', {
+      fontSize: '11px', fontFamily: '"Share Tech Mono", monospace',
+      color: '#42a5f5', fontStyle: 'bold',
+    }).setOrigin(0.5).setDepth(150);
+
+    // Expanding ring
+    const ring = this.add.circle(x, y, 8, 0x42a5f5, 0.5).setDepth(149);
+    this.tweens.add({
+      targets: ring, scaleX: 3, scaleY: 3, alpha: 0,
+      duration: 600, ease: 'Quad.easeOut',
+      onComplete: () => ring.destroy(),
+    });
+
+    // Fade out marker and label
+    this.tweens.add({
+      targets: [marker, label], alpha: 0, duration: 500, delay: 1500,
+      onComplete: () => { marker.destroy(); label.destroy(); },
     });
   }
 
