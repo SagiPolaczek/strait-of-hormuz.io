@@ -65,6 +65,12 @@ export class FastBoat extends Phaser.GameObjects.Container {
     scene.physics.add.existing(this);
     if (this.body) this.body.setCircle(8, -8, -8);
     this.setDepth(5);
+
+    // Self-destruct after 45s to prevent stuck boats from accumulating
+    const lifeTimer = scene.time.delayedCall(45000, () => {
+      if (this.alive) { this._cleanup(); this.destroy(); }
+    });
+    this._timers.push(lifeTimer);
   }
 
   _drawHull(gfx) {

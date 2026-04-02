@@ -917,10 +917,14 @@ export class GameScene extends Phaser.Scene {
       this.mines.add(mine);
     }
 
-    // Fast boat swarm
+    // Fast boat swarm (spawn inside water polygon near Iranian coast)
     for (let i = 0; i < 20; i++) {
-      const x = Phaser.Math.Between(300, 1500);
-      const y = Phaser.Math.Between(100, 300);
+      const zones = [
+        [Phaser.Math.Between(450, 650), Phaser.Math.Between(480, 560)],
+        [Phaser.Math.Between(750, 1000), Phaser.Math.Between(440, 520)],
+        [Phaser.Math.Between(1050, 1250), Phaser.Math.Between(320, 420)],
+      ];
+      const [x, y] = zones[i % zones.length];
       const variant = Math.random() < 0.4 ? 'suicide' : 'gun';
       const boat = new FastBoat(this, x, y, variant);
       this.irgcBoats.add(boat);

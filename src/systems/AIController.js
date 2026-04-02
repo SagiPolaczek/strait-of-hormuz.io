@@ -102,6 +102,8 @@ export class AIController {
   }
 
   _spawnMines() {
+    if (!this.economy.canAfford('irgc', 30)) return;
+    this.economy.spend('irgc', 30);
     for (let i = 0; i < ADVANCED.MINES_PER_BATCH; i++) {
       const route = SHIP_ROUTES[Math.floor(Math.random() * SHIP_ROUTES.length)];
       const wpIdx = Math.floor(Math.random() * (route.length - 2)) + 1;
@@ -114,6 +116,8 @@ export class AIController {
   }
 
   _launchCruiseMissile() {
+    if (!this.economy.canAfford('irgc', 50)) return;
+    this.economy.spend('irgc', 50);
     const x = Phaser.Math.Between(800, 1800);
     const y = Phaser.Math.Between(50, 150);
     const missile = new CruiseMissile(this.scene, x, y);
@@ -121,6 +125,8 @@ export class AIController {
   }
 
   _launchUAVSwarm() {
+    if (!this.economy.canAfford('irgc', 40)) return;
+    this.economy.spend('irgc', 40);
     const spot = IRGC_BUILD_SPOTS[Math.floor(Math.random() * IRGC_BUILD_SPOTS.length)];
     for (let i = 0; i < ADVANCED.UAV_PER_SWARM; i++) {
       const x = spot.x + Phaser.Math.Between(-30, 30);
@@ -131,6 +137,8 @@ export class AIController {
   }
 
   _launchFastBoatSwarm() {
+    if (!this.economy.canAfford('irgc', 80)) return;
+    this.economy.spend('irgc', 80);
     const minutes = this.getElapsedMinutes();
 
     // Scale swarm size: 5 → 8 → 12 → 15 over time
@@ -146,11 +154,11 @@ export class AIController {
     // HUD warning
     this._showSwarmWarning();
 
-    // Spawn from multiple points along Iranian coast (top of map)
+    // Spawn inside the water polygon near the Iranian coast
     const spawnZones = [
-      { x: Phaser.Math.Between(300, 600), y: Phaser.Math.Between(100, 250) },
-      { x: Phaser.Math.Between(700, 1000), y: Phaser.Math.Between(80, 200) },
-      { x: Phaser.Math.Between(1100, 1500), y: Phaser.Math.Between(100, 280) },
+      { x: Phaser.Math.Between(450, 650), y: Phaser.Math.Between(480, 560) },
+      { x: Phaser.Math.Between(750, 1000), y: Phaser.Math.Between(440, 520) },
+      { x: Phaser.Math.Between(1050, 1250), y: Phaser.Math.Between(320, 420) },
     ];
 
     for (let i = 0; i < count; i++) {
@@ -209,6 +217,8 @@ export class AIController {
   }
 
   _deploySubmarine() {
+    if (!this.economy.canAfford('irgc', 60)) return;
+    this.economy.spend('irgc', 60);
     // Spawn from Iranian coast, near ship routes
     const route = SHIP_ROUTES[Math.floor(Math.random() * SHIP_ROUTES.length)];
     const wpIdx = Math.floor(Math.random() * Math.min(3, route.length));
