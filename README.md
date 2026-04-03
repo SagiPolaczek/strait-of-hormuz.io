@@ -16,7 +16,7 @@ A real-time strategy tower defense game set in the Strait of Hormuz. Command a c
 
 Built with [Phaser 3](https://phaser.io/) and deployed on [Cloudflare Pages](https://pages.cloudflare.com/).
 
-## Features
+## ✨ Features
 
 🛢️ **Oil Economy** — Both sides compete for oil. Build rigs, protect tankers, and manage your fuel reserves. Every unit costs oil, every rig generates it.
 
@@ -42,7 +42,7 @@ Built with [Phaser 3](https://phaser.io/) and deployed on [Cloudflare Pages](htt
 
 📱 **Mobile Support** — Responsive layout with fullscreen toggle, touch controls, and landscape-only enforcement.
 
-## Getting Started
+## 🚀 Getting Started
 
 ```bash
 # Install dependencies
@@ -58,7 +58,7 @@ npm run build
 npm run preview
 ```
 
-## Tech Stack
+## 🛠️ Tech Stack
 
 - **Engine:** [Phaser 3](https://phaser.io/) (Canvas renderer)
 - **Build:** [Vite](https://vitejs.dev/)
@@ -67,7 +67,7 @@ npm run preview
 - **Deploy:** Cloudflare Pages (static)
 - **Tests:** Vitest (unit) + Playwright (E2E smoke)
 
-## Project Structure
+## 📁 Project Structure
 
 ```
 src/
@@ -82,7 +82,7 @@ tests/
   e2e/          # Playwright smoke test
 ```
 
-## Easter Eggs
+## 🥚 Easter Eggs
 
 The game has a few hidden codes you can type during gameplay:
 
@@ -93,6 +93,6 @@ The game has a few hidden codes you can type during gameplay:
 | `unlockall` | Instantly unlocks all advanced units |
 | `alloutwar` | Total military mobilization — spawns the entire arsenal for both sides and triggers a Trump war speech |
 
-## License
+## 📄 License
 
 [MIT](LICENSE)
