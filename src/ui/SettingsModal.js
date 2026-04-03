@@ -51,6 +51,7 @@ export class SettingsModal {
     const W = 1920, H = 1539;
     const cx = W / 2, cy = H / 2;
     const pw = 620, ph = 780;
+    const R = 2; // text resolution multiplier for sharp rendering
     const left = cx - pw / 2, top = cy - ph / 2;
 
     // ── Dark overlay ──
@@ -88,12 +89,12 @@ export class SettingsModal {
     // ── Header ──
     this._el(this.scene.add.text(cx, top + 22, 'SYSTEM SETTINGS', {
       fontSize: '16px', fontFamily: '"Share Tech Mono", monospace',
-      color: '#33ff66', letterSpacing: 4,
+      color: '#33ff66', letterSpacing: 4, resolution: R,
     }).setOrigin(0.5, 0).setDepth(D + 2).setScrollFactor(0));
 
     this._el(this.scene.add.text(cx, top + 48, '⚙ CONFIGURATION', {
       fontSize: '42px', fontFamily: '"Black Ops One", cursive',
-      color: '#e0e0e0',
+      color: '#e0e0e0', resolution: R,
     }).setOrigin(0.5, 0).setDepth(D + 2).setScrollFactor(0));
 
     // Divider
@@ -105,7 +106,7 @@ export class SettingsModal {
 
     // ── AUDIO TOGGLE ──
     this._el(this.scene.add.text(cx, rowY, 'AUDIO', {
-      fontSize: '24px', fontFamily: '"Share Tech Mono", monospace', color: '#90CAF9',
+      fontSize: '24px', fontFamily: '"Share Tech Mono", monospace', color: '#90CAF9', resolution: R,
     }).setOrigin(0.5, 0).setDepth(D + 2).setScrollFactor(0));
 
     rowY += 36;
@@ -115,7 +116,7 @@ export class SettingsModal {
     const soundColor = soundOn ? '#4CAF50' : '#ef5350';
 
     const soundBtn = this._el(this.scene.add.text(cx, rowY, `[ ${soundLabel} ]`, {
-      fontSize: '26px', fontFamily: '"Black Ops One", cursive', color: soundColor,
+      fontSize: '26px', fontFamily: '"Black Ops One", cursive', color: soundColor, resolution: R,
     }).setOrigin(0.5, 0).setDepth(D + 3).setScrollFactor(0).setInteractive({ useHandCursor: true }));
 
     soundBtn.on('pointerover', () => soundBtn.setAlpha(0.7));
@@ -132,14 +133,14 @@ export class SettingsModal {
 
     // ── VOLUME SLIDER ──
     this._el(this.scene.add.text(cx, rowY, 'VOLUME', {
-      fontSize: '24px', fontFamily: '"Share Tech Mono", monospace', color: '#90CAF9',
+      fontSize: '24px', fontFamily: '"Share Tech Mono", monospace', color: '#90CAF9', resolution: R,
     }).setOrigin(0.5, 0).setDepth(D + 2).setScrollFactor(0));
 
     const currentVol = this.audio?.volume || 0.3;
 
     // Volume % text
     const volText = this._el(this.scene.add.text(cx, rowY + 34, `${Math.round(currentVol * 100)}%`, {
-      fontSize: '24px', fontFamily: '"Orbitron", sans-serif', color: '#ffb300',
+      fontSize: '24px', fontFamily: '"Orbitron", sans-serif', color: '#ffb300', resolution: R,
     }).setOrigin(0.5, 0).setDepth(D + 2).setScrollFactor(0));
 
     const sliderX = left + 50;
@@ -200,13 +201,13 @@ export class SettingsModal {
 
     // ── RESET LEADERBOARD ──
     this._el(this.scene.add.text(cx, rowY, 'LEADERBOARD', {
-      fontSize: '24px', fontFamily: '"Share Tech Mono", monospace', color: '#90CAF9',
+      fontSize: '24px', fontFamily: '"Share Tech Mono", monospace', color: '#90CAF9', resolution: R,
     }).setOrigin(0.5, 0).setDepth(D + 2).setScrollFactor(0));
 
     rowY += 36;
 
     const resetBtn = this._el(this.scene.add.text(cx, rowY, '[ RESET ]', {
-      fontSize: '24px', fontFamily: '"Black Ops One", cursive', color: '#ef5350',
+      fontSize: '24px', fontFamily: '"Black Ops One", cursive', color: '#ef5350', resolution: R,
     }).setOrigin(0.5, 0).setDepth(D + 3).setScrollFactor(0).setInteractive({ useHandCursor: true }));
 
     resetBtn.on('pointerover', () => resetBtn.setAlpha(0.7));
@@ -243,19 +244,19 @@ export class SettingsModal {
     // ── CONTROLS ──
     this._el(this.scene.add.text(cx, rowY, 'CONTROLS', {
       fontSize: '16px', fontFamily: '"Share Tech Mono", monospace',
-      color: '#33ff66', letterSpacing: 3,
+      color: '#33ff66', letterSpacing: 3, resolution: R,
     }).setOrigin(0.5, 0).setDepth(D + 2).setScrollFactor(0));
 
     rowY += 28;
     const controls = [
       '1-6 ........... SELECT UNIT',
       'CLICK MAP ..... PLACE / UPGRADE',
-      'T T T ......... TRUMP EVENT',
-      'ESC ........... SETTINGS',
+      'TYPE TRUMP .... TRUMP EVENT',
+      'ESC ........... PAUSE / SETTINGS',
     ];
     controls.forEach((line, i) => {
       this._el(this.scene.add.text(cx, rowY + i * 28, line, {
-        fontSize: '18px', fontFamily: '"Share Tech Mono", monospace', color: '#b0bec5',
+        fontSize: '18px', fontFamily: '"Share Tech Mono", monospace', color: '#b0bec5', resolution: R,
       }).setOrigin(0.5, 0).setDepth(D + 2).setScrollFactor(0));
     });
 
@@ -270,10 +271,10 @@ export class SettingsModal {
 
     this._el(this.scene.add.text(cx, rowY, 'SUPPORT THE MISSION', {
       fontSize: '16px', fontFamily: '"Share Tech Mono", monospace',
-      color: '#ffb300', letterSpacing: 3,
+      color: '#ffb300', letterSpacing: 3, resolution: R,
     }).setOrigin(0.5, 0).setDepth(D + 2).setScrollFactor(0));
 
-    const socialBtnY = rowY + 40;
+    const socialBtnY = rowY + 55;
 
     // GitHub icon
     const ghIcon = this._el(this.scene.add.image(cx - 40, socialBtnY, 'spr_github_icon')
@@ -293,7 +294,7 @@ export class SettingsModal {
 
     // ── CLOSE BUTTON ──
     const closeBtn = this._el(this.scene.add.text(cx, top + ph - 45, '[ CLOSE — ESC ]', {
-      fontSize: '28px', fontFamily: '"Black Ops One", cursive', color: '#33ff66',
+      fontSize: '28px', fontFamily: '"Black Ops One", cursive', color: '#33ff66', resolution: R,
     }).setOrigin(0.5).setDepth(D + 3).setScrollFactor(0).setInteractive({ useHandCursor: true }));
 
     closeBtn.on('pointerover', () => closeBtn.setColor('#66ff99'));
@@ -302,7 +303,7 @@ export class SettingsModal {
 
     // ── PAUSED label at top ──
     const pausedText = this._el(this.scene.add.text(cx, top - 40, '▌▌ PAUSED', {
-      fontSize: '36px', fontFamily: '"Black Ops One", cursive', color: '#ffb300',
+      fontSize: '36px', fontFamily: '"Black Ops One", cursive', color: '#ffb300', resolution: R,
     }).setOrigin(0.5).setDepth(D + 2).setScrollFactor(0));
 
     this.scene.tweens.add({
