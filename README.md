@@ -4,14 +4,10 @@ A real-time strategy tower defense game set in the Strait of Hormuz. Command a c
 
 <p align="center">
   <a href="https://strait-of-hormuz-io.pages.dev">
-    <img src="public/og-image.jpg" alt="Play Strait of Hormuz" width="600" />
+    <img src="public/gameplay.gif" alt="Gameplay" width="720" />
     <br/>
     <strong>PLAY NOW</strong>
   </a>
-</p>
-
-<p align="center">
-  <img src="public/gameplay.gif" alt="Gameplay" width="720" />
 </p>
 
 Built with [Phaser 3](https://phaser.io/) and deployed on [Cloudflare Pages](https://pages.cloudflare.com/).
