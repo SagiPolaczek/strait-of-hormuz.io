@@ -3,11 +3,11 @@
 A real-time strategy tower defense game set in the Strait of Hormuz. Command a coalition fleet to escort oil tankers through one of the world's most contested waterways, while an AI-controlled IRGC builds defenses to stop you.
 
 <p align="center">
-  <a href="https://strait-of-hormuz-io.pages.dev">
-    <img src="https://raw.githubusercontent.com/SagiPolaczek/strait-of-hormuz.io/main/public/gameplay.gif" alt="Gameplay" width="720" />
-    <br/>
-    <strong>PLAY NOW</strong>
-  </a>
+  <a href="https://strait-of-hormuz-io.pages.dev"><strong>▶ PLAY NOW</strong></a>
+</p>
+
+<p align="center">
+  <img src="public/gameplay.gif" alt="Gameplay" width="720" />
 </p>
 
 Built with [Phaser 3](https://phaser.io/) and deployed on [Cloudflare Pages](https://pages.cloudflare.com/).
