@@ -4,7 +4,7 @@ A real-time strategy tower defense game set in the Strait of Hormuz. Command a c
 
 <p align="center">
   <a href="https://strait-of-hormuz-io.pages.dev">
-    <img src="public/gameplay.gif" alt="Gameplay" width="720" />
+    <img src="https://raw.githubusercontent.com/SagiPolaczek/strait-of-hormuz.io/main/public/gameplay.gif" alt="Gameplay" width="720" />
     <br/>
     <strong>PLAY NOW</strong>
   </a>
