@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { LeaderboardManager } from '../systems/LeaderboardManager.js';
 import { DebriefRenderer } from '../ui/DebriefRenderer.js';
+import { SOCIAL } from '../config/constants.js';
 
 const DEFEAT_HEADLINES = [
   (s) => `Admiral got ${s} tankers through before the IRGC said no`,
@@ -354,6 +355,30 @@ export class GameOverScene extends Phaser.Scene {
     this.tweens.add({
       targets: retryText, alpha: { from: 1, to: 0.6 },
       duration: 1000, yoyo: true, repeat: -1, delay: 3100,
+    });
+
+    // ── Social buttons (below action buttons) ──
+    const socialY = btnY + 50;
+    const socialIconAlpha = 0.55;
+    const socialHoverAlpha = 1;
+
+    const ghIcon = this.add.image(cx - 30, socialY, 'spr_github_icon')
+      .setDepth(213).setAlpha(0)
+      .setInteractive({ useHandCursor: true });
+    ghIcon.on('pointerover', () => ghIcon.setAlpha(socialHoverAlpha));
+    ghIcon.on('pointerout', () => ghIcon.setAlpha(socialIconAlpha));
+    ghIcon.on('pointerdown', () => window.open(SOCIAL.GITHUB_URL, '_blank'));
+
+    const xIcon = this.add.image(cx + 30, socialY, 'spr_x_icon')
+      .setDepth(213).setAlpha(0)
+      .setInteractive({ useHandCursor: true });
+    xIcon.on('pointerover', () => xIcon.setAlpha(socialHoverAlpha));
+    xIcon.on('pointerout', () => xIcon.setAlpha(socialIconAlpha));
+    xIcon.on('pointerdown', () => window.open(SOCIAL.X_URL, '_blank'));
+
+    this.tweens.add({
+      targets: [ghIcon, xIcon], alpha: socialIconAlpha,
+      duration: 400, delay: 2900,
     });
 
     // ── Footer ──

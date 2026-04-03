@@ -243,8 +243,11 @@ export class TrumpShock {
 
   // Called by EconomyManager to scale oil income
   _playRandomClip() {
-    // Stop any currently playing trump clip
-    if (this._currentSound?.isPlaying) this._currentSound.stop();
+    if (this._currentSound) {
+      if (this._currentSound.isPlaying) this._currentSound.stop();
+      this._currentSound.destroy();
+      this._currentSound = null;
+    }
 
     const clipKey = this.TRUMP_CLIPS[Math.floor(Math.random() * this.TRUMP_CLIPS.length)];
     if (this.scene.cache.audio.exists(clipKey)) {

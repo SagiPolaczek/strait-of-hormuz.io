@@ -80,12 +80,10 @@ describe('BalanceMeter', () => {
     });
   });
 
-  describe('pause/resume', () => {
-    it('tracks pause time', () => {
-      const pauseMs = meter._totalPauseMs;
-      meter.onPause();
-      meter.onResume();
-      expect(meter._totalPauseMs).toBeGreaterThanOrEqual(pauseMs);
+  describe('time tracking', () => {
+    it('uses Phaser scene clock for elapsed time', () => {
+      expect(meter.startTime).toBeDefined();
+      expect(typeof meter.getElapsedMinutes()).toBe('number');
     });
   });
 });

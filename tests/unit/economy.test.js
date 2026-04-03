@@ -93,20 +93,10 @@ describe('EconomyManager', () => {
     });
   });
 
-  describe('collectFromRig', () => {
-    it('transfers stored oil to coalition total', () => {
-      const rig = { storedOil: 50 };
-      const collected = economy.collectFromRig(rig);
-      expect(collected).toBe(50);
-      expect(rig.storedOil).toBe(0);
-      expect(economy.coalitionOil).toBe(ECONOMY.COALITION_START_OIL + 50);
-    });
-    it('returns 0 for empty rig', () => {
-      const rig = { storedOil: 0 };
-      expect(economy.collectFromRig(rig)).toBe(0);
-    });
-    it('returns 0 for rig with no storedOil property', () => {
-      expect(economy.collectFromRig({})).toBe(0);
+  describe('getEffectiveCost', () => {
+    it('returns the base cost without scaling', () => {
+      expect(economy.getEffectiveCost(500)).toBe(500);
+      expect(economy.getEffectiveCost(100)).toBe(100);
     });
   });
 

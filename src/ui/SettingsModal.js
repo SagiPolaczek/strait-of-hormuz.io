@@ -246,7 +246,7 @@ export class SettingsModal {
 
     rowY += 20;
     const controls = [
-      '1-4 ........... SELECT UNIT',
+      '1-6 ........... SELECT UNIT',
       'CLICK MAP ..... PLACE / UPGRADE',
       'T T T ......... TRUMP EVENT',
       'ESC ........... SETTINGS',

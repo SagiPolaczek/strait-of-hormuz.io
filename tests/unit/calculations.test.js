@@ -6,7 +6,6 @@ import {
   getEffectiveFireRate,
   getEffectiveRange,
   getEffectiveSonarRange,
-  getMaxStorage,
   getDriftRate,
   getEscalationMultiplier,
 } from '../../src/utils/calculations.js';
@@ -82,14 +81,10 @@ describe('getEffectiveSonarRange', () => {
   });
 });
 
-describe('getMaxStorage', () => {
-  it('returns base storage with no upgrades', () => {
-    expect(getMaxStorage(60)).toBe(60);
-  });
-  it('increases storage (+50% per level)', () => {
-    expect(getMaxStorage(60, 1)).toBe(90);
-    expect(getMaxStorage(60, 2)).toBe(120);
-    expect(getMaxStorage(60, 3)).toBe(150);
+describe('getEffectiveFireRate clamping', () => {
+  it('clamps to minimum of 100ms at extreme levels', () => {
+    expect(getEffectiveFireRate(1500, 5)).toBe(100);
+    expect(getEffectiveFireRate(1500, 10)).toBe(100);
   });
 });
 

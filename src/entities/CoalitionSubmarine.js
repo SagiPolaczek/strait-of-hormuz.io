@@ -258,16 +258,4 @@ export class CoalitionSubmarine extends Ship {
       });
     }
   }
-
-  // Reset detected flags on IRGC subs when this sub is destroyed
-  _clearSonarDetections() {
-    for (const boat of this.scene?.irgcBoats?.getChildren() || []) {
-      if (boat.isSub) boat.detected = false;
-    }
-  }
-
-  destroy(fromScene) {
-    this._clearSonarDetections();
-    super.destroy(fromScene);
-  }
 }

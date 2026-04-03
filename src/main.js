@@ -65,7 +65,7 @@ function showCallsignPrompt(onComplete) {
   };
 
   const validate = () => {
-    const val = input.value.replace(/[^a-zA-Z0-9\-]/g, '').toUpperCase();
+    const val = input.value.replace(/[^a-zA-Z0-9\-]/g, '').toUpperCase().slice(0, 16);
     input.value = val;
     btn.disabled = val.length < 3;
     resize();

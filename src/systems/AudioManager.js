@@ -95,12 +95,6 @@ export class AudioManager {
     setTimeout(() => this._play(150, 'square', 0.15, 0.4), 100);
   }
 
-  collectOil() {
-    // Coin clink
-    this._play(1200, 'sine', 0.05, 0.3);
-    setTimeout(() => this._play(1500, 'sine', 0.08, 0.3), 40);
-  }
-
   trumpShock() {
     // Dramatic sting
     this._play(440, 'sawtooth', 0.15, 0.5);

@@ -3,3 +3,11 @@ node_modules/
 dist/
 test-results/
 playwright-report/
+
+# Dev tools
+animation-preview.html
+asset-catalog-sweep.html
+sound-preview.html
+tutorial-mockup.html
+tutorial-picker.html
+tutorial-preview.html

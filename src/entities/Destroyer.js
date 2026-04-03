@@ -186,39 +186,43 @@ export class Destroyer extends Ship {
   }
 
   findNearestEnemy() {
-    let nearest = null;
-    let nearestDist = this.stats.range;
+    const range = this.stats.range;
 
-    // Target IRGC towers (weapons platforms — high priority)
-    for (const t of this.scene.irgcTowers?.getChildren() || []) {
-      if (!t.active) continue;
-      const dist = Phaser.Math.Distance.Between(this.x, this.y, t.x, t.y);
-      if (dist < nearestDist) { nearestDist = dist; nearest = t; }
+    // Priority 1: IRGC boats (fast boats + surfaced/detected subs) — immediate combat threats
+    let nearest = null, nearDist = range;
+    for (const b of this.scene.irgcBoats?.getChildren() || []) {
+      if (!b.active || !b.alive) continue;
+      if (b.isSub && b.submerged && !b.detected) continue;
+      const dist = Phaser.Math.Distance.Between(this.x, this.y, b.x, b.y);
+      if (dist < nearDist) { nearDist = dist; nearest = b; }
     }
+    if (nearest) return nearest;
 
-    // Target IRGC oil rigs (enemy economy)
-    for (const r of this.scene.irgcRigs?.getChildren() || []) {
-      if (!r.active) continue;
-      const dist = Phaser.Math.Distance.Between(this.x, this.y, r.x, r.y);
-      if (dist < nearestDist) { nearestDist = dist; nearest = r; }
-    }
-
-    // Target detected mines (priority — they're an immediate threat)
+    // Priority 2: Detected mines — explosive hazards
+    nearDist = range;
     for (const m of this.scene.mines?.getChildren() || []) {
       if (!m.active || !m.detected || m.detonated) continue;
       const dist = Phaser.Math.Distance.Between(this.x, this.y, m.x, m.y);
-      if (dist < nearestDist) { nearestDist = dist; nearest = m; }
+      if (dist < nearDist) { nearDist = dist; nearest = m; }
     }
+    if (nearest) return nearest;
 
-    // Target IRGC boats (fast boats + surfaced/detected subs)
-    for (const b of this.scene.irgcBoats?.getChildren() || []) {
-      if (!b.active || !b.alive) continue;
-      // Submarines: only target if surfaced or detected
-      if (b.isSub && b.submerged && !b.detected) continue;
-      const dist = Phaser.Math.Distance.Between(this.x, this.y, b.x, b.y);
-      if (dist < nearestDist) { nearestDist = dist; nearest = b; }
+    // Priority 3: IRGC towers (missile launchers) — weapons platforms
+    nearDist = range;
+    for (const t of this.scene.irgcTowers?.getChildren() || []) {
+      if (!t.active) continue;
+      const dist = Phaser.Math.Distance.Between(this.x, this.y, t.x, t.y);
+      if (dist < nearDist) { nearDist = dist; nearest = t; }
     }
+    if (nearest) return nearest;
 
+    // Priority 4: IRGC oil rigs — economic targets (lowest priority)
+    nearDist = range;
+    for (const r of this.scene.irgcRigs?.getChildren() || []) {
+      if (!r.active) continue;
+      const dist = Phaser.Math.Distance.Between(this.x, this.y, r.x, r.y);
+      if (dist < nearDist) { nearDist = dist; nearest = r; }
+    }
     return nearest;
   }
 }

@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { findNearestCoalitionTarget } from '../utils/targeting.js';
 
 export class CruiseMissile extends Phaser.GameObjects.Container {
   constructor(scene, x, y) {
@@ -78,24 +79,9 @@ export class CruiseMissile extends Phaser.GameObjects.Container {
   }
 
   _findTarget() {
-    let nearest = null, nearDist = Infinity;
-
-    for (const s of this.scene.coalitionShips?.getChildren() || []) {
-      if (!s.active || !s.alive || s.isSubmerged) continue;
-      const d = Phaser.Math.Distance.Between(this.x, this.y, s.x, s.y);
-      if (d < nearDist) { nearDist = d; nearest = s; }
-    }
-    for (const r of this.scene.coalitionRigs?.getChildren() || []) {
-      if (!r.active || r.side !== 'coalition') continue;
-      const d = Phaser.Math.Distance.Between(this.x, this.y, r.x, r.y);
-      if (d < nearDist) { nearDist = d; nearest = r; }
-    }
-    for (const d of this.scene.coalitionDefenses?.getChildren() || []) {
-      if (!d.active) continue;
-      const dist = Phaser.Math.Distance.Between(this.x, this.y, d.x, d.y);
-      if (dist < nearDist) { nearDist = dist; nearest = d; }
-    }
-    return nearest;
+    return findNearestCoalitionTarget(this.scene, this.x, this.y, {
+      includeDefenses: true,
+    });
   }
 
   takeDamage(amount) {

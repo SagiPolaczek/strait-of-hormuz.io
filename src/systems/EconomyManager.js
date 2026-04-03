@@ -40,20 +40,8 @@ export class EconomyManager {
     }
   }
 
-  // Collect oil from a specific coalition rig
-  collectFromRig(rig) {
-    if (!rig.storedOil || rig.storedOil <= 0) return 0;
-    const collected = rig.storedOil;
-    rig.storedOil = 0;
-    this.coalitionOil += collected;
-    return collected;
-  }
-
-  // Get the effective cost of a unit, inversely scaled by Trump oil shock
-  // High oil prices = your oil is worth more = things cost less
   getEffectiveCost(baseCost) {
-    const mult = this.scene.trumpShock?.getMultiplier() || 1;
-    return Math.floor(baseCost / mult);
+    return baseCost;
   }
 
   canAfford(side, cost) {

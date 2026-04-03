@@ -1,8 +1,10 @@
+import { SOCIAL } from '../config/constants.js';
+
 export class HUD {
   constructor(scene, economy) {
     this.scene = scene;
     this.economy = economy;
-    this.startTime = Date.now();
+    this.startTime = scene.time.now;
 
     const DEPTH_BG = 100;
     const DEPTH_PANEL = 101;
@@ -47,6 +49,25 @@ export class HUD {
     dividers.strokePath();
 
     // (classification label removed)
+
+    // ── SOCIAL BUTTONS (top-left zone, x: 20–160) ──
+    const socialY = panelY;
+    const iconAlpha = 0.5;
+    const iconHoverAlpha = 1;
+
+    const ghIcon = scene.add.image(50, socialY, 'spr_github_icon')
+      .setDepth(DEPTH_GLOW).setScrollFactor(0).setAlpha(iconAlpha)
+      .setInteractive({ useHandCursor: true });
+    ghIcon.on('pointerover', () => ghIcon.setAlpha(iconHoverAlpha));
+    ghIcon.on('pointerout', () => ghIcon.setAlpha(iconAlpha));
+    ghIcon.on('pointerdown', () => window.open(SOCIAL.GITHUB_URL, '_blank'));
+
+    const xIcon = scene.add.image(100, socialY, 'spr_x_icon')
+      .setDepth(DEPTH_GLOW).setScrollFactor(0).setAlpha(iconAlpha)
+      .setInteractive({ useHandCursor: true });
+    xIcon.on('pointerover', () => xIcon.setAlpha(iconHoverAlpha));
+    xIcon.on('pointerout', () => xIcon.setAlpha(iconAlpha));
+    xIcon.on('pointerdown', () => window.open(SOCIAL.X_URL, '_blank'));
 
     // ── CALLSIGN (bottom-right, above deployment bar) ──
     const callsign = localStorage.getItem('hormuz_callsign') || 'UNKNOWN';
@@ -166,29 +187,13 @@ export class HUD {
       if (this._onSettingsClick) this._onSettingsClick();
     });
 
-    // Pause time tracking
-    this._pauseStart = 0;
-    this._totalPauseMs = 0;
 
     // Track previous threat for pulse animation
     this._prevThreat = null;
   }
 
-  /** Call when game pauses — records the pause start time. */
-  onPause() {
-    this._pauseStart = Date.now();
-  }
-
-  /** Call when game resumes — accumulates pause duration so clock stays accurate. */
-  onResume() {
-    if (this._pauseStart > 0) {
-      this._totalPauseMs += Date.now() - this._pauseStart;
-      this._pauseStart = 0;
-    }
-  }
-
   update(score) {
-    const elapsed = Math.floor((Date.now() - this.startTime - this._totalPauseMs) / 1000);
+    const elapsed = Math.floor((this.scene.time.now - this.startTime) / 1000);
     const oil = Math.floor(this.economy.coalitionOil);
     const rigs = this.economy.coalitionRigs.length;
 
@@ -266,7 +271,7 @@ export class HUD {
 
     // Threat dot glow pulse — lightweight alpha change only (no graphics redraw)
     const threat = this._prevThreat || 'LOW';
-    const pulse = 0.5 + 0.5 * Math.sin(Date.now() / (threat === 'EXTREME' ? 150 : threat === 'HIGH' ? 300 : 600));
+    const pulse = 0.5 + 0.5 * Math.sin(this.scene.time.now / (threat === 'EXTREME' ? 150 : threat === 'HIGH' ? 300 : 600));
     this.threatDotGlow.setAlpha(pulse);
   }
 
@@ -293,7 +298,7 @@ export class HUD {
   }
 
   getTimeString() {
-    const elapsed = Math.floor((Date.now() - this.startTime - this._totalPauseMs) / 1000);
+    const elapsed = Math.floor((this.scene.time.now - this.startTime) / 1000);
     const minutes = Math.floor(elapsed / 60);
     const seconds = String(elapsed % 60).padStart(2, '0');
     return `${minutes}:${seconds}`;

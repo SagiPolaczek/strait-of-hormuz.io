@@ -16,9 +16,7 @@ export class AIController {
     this.zoneManager = zoneManager;
     this.usedSpots = new Set();
     this.extraLauncherPositions = new Set(); // tracks dynamically placed launchers
-    this.startTime = Date.now();
-    this._totalPauseMs = 0;
-    this._pauseStart = 0;
+    this.startTime = scene.time.now;
 
     // Pre-sort build spots by proximity to ship route (closest first)
     this.sortedBuildSpots = this.rankBuildSpotsByRouteProximity();
@@ -88,17 +86,6 @@ export class AIController {
         loop: true,
       });
     });
-  }
-
-  onPause() {
-    this._pauseStart = Date.now();
-  }
-
-  onResume() {
-    if (this._pauseStart) {
-      this._totalPauseMs += Date.now() - this._pauseStart;
-      this._pauseStart = 0;
-    }
   }
 
   _spawnMines() {
@@ -232,7 +219,7 @@ export class AIController {
   }
 
   getElapsedMinutes() {
-    return (Date.now() - this.startTime - this._totalPauseMs) / 60000;
+    return (this.scene.time.now - this.startTime) / 60000;
   }
 
   getEscalationMultiplier() {

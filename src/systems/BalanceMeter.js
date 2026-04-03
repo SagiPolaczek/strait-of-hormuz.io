@@ -5,12 +5,10 @@ export class BalanceMeter {
   constructor(scene) {
     this.scene = scene;
     this.value = BALANCE.START;
-    this.startTime = Date.now();
+    this.startTime = scene.time.now;
     this.ended = false;
     this._cachedMinute = -1;
     this._cachedRate = BALANCE.DRIFT_RATES[0].rate;
-    this._totalPauseMs = 0;
-    this._pauseStart = 0;
 
     scene.time.addEvent({
       delay: 100,
@@ -20,19 +18,8 @@ export class BalanceMeter {
     });
   }
 
-  onPause() {
-    this._pauseStart = Date.now();
-  }
-
-  onResume() {
-    if (this._pauseStart) {
-      this._totalPauseMs += Date.now() - this._pauseStart;
-      this._pauseStart = 0;
-    }
-  }
-
   getElapsedMinutes() {
-    return (Date.now() - this.startTime - this._totalPauseMs) / 60000;
+    return (this.scene.time.now - this.startTime) / 60000;
   }
 
   getDriftRate() {

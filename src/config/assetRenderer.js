@@ -544,6 +544,99 @@ function drawSubmarine(ctx, w, h) {
   ctx.fillText('71', cx + 10, cy + 2);
 }
 
+// ── GITHUB ICON (Simplified octocat silhouette) ──
+function drawGitHubIcon(ctx, w, h) {
+  const cx = w / 2, cy = h / 2, r = w * 0.4;
+  ctx.fillStyle = '#ffffff';
+  // Outer circle
+  ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fill();
+  // Inner cutout (body + head of octocat simplified as negative space)
+  ctx.globalCompositeOperation = 'destination-out';
+  // Head notch
+  ctx.beginPath();
+  ctx.arc(cx, cy - r * 0.15, r * 0.58, 0, Math.PI * 2);
+  ctx.fill();
+  // Restore
+  ctx.globalCompositeOperation = 'source-over';
+  // Redraw as GitHub mark path (simplified)
+  ctx.clearRect(0, 0, w, h);
+  ctx.fillStyle = '#ffffff';
+  // Use a scaled-down GitHub path
+  const s = r / 12;
+  ctx.save();
+  ctx.translate(cx - 12 * s, cy - 12.5 * s);
+  ctx.scale(s, s);
+  ctx.beginPath();
+  // GitHub octicon path (standard mark)
+  ctx.moveTo(12, 0.297);
+  ctx.bezierCurveTo(5.373, 0.297, 0, 5.621, 0, 12.297);
+  ctx.bezierCurveTo(0, 17.637, 3.438, 22.097, 8.205, 23.682);
+  ctx.bezierCurveTo(8.805, 23.795, 9.025, 23.424, 9.025, 23.105);
+  ctx.bezierCurveTo(9.025, 22.82, 9.015, 22.065, 9.01, 21.065);
+  ctx.bezierCurveTo(5.672, 21.789, 4.968, 19.455, 4.968, 19.455);
+  ctx.bezierCurveTo(4.422, 18.07, 3.633, 17.7, 3.633, 17.7);
+  ctx.bezierCurveTo(2.546, 16.956, 3.717, 16.971, 3.717, 16.971);
+  ctx.bezierCurveTo(4.922, 17.055, 5.555, 18.207, 5.555, 18.207);
+  ctx.bezierCurveTo(6.625, 20.042, 8.364, 19.512, 9.048, 19.205);
+  ctx.bezierCurveTo(9.157, 18.429, 9.467, 17.9, 9.81, 17.6);
+  ctx.bezierCurveTo(7.145, 17.3, 4.344, 16.268, 4.344, 11.67);
+  ctx.bezierCurveTo(4.344, 10.36, 4.809, 9.29, 5.579, 8.45);
+  ctx.bezierCurveTo(5.444, 8.147, 5.039, 6.927, 5.684, 5.274);
+  ctx.bezierCurveTo(5.684, 5.274, 6.689, 4.952, 8.984, 6.504);
+  ctx.bezierCurveTo(9.944, 6.237, 10.964, 6.105, 11.984, 6.099);
+  ctx.bezierCurveTo(13.004, 6.105, 14.024, 6.237, 14.984, 6.504);
+  ctx.bezierCurveTo(17.264, 4.952, 18.269, 5.274, 18.269, 5.274);
+  ctx.bezierCurveTo(18.914, 6.927, 18.509, 8.147, 18.389, 8.45);
+  ctx.bezierCurveTo(19.154, 9.29, 19.619, 10.36, 19.619, 11.67);
+  ctx.bezierCurveTo(19.619, 16.28, 16.814, 17.295, 14.144, 17.59);
+  ctx.bezierCurveTo(14.564, 17.95, 14.954, 18.686, 14.954, 19.81);
+  ctx.bezierCurveTo(14.954, 21.416, 14.939, 22.706, 14.939, 23.096);
+  ctx.bezierCurveTo(14.939, 23.411, 15.149, 23.786, 15.764, 23.666);
+  ctx.bezierCurveTo(20.565, 22.092, 24, 17.592, 24, 12.297);
+  ctx.bezierCurveTo(24, 5.621, 18.627, 0.297, 12, 0.297);
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+}
+
+// ── X (TWITTER) ICON ──
+function drawXIcon(ctx, w, h) {
+  const cx = w / 2, cy = h / 2, r = w * 0.4;
+  const s = r / 12;
+  ctx.fillStyle = '#ffffff';
+  ctx.save();
+  ctx.translate(cx - 12 * s, cy - 12 * s);
+  ctx.scale(s, s);
+  ctx.beginPath();
+  // X logo path
+  ctx.moveTo(13.808, 10.469);
+  ctx.lineTo(20.878, 2);
+  ctx.lineTo(19.119, 2);
+  ctx.lineTo(13.024, 9.353);
+  ctx.lineTo(8.264, 2);
+  ctx.lineTo(2, 2);
+  ctx.lineTo(9.416, 13.12);
+  ctx.lineTo(2, 22);
+  ctx.lineTo(3.759, 22);
+  ctx.lineTo(10.199, 14.235);
+  ctx.lineTo(15.236, 22);
+  ctx.lineTo(21.5, 22);
+  ctx.lineTo(13.808, 10.469);
+  ctx.closePath();
+  ctx.moveTo(11.088, 13.236);
+  ctx.lineTo(10.296, 12.128);
+  ctx.lineTo(3.759, 3.3);
+  ctx.lineTo(7.42, 3.3);
+  ctx.lineTo(11.792, 9.558);
+  ctx.lineTo(12.584, 10.666);
+  ctx.lineTo(19.12, 20.78);
+  ctx.lineTo(15.459, 20.78);
+  ctx.lineTo(11.088, 13.236);
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+}
+
 // ── PUBLIC API ───────────────────────────────────────────────
 export function generateAll(scene) {
   createTexture(scene, 'spr_destroyer_hull', 80, 40, drawDestroyerHull);
@@ -561,4 +654,6 @@ export function generateAll(scene) {
   createTexture(scene, 'spr_proj_missile', 30, 12, drawProjMissile);
   createTexture(scene, 'spr_proj_shell', 34, 14, drawProjShell);
   createTexture(scene, 'spr_submarine', 50, 32, drawSubmarine);
+  createTexture(scene, 'spr_github_icon', 32, 32, drawGitHubIcon);
+  createTexture(scene, 'spr_x_icon', 32, 32, drawXIcon);
 }

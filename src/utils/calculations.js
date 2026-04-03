@@ -32,7 +32,7 @@ export function getEffectiveDamage(baseDamage, damageLevel = 0) {
  * -20% cooldown per level (lower = faster).
  */
 export function getEffectiveFireRate(baseRate, fireRateLevel = 0) {
-  return Math.floor(baseRate * (1 - 0.2 * fireRateLevel));
+  return Math.max(100, Math.floor(baseRate * (1 - 0.2 * fireRateLevel)));
 }
 
 /**
@@ -51,13 +51,6 @@ export function getEffectiveSonarRange(baseRange, sonarLevel = 0) {
   return baseRange * (1 + 0.25 * sonarLevel);
 }
 
-/**
- * Calculate max oil storage with storage upgrades.
- * +50% per storage level.
- */
-export function getMaxStorage(baseStorage, storageLevel = 0) {
-  return baseStorage * (1 + 0.5 * storageLevel);
-}
 
 /**
  * Look up the current drift rate from a time-based rate table.

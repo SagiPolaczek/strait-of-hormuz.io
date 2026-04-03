@@ -11,7 +11,7 @@ import { Destroyer } from '../entities/Destroyer.js';
 import { MissileLauncher } from '../entities/MissileLauncher.js';
 import { Projectile } from '../entities/Projectile.js';
 import { COALITION_UNITS } from '../config/units.js';
-import { TIMING, OIL_COLLECTION } from '../config/constants.js';
+import { TIMING } from '../config/constants.js';
 import { SHIP_ROUTES } from '../config/zones.js';
 import { BalanceMeter } from '../systems/BalanceMeter.js';
 import { BalanceMeterUI } from '../ui/BalanceMeterUI.js';
@@ -203,11 +203,6 @@ export class GameScene extends Phaser.Scene {
     // Always check if clicking a coalition unit — show upgrade panel
     const clickedUnit = this.findCoalitionUnitAt(x, y);
     if (clickedUnit) {
-      // Collect oil if it's a rig with stored oil
-      if (clickedUnit.storedOil > 0 && clickedUnit.side === 'coalition') {
-        const collected = this.economy.collectFromRig(clickedUnit);
-        if (collected > 0) { clickedUnit.showCollectionEffect(Math.floor(collected)); this.audio.collectOil(); }
-      }
       this.upgradePanel.show(clickedUnit);
       this._showRangeCircle(clickedUnit);
       if (!unit) return; // No deploy unit selected, just show upgrades
@@ -235,10 +230,7 @@ export class GameScene extends Phaser.Scene {
       }
     }
 
-    if (!unit) {
-      if (!clickedUnit) this.tryCollectOilRig(x, y);
-      return;
-    }
+    if (!unit) return;
 
     // Check if placement is in correct zone (oil rigs allowed in water + land)
     const allowedZones = unit.key === 'OIL_RIG'
@@ -288,23 +280,6 @@ export class GameScene extends Phaser.Scene {
 
     this.deployBar.clearSelection();
     this._clearZoneOutlines();
-  }
-
-  tryCollectOilRig(x, y) {
-    const rigs = this.coalitionRigs.getChildren();
-    for (const rig of rigs) {
-      if (!rig.active || rig.side !== 'coalition') continue;
-      const dist = Phaser.Math.Distance.Between(x, y, rig.x, rig.y);
-      const tapRadius = isMobile ? 80 : OIL_COLLECTION.CLICK_RADIUS;
-      if (dist < tapRadius && rig.storedOil > 0) {
-        const collected = this.economy.collectFromRig(rig);
-        if (collected > 0) {
-          rig.showCollectionEffect(Math.floor(collected));
-          this.audio.collectOil();
-        }
-        return;
-      }
-    }
   }
 
   placeCoalitionOilRig(x, y, stats) {
@@ -705,9 +680,6 @@ export class GameScene extends Phaser.Scene {
     this._settingsOpen = true;
     this.time.paused = true;
     this.tweens.pauseAll();
-    this.hud.onPause();
-    this.balanceMeter.onPause();
-    this.ai.onPause();
     if (this._ambientCurrent?.isPlaying) this._ambientCurrent.pause();
   }
 
@@ -715,9 +687,6 @@ export class GameScene extends Phaser.Scene {
     this._settingsOpen = false;
     this.time.paused = false;
     this.tweens.resumeAll();
-    this.hud.onResume();
-    this.balanceMeter.onResume();
-    this.ai.onResume();
     if (this._ambientCurrent?.isPaused) this._ambientCurrent.resume();
   }
 
@@ -777,13 +746,10 @@ export class GameScene extends Phaser.Scene {
     this._gameEnded = true;
     this.balanceMeter.ended = true;
 
-    // Flush any in-progress pause so timer is accurate
-    if (this._settingsOpen) this.hud.onResume();
-
     const data = {
       score: this.score,
       time: this.hud.getTimeString(),
-      timeSeconds: Math.floor((Date.now() - this.hud.startTime - this.hud._totalPauseMs) / 1000),
+      timeSeconds: Math.floor((this.time.now - this.hud.startTime) / 1000),
       outcome,
       balance: Math.round(this.balanceMeter.value),
     };

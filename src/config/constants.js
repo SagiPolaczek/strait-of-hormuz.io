@@ -9,12 +9,6 @@ export const ECONOMY = {
   OIL_RIG_RATE: 5,           // oil per second per rig
   IRGC_OIL_RIG_COST_MULT: 0.85, // IRGC oil rigs cost 85% of normal
   TANKER_BONUS: 500,          // oil earned when a tanker passes through
-  OIL_RIG_MAX_STORAGE: 60,    // max oil a rig can store before collection
-};
-
-export const OIL_COLLECTION = {
-  CLICK_RADIUS: 45,            // click radius to collect from a rig
-  FLOAT_DURATION: 900,         // ms for the "+X" text to float up
 };
 
 export const TIMING = {
@@ -56,6 +50,11 @@ export const ADVANCED = {
   F22_REFUEL_MS: 15000,
   F22_SPEED: 250,
   F22_BOMB_DAMAGE: 100,
+};
+
+export const SOCIAL = {
+  GITHUB_URL: 'https://github.com/SagiPolaczek/strait-of-hormuz.io',
+  X_URL: 'https://x.com/PolaczekSagi',
 };
 
 export const ESCALATION = {

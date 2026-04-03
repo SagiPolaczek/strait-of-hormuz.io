@@ -1,7 +1,5 @@
 import Phaser from 'phaser';
-import { ECONOMY } from '../config/constants.js';
 import { ensureTextures } from '../utils/textures.js';
-import { getMaxStorage as calcStorage } from '../utils/calculations.js';
 
 export class OilRig extends Phaser.GameObjects.Container {
   constructor(scene, x, y, side, stats) {
@@ -14,9 +12,6 @@ export class OilRig extends Phaser.GameObjects.Container {
 
     ensureTextures(scene);
 
-    // Tap-to-collect state (coalition only)
-    this.storedOil = 0;
-    this.maxStorage = ECONOMY.OIL_RIG_MAX_STORAGE;
     this.upgrades = side === 'coalition' ? { STORAGE: 0, DRILL_RATE: 0 } : {};
 
     const isCoalition = side === 'coalition';
@@ -74,10 +69,6 @@ export class OilRig extends Phaser.GameObjects.Container {
     }
 
     scene.add.existing(this);
-  }
-
-  getMaxStorage() {
-    return calcStorage(this.maxStorage, this.upgrades?.STORAGE || 0);
   }
 
   getMaxHP() {
@@ -157,77 +148,6 @@ export class OilRig extends Phaser.GameObjects.Container {
     }
   }
 
-  // Called by EconomyManager each tick — accumulate oil internally
-  addStoredOil(amount) {
-    if (this.side !== 'coalition') return;
-    this.storedOil = Math.min(this.storedOil + amount, this.getMaxStorage());
-    this._updateStorageVisual();
-  }
-
-  // Called when player clicks to collect — triggers the juicy effect
-  showCollectionEffect(amount) {
-    if (!this.scene) return;
-    const wx = this.x;
-    const wy = this.y;
-
-    // Golden splash text
-    const text = this.scene.add.text(wx, wy - 25, `+${amount} 🛢️`, {
-      fontSize: '22px',
-      fontFamily: '"Orbitron", sans-serif',
-      fontStyle: 'bold',
-      color: '#FFD54F',
-      stroke: '#000000',
-      strokeThickness: 3,
-    }).setOrigin(0.5).setDepth(25);
-
-    this.scene.tweens.add({
-      targets: text,
-      y: wy - 70,
-      alpha: 0,
-      scaleX: 1.3,
-      scaleY: 1.3,
-      duration: 900,
-      ease: 'Cubic.easeOut',
-      onComplete: () => text.destroy(),
-    });
-
-    // Golden particle burst
-    const burst = this.scene.add.particles(wx, wy - 10, 'flare', {
-      speed: { min: 40, max: 100 },
-      angle: { min: 230, max: 310 },
-      scale: { start: 0.6, end: 0 },
-      lifespan: 700,
-      tint: 0xFFD54F,
-      quantity: 8,
-      emitting: false,
-    });
-    burst.setDepth(22);
-    burst.explode(8);
-    this.scene.time.delayedCall(800, () => {
-      if (!this.scene || !this.scene.sys?.isActive()) return;
-      if (burst && burst.active) burst.destroy();
-    });
-
-    // Flash the rig bright
-    if (this.rigSprite && this.rigSprite.active) {
-      this.scene.tweens.add({
-        targets: this.rigSprite,
-        alpha: { from: 1, to: 0.7 },
-        duration: 200,
-      });
-    }
-
-    // Expanding golden ring
-    const ring = this.scene.add.circle(wx, wy, 10, 0xFFD54F, 0.4).setDepth(20);
-    this.scene.tweens.add({
-      targets: ring,
-      scaleX: 3, scaleY: 3, alpha: 0,
-      duration: 400,
-      ease: 'Cubic.easeOut',
-      onComplete: () => ring.destroy(),
-    });
-  }
-
   takeDamage(amount) {
     if (!this.active) return false;
     this.hp -= amount;
@@ -258,9 +178,6 @@ export class OilRig extends Phaser.GameObjects.Container {
     if (!this.scene) return;
     const wx = this.x;
     const wy = this.y;
-
-    // Cancel oil text timer
-    if (this.oilTextTimer) this.oilTextTimer.remove(false);
 
     // Fire burst
     const fire = this.scene.add.particles(wx, wy, 'fire', {
@@ -308,10 +225,6 @@ export class OilRig extends Phaser.GameObjects.Container {
   }
 
   destroy(fromScene) {
-    if (this.oilTextTimer) {
-      this.oilTextTimer.remove(false);
-      this.oilTextTimer = null;
-    }
     if (this.reserveLabel?.active) this.reserveLabel.destroy();
     this.reserveLabel = null;
     this._timers.forEach(t => { if (t) t.remove(false); });
