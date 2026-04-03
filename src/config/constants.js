@@ -54,7 +54,7 @@ export const ADVANCED = {
 
 export const SOCIAL = {
   GITHUB_URL: 'https://github.com/SagiPolaczek/strait-of-hormuz.io',
-  X_URL: 'https://x.com/PolaczekSagi',
+  X_URL: 'https://x.com/PolaczekSagi/status/2040041053655359886',
 };
 
 export const ESCALATION = {

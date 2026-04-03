@@ -2,6 +2,7 @@ import { UPGRADES } from '../config/upgrades.js';
 import { COALITION_UNITS } from '../config/units.js';
 import { ENEMY_INTEL, getIntelKey } from '../config/enemyIntel.js';
 import { isMobile } from '../utils/mobile.js';
+import { NewsFeed } from './NewsFeed.js';
 
 /** Escape HTML special characters to prevent DOM injection via innerHTML. */
 function esc(str) {
@@ -35,6 +36,7 @@ export class UpgradePanel {
       }
     }
 
+    this._newsFeed = new NewsFeed();
     this._showEmpty();
   }
 
@@ -138,14 +140,14 @@ export class UpgradePanel {
 
   _showEmpty() {
     this.innerEl.innerHTML = `
-      <div class="panel-header">UPGRADE</div>
-      <div style="color: #444; font-size: 14px; margin-top: 30px; text-align: center; line-height: 1.6;">
-        TAP A UNIT<br>TO UPGRADE
+      <div class="panel-header" style="font-weight: bold;">INTEL FEED</div>
+      <div style="color: #444; font-size: 12px; margin-top: 8px; text-align: center; line-height: 1.5;">
+        TAP A UNIT TO UPGRADE
       </div>
-      <div style="color: #333; font-size: 11px; margin-top: 16px; text-align: center;">
-        Select any coalition unit<br>on the map or deployment bar
-      </div>
+      <hr class="panel-divider" style="margin: 12px 0;">
+      <div id="news-feed-container"></div>
     `;
+    this._newsFeed.render(document.getElementById('news-feed-container'));
   }
 
   _getLevel(unitTypeKey, upgradeKey) {
