@@ -50,7 +50,7 @@ export class TrumpShock {
 
     // HUD multiplier badge
     this.badge = scene.add.text(480, 10, '', {
-      fontSize: '14px',
+      fontSize: '21px',
       fontFamily: '"Orbitron", sans-serif',
       fontStyle: 'bold',
       color: '#ffffff',
@@ -143,7 +143,7 @@ export class TrumpShock {
     bubble.setAlpha(0);
 
     const quoteText = this.scene.add.text(bubbleX, bubbleY, `"${quote}"`, {
-      fontSize: '28px',
+      fontSize: '42px',
       fontFamily: '"Black Ops One", cursive',
       color: '#1a1a1a',
       wordWrap: { width: bubbleW - 60 },
@@ -163,7 +163,7 @@ export class TrumpShock {
     const sign = positive ? '+' : '-';
     const color = positive ? '#4CAF50' : '#ef5350';
     const changeText = this.scene.add.text(W / 2, H / 2 - 100, `OIL ${sign}${k}%`, {
-      fontSize: '96px',
+      fontSize: '144px',
       fontFamily: '"Black Ops One", cursive',
       color,
       stroke: '#000000',
@@ -189,7 +189,7 @@ export class TrumpShock {
 
     // Multiplier sub-text
     const multText = this.scene.add.text(W / 2, H / 2 - 20, `Oil Value: ${this.multiplier.toFixed(2)}x`, {
-      fontSize: '32px',
+      fontSize: '48px',
       fontFamily: '"Share Tech Mono", monospace',
       color: '#ffffff',
       stroke: '#000000',

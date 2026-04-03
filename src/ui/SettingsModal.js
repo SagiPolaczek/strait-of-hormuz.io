@@ -1,5 +1,6 @@
 import { SettingsManager } from '../systems/SettingsManager.js';
 import { LeaderboardManager } from '../systems/LeaderboardManager.js';
+import { SOCIAL } from '../config/constants.js';
 
 export class SettingsModal {
   constructor(scene, audioManager) {
@@ -49,7 +50,7 @@ export class SettingsModal {
     const D = 300;
     const W = 1920, H = 1539;
     const cx = W / 2, cy = H / 2;
-    const pw = 520, ph = 480;
+    const pw = 620, ph = 780;
     const left = cx - pw / 2, top = cy - ph / 2;
 
     // ── Dark overlay ──
@@ -75,49 +76,47 @@ export class SettingsModal {
     const corners = this._el(this.scene.add.graphics().setDepth(D + 2).setScrollFactor(0));
     corners.lineStyle(1, 0x33ff66, 0.4);
     const m = 8, cLen = 20;
-    // Top-left
     corners.moveTo(left + m, top + m + cLen); corners.lineTo(left + m, top + m); corners.lineTo(left + m + cLen, top + m);
     corners.strokePath(); corners.beginPath();
-    // Top-right
     corners.moveTo(left + pw - m - cLen, top + m); corners.lineTo(left + pw - m, top + m); corners.lineTo(left + pw - m, top + m + cLen);
     corners.strokePath(); corners.beginPath();
-    // Bottom-left
     corners.moveTo(left + m, top + ph - m - cLen); corners.lineTo(left + m, top + ph - m); corners.lineTo(left + m + cLen, top + ph - m);
     corners.strokePath(); corners.beginPath();
-    // Bottom-right
     corners.moveTo(left + pw - m - cLen, top + ph - m); corners.lineTo(left + pw - m, top + ph - m); corners.lineTo(left + pw - m, top + ph - m - cLen);
     corners.strokePath();
 
     // ── Header ──
-    this._el(this.scene.add.text(cx, top + 20, 'SYSTEM SETTINGS', {
-      fontSize: '10px', fontFamily: '"Share Tech Mono", monospace',
+    this._el(this.scene.add.text(cx, top + 22, 'SYSTEM SETTINGS', {
+      fontSize: '16px', fontFamily: '"Share Tech Mono", monospace',
       color: '#33ff66', letterSpacing: 4,
-    }).setOrigin(0.5, 0).setDepth(D + 2).setScrollFactor(0).setAlpha(0.5));
+    }).setOrigin(0.5, 0).setDepth(D + 2).setScrollFactor(0));
 
-    this._el(this.scene.add.text(cx, top + 40, '⚙ CONFIGURATION', {
-      fontSize: '28px', fontFamily: '"Black Ops One", cursive',
+    this._el(this.scene.add.text(cx, top + 48, '⚙ CONFIGURATION', {
+      fontSize: '42px', fontFamily: '"Black Ops One", cursive',
       color: '#e0e0e0',
     }).setOrigin(0.5, 0).setDepth(D + 2).setScrollFactor(0));
 
     // Divider
     const hr1 = this._el(this.scene.add.graphics().setDepth(D + 2).setScrollFactor(0));
     hr1.lineStyle(1, 0x33ff66, 0.2);
-    hr1.lineBetween(left + 30, top + 80, left + pw - 30, top + 80);
+    hr1.lineBetween(left + 30, top + 105, left + pw - 30, top + 105);
 
-    let rowY = top + 100;
+    let rowY = top + 125;
 
     // ── AUDIO TOGGLE ──
-    this._el(this.scene.add.text(left + 40, rowY, 'AUDIO', {
-      fontSize: '16px', fontFamily: '"Share Tech Mono", monospace', color: '#90CAF9',
-    }).setDepth(D + 2).setScrollFactor(0));
+    this._el(this.scene.add.text(cx, rowY, 'AUDIO', {
+      fontSize: '24px', fontFamily: '"Share Tech Mono", monospace', color: '#90CAF9',
+    }).setOrigin(0.5, 0).setDepth(D + 2).setScrollFactor(0));
+
+    rowY += 36;
 
     const soundOn = this.audio?.enabled !== false;
     const soundLabel = soundOn ? 'ON' : 'OFF';
     const soundColor = soundOn ? '#4CAF50' : '#ef5350';
 
-    const soundBtn = this._el(this.scene.add.text(left + pw - 40, rowY, `[ ${soundLabel} ]`, {
-      fontSize: '18px', fontFamily: '"Black Ops One", cursive', color: soundColor,
-    }).setOrigin(1, 0).setDepth(D + 3).setScrollFactor(0).setInteractive({ useHandCursor: true }));
+    const soundBtn = this._el(this.scene.add.text(cx, rowY, `[ ${soundLabel} ]`, {
+      fontSize: '26px', fontFamily: '"Black Ops One", cursive', color: soundColor,
+    }).setOrigin(0.5, 0).setDepth(D + 3).setScrollFactor(0).setInteractive({ useHandCursor: true }));
 
     soundBtn.on('pointerover', () => soundBtn.setAlpha(0.7));
     soundBtn.on('pointerout', () => soundBtn.setAlpha(1));
@@ -129,48 +128,49 @@ export class SettingsModal {
       this._persist();
     });
 
-    rowY += 55;
+    rowY += 50;
 
     // ── VOLUME SLIDER ──
-    this._el(this.scene.add.text(left + 40, rowY, 'VOLUME', {
-      fontSize: '16px', fontFamily: '"Share Tech Mono", monospace', color: '#90CAF9',
-    }).setDepth(D + 2).setScrollFactor(0));
+    this._el(this.scene.add.text(cx, rowY, 'VOLUME', {
+      fontSize: '24px', fontFamily: '"Share Tech Mono", monospace', color: '#90CAF9',
+    }).setOrigin(0.5, 0).setDepth(D + 2).setScrollFactor(0));
 
-    const sliderX = left + 40;
-    const sliderY = rowY + 35;
-    const sliderW = pw - 80;
-    const sliderH = 16;
+    const currentVol = this.audio?.volume || 0.3;
+
+    // Volume % text
+    const volText = this._el(this.scene.add.text(cx, rowY + 34, `${Math.round(currentVol * 100)}%`, {
+      fontSize: '24px', fontFamily: '"Orbitron", sans-serif', color: '#ffb300',
+    }).setOrigin(0.5, 0).setDepth(D + 2).setScrollFactor(0));
+
+    const sliderX = left + 50;
+    const sliderY = rowY + 68;
+    const sliderW = pw - 100;
+    const sliderH = 22;
 
     // Slider track
     const trackGfx = this._el(this.scene.add.graphics().setDepth(D + 2).setScrollFactor(0));
     trackGfx.fillStyle(0x1a1a1a, 0.9);
-    trackGfx.fillRoundedRect(sliderX, sliderY, sliderW, sliderH, 3);
+    trackGfx.fillRoundedRect(sliderX, sliderY, sliderW, sliderH, 4);
     trackGfx.lineStyle(1, 0xffb300, 0.3);
-    trackGfx.strokeRoundedRect(sliderX, sliderY, sliderW, sliderH, 3);
+    trackGfx.strokeRoundedRect(sliderX, sliderY, sliderW, sliderH, 4);
 
     // Slider fill
     const fillGfx = this._el(this.scene.add.graphics().setDepth(D + 2.5).setScrollFactor(0));
-    const currentVol = this.audio?.volume || 0.3;
 
     const drawFill = (vol) => {
       fillGfx.clear();
-      const fw = Math.max(4, (sliderW - 4) * vol);
+      const fw = Math.max(6, (sliderW - 4) * vol);
       fillGfx.fillStyle(0xffb300, 0.8);
-      fillGfx.fillRoundedRect(sliderX + 2, sliderY + 2, fw, sliderH - 4, 2);
+      fillGfx.fillRoundedRect(sliderX + 2, sliderY + 2, fw, sliderH - 4, 3);
       fillGfx.fillStyle(0xffffff, 0.15);
-      fillGfx.fillRect(sliderX + 2, sliderY + 2, fw, 3);
+      fillGfx.fillRect(sliderX + 2, sliderY + 2, fw, 4);
     };
     drawFill(currentVol);
-
-    // Volume % text
-    const volText = this._el(this.scene.add.text(left + pw - 40, rowY, `${Math.round(currentVol * 100)}%`, {
-      fontSize: '16px', fontFamily: '"Orbitron", sans-serif', color: '#ffb300',
-    }).setOrigin(1, 0).setDepth(D + 2).setScrollFactor(0));
 
     // Slider hit area
     const sliderHit = this._el(this.scene.add.rectangle(
       sliderX + sliderW / 2, sliderY + sliderH / 2,
-      sliderW, sliderH + 20, 0x000000, 0
+      sliderW, sliderH + 24, 0x000000, 0
     ).setDepth(D + 3).setScrollFactor(0).setInteractive({ useHandCursor: true }));
 
     sliderHit.on('pointerdown', (pointer) => {
@@ -189,7 +189,7 @@ export class SettingsModal {
     });
     sliderHit.on('pointerup', () => this._persist());
 
-    rowY += 75;
+    rowY = sliderY + sliderH + 20;
 
     // Divider
     const hr2 = this._el(this.scene.add.graphics().setDepth(D + 2).setScrollFactor(0));
@@ -199,13 +199,15 @@ export class SettingsModal {
     rowY += 20;
 
     // ── RESET LEADERBOARD ──
-    this._el(this.scene.add.text(left + 40, rowY, 'LEADERBOARD', {
-      fontSize: '16px', fontFamily: '"Share Tech Mono", monospace', color: '#90CAF9',
-    }).setDepth(D + 2).setScrollFactor(0));
+    this._el(this.scene.add.text(cx, rowY, 'LEADERBOARD', {
+      fontSize: '24px', fontFamily: '"Share Tech Mono", monospace', color: '#90CAF9',
+    }).setOrigin(0.5, 0).setDepth(D + 2).setScrollFactor(0));
 
-    const resetBtn = this._el(this.scene.add.text(left + pw - 40, rowY, '[ RESET ]', {
-      fontSize: '16px', fontFamily: '"Black Ops One", cursive', color: '#ef5350',
-    }).setOrigin(1, 0).setDepth(D + 3).setScrollFactor(0).setInteractive({ useHandCursor: true }));
+    rowY += 36;
+
+    const resetBtn = this._el(this.scene.add.text(cx, rowY, '[ RESET ]', {
+      fontSize: '24px', fontFamily: '"Black Ops One", cursive', color: '#ef5350',
+    }).setOrigin(0.5, 0).setDepth(D + 3).setScrollFactor(0).setInteractive({ useHandCursor: true }));
 
     resetBtn.on('pointerover', () => resetBtn.setAlpha(0.7));
     resetBtn.on('pointerout', () => { resetBtn.setAlpha(1); });
@@ -229,22 +231,22 @@ export class SettingsModal {
       }
     });
 
-    rowY += 60;
+    rowY += 50;
 
     // Divider
     const hr3 = this._el(this.scene.add.graphics().setDepth(D + 2).setScrollFactor(0));
     hr3.lineStyle(1, 0x33ff66, 0.15);
     hr3.lineBetween(left + 30, rowY, left + pw - 30, rowY);
 
-    rowY += 15;
+    rowY += 18;
 
-    // ── CONTROLS HINT ──
+    // ── CONTROLS ──
     this._el(this.scene.add.text(cx, rowY, 'CONTROLS', {
-      fontSize: '10px', fontFamily: '"Share Tech Mono", monospace',
+      fontSize: '16px', fontFamily: '"Share Tech Mono", monospace',
       color: '#33ff66', letterSpacing: 3,
-    }).setOrigin(0.5, 0).setDepth(D + 2).setScrollFactor(0).setAlpha(0.5));
+    }).setOrigin(0.5, 0).setDepth(D + 2).setScrollFactor(0));
 
-    rowY += 20;
+    rowY += 28;
     const controls = [
       '1-6 ........... SELECT UNIT',
       'CLICK MAP ..... PLACE / UPGRADE',
@@ -252,14 +254,46 @@ export class SettingsModal {
       'ESC ........... SETTINGS',
     ];
     controls.forEach((line, i) => {
-      this._el(this.scene.add.text(cx, rowY + i * 22, line, {
-        fontSize: '13px', fontFamily: '"Share Tech Mono", monospace', color: '#777777',
+      this._el(this.scene.add.text(cx, rowY + i * 28, line, {
+        fontSize: '18px', fontFamily: '"Share Tech Mono", monospace', color: '#b0bec5',
       }).setOrigin(0.5, 0).setDepth(D + 2).setScrollFactor(0));
     });
 
+    rowY += controls.length * 28 + 18;
+
+    // ── SUPPORT SECTION ──
+    const hr4 = this._el(this.scene.add.graphics().setDepth(D + 2).setScrollFactor(0));
+    hr4.lineStyle(1, 0x33ff66, 0.15);
+    hr4.lineBetween(left + 30, rowY, left + pw - 30, rowY);
+
+    rowY += 16;
+
+    this._el(this.scene.add.text(cx, rowY, 'SUPPORT THE MISSION', {
+      fontSize: '16px', fontFamily: '"Share Tech Mono", monospace',
+      color: '#ffb300', letterSpacing: 3,
+    }).setOrigin(0.5, 0).setDepth(D + 2).setScrollFactor(0));
+
+    const socialBtnY = rowY + 40;
+
+    // GitHub icon
+    const ghIcon = this._el(this.scene.add.image(cx - 40, socialBtnY, 'spr_github_icon')
+      .setScale(2).setDepth(D + 3).setScrollFactor(0).setAlpha(0.8)
+      .setInteractive({ useHandCursor: true }));
+    ghIcon.on('pointerover', () => ghIcon.setAlpha(1));
+    ghIcon.on('pointerout', () => ghIcon.setAlpha(0.8));
+    ghIcon.on('pointerdown', () => window.open(SOCIAL.GITHUB_URL, '_blank'));
+
+    // X icon
+    const xIcon = this._el(this.scene.add.image(cx + 40, socialBtnY, 'spr_x_icon')
+      .setScale(2).setDepth(D + 3).setScrollFactor(0).setAlpha(0.8)
+      .setInteractive({ useHandCursor: true }));
+    xIcon.on('pointerover', () => xIcon.setAlpha(1));
+    xIcon.on('pointerout', () => xIcon.setAlpha(0.8));
+    xIcon.on('pointerdown', () => window.open(SOCIAL.X_URL, '_blank'));
+
     // ── CLOSE BUTTON ──
-    const closeBtn = this._el(this.scene.add.text(cx, top + ph - 40, '[ CLOSE — ESC ]', {
-      fontSize: '20px', fontFamily: '"Black Ops One", cursive', color: '#33ff66',
+    const closeBtn = this._el(this.scene.add.text(cx, top + ph - 45, '[ CLOSE — ESC ]', {
+      fontSize: '28px', fontFamily: '"Black Ops One", cursive', color: '#33ff66',
     }).setOrigin(0.5).setDepth(D + 3).setScrollFactor(0).setInteractive({ useHandCursor: true }));
 
     closeBtn.on('pointerover', () => closeBtn.setColor('#66ff99'));
@@ -267,8 +301,8 @@ export class SettingsModal {
     closeBtn.on('pointerdown', () => this.close());
 
     // ── PAUSED label at top ──
-    const pausedText = this._el(this.scene.add.text(cx, top - 30, '▌▌ PAUSED', {
-      fontSize: '24px', fontFamily: '"Black Ops One", cursive', color: '#ffb300',
+    const pausedText = this._el(this.scene.add.text(cx, top - 40, '▌▌ PAUSED', {
+      fontSize: '36px', fontFamily: '"Black Ops One", cursive', color: '#ffb300',
     }).setOrigin(0.5).setDepth(D + 2).setScrollFactor(0));
 
     this.scene.tweens.add({

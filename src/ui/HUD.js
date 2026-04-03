@@ -69,6 +69,38 @@ export class HUD {
     xIcon.on('pointerout', () => xIcon.setAlpha(iconAlpha));
     xIcon.on('pointerdown', () => window.open(SOCIAL.X_URL, '_blank'));
 
+    // White glare pulse behind icons every 15s
+    const glareFlash = (glare) => {
+      scene.tweens.add({
+        targets: glare,
+        alpha: { from: 0, to: 0.6 },
+        scale: { from: 0.6, to: 1.8 },
+        duration: 500,
+        yoyo: true,
+        ease: 'Sine.easeInOut',
+      });
+    };
+
+    const ghGlare = scene.add.circle(50, socialY, 26, 0xffffff, 0)
+      .setDepth(DEPTH_PANEL).setScrollFactor(0);
+    const xGlare = scene.add.circle(100, socialY, 26, 0xffffff, 0)
+      .setDepth(DEPTH_PANEL).setScrollFactor(0);
+
+    // Fire once after 3s so it's immediately noticeable
+    scene.time.delayedCall(3000, () => {
+      glareFlash(ghGlare);
+      glareFlash(xGlare);
+    });
+
+    scene.time.addEvent({
+      delay: 15000,
+      loop: true,
+      callback: () => {
+        glareFlash(ghGlare);
+        glareFlash(xGlare);
+      },
+    });
+
     // ── CALLSIGN (bottom-right, above deployment bar) ──
     const callsign = localStorage.getItem('hormuz_callsign') || 'UNKNOWN';
     this.callsignText = scene.add.text(1840, 1539 - 120, `ADM. ${callsign}`, {

@@ -24,6 +24,7 @@ import { CoalitionSubmarine } from '../entities/CoalitionSubmarine.js';
 import { ADVANCED } from '../config/constants.js';
 import { AudioManager } from '../systems/AudioManager.js';
 import { SettingsModal } from '../ui/SettingsModal.js';
+import { SupportModal } from '../ui/SupportModal.js';
 import { isMobile } from '../utils/mobile.js';
 import { FastBoat } from '../entities/FastBoat.js';
 import { Mine } from '../entities/Mine.js';
@@ -103,6 +104,10 @@ export class GameScene extends Phaser.Scene {
     this.settingsModal = new SettingsModal(this, this.audio);
     this.hud._onSettingsClick = () => this.toggleSettings();
     this._settingsOpen = false;
+
+    // Support modal (shows once after 2 minutes)
+    this.supportModal = new SupportModal(this);
+    this.supportModal.schedule(120000);
 
     // Ambient background music — shuffle through 4 tracks
     this._ambientTracks = ['ambient_drums_01', 'ambient_drums_02', 'ambient_drums_03', 'ambient_drums_04'];
@@ -1027,6 +1032,9 @@ export class GameScene extends Phaser.Scene {
       }).setOrigin(0.5).setDepth(262).setAlpha(0);
 
       this.tweens.add({ targets: [bubble, quoteText], alpha: 1, duration: 300, delay: 400 });
+
+      // Play a random Trump voice clip
+      if (this.trumpShock) this.trumpShock._playRandomClip();
 
       this.time.delayedCall(5000, () => {
         if (!this.scene.isActive()) return;
