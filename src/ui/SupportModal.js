@@ -36,6 +36,10 @@ export class SupportModal {
   }
 
   _destroy() {
+    if (this._escHandler) {
+      this.scene.input.keyboard.off('keydown-ESC', this._escHandler);
+      this._escHandler = null;
+    }
     this.elements.forEach(el => {
       if (el?.active) {
         this.scene.tweens.killTweensOf(el);

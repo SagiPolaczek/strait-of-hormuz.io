@@ -678,6 +678,7 @@ export class GameScene extends Phaser.Scene {
 
   toggleSettings() {
     if (this._tutorialOpen) return;
+    if (this.supportModal?.isOpen) return;
     this.settingsModal.toggle();
   }
 
